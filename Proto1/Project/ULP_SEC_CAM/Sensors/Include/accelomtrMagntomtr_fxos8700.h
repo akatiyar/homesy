@@ -65,7 +65,7 @@
 #define Z_AXIS							2
 
 //	These macros should be fixed according on orientation of the chip and PCB
-#define PARALLEL_AXIS					X_AXIS	//Axis that is Horizontal, and
+#define PARALLEL_AXIS					Y_AXIS	//Axis that is Horizontal, and
 												//parallel to the door
 #define PERPENDICULAR_AXIS				Z_AXIS	//Axis that is Horizontal, and
 												//perpendicular to the door

@@ -92,12 +92,15 @@
 //******************************************************************************
 void verifyAccelMagnSensor()
 {
-	uint8_t ucDeviceID;
+	uint8_t ucDeviceID = 0x00;
 
 	i2cReadRegisters(FXOS8700_I2C_ADDRESS,
 						DEVICE_ID_REG,
 						LENGTH_IS_ONE,
 						&ucDeviceID);
+
+	UART_PRINT("Read Device ID: %x", ucDeviceID);
+
 	if(DEVICE_ID == ucDeviceID)
 	{
 		UART_PRINT("\nDevice ID read thru' I2C = expected device ID of FXOS8700"
@@ -397,7 +400,8 @@ void FXOS8700CQ_Mag_Calibration (void)
      while (i < 94)             // This takes ~30s (94 samples * 1/3.125)
      {
 
-    	 while(!GPIOPinRead(GPIOA0_BASE,0x80))
+    	 //while(!GPIOPinRead(GPIOA0_BASE,0x80))
+    	 while(!GPIOPinRead(GPIOA0_BASE,0x04))
     	 {
     	 }
 
