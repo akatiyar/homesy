@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "rom_map.h"
 
-#define APP_SSID_NAME 			"Solflr3"
+#define APP_SSID_NAME 			"Solflr4"
 #define APP_SSID_PASSWORD		"37203922bb"
 #define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
@@ -29,7 +29,7 @@
 #define FN_SUCCESS	0
 #define FN_FAILED	1 //Funtion return values are uint16_t
 
-#define TEST_MODULES_INCLUDE
+//#define TEST_MODULES_INCLUDE
 //#define USB_DEBUG
 #define DEBUG_ENABLE
 #ifndef DEBUG_ENABLE

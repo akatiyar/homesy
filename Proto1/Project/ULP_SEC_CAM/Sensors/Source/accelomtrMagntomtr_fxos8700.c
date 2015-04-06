@@ -123,15 +123,15 @@ void verifyAccelMagnSensor()
 //	\return none
 //
 //******************************************************************************
-void configureFXOS8700(uint8_t ucAccelMagnMode)
+void configureFXOS8700(uint8_t ucAppMode)
 {
 	uint8_t i = 0;
 	uint8_t ucConfigArray[40];
 	uint8_t ucNoofCfgs;
 
-	switch(ucAccelMagnMode)
+	switch(ucAppMode)
 	{
-		case MODE_READ_ACCEL_MAGN_DATA:
+		case 0:
 			// Software reset
 			ucConfigArray[i++] = CTRL_REG2;
 			ucConfigArray[i++] = 0x40;
@@ -182,63 +182,22 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 			ucConfigArray[i++] = MOFF_Z_LSB_REG;
 			ucConfigArray[i++] = 0x00;
 
-			// ODR (hybridmode) = 3.125 Hz
-			//0x0D - ; 0x25 - ODR (hybridmode) = 25 Hz
-			//0x05 - ODR (hybridmode) = 400 Hz
+			// ODR (hybridmode) = 6.25
+			//0x0D - ; 0x25 - ODR (hybridmode) = 50
 			ucConfigArray[i++] = CTRL_REG1;
 			ucConfigArray[i++] = 0x35;
 
 			ucNoofCfgs = i/2;
 
+
+			for (i = 0; i < ucNoofCfgs; i++)
+			{
+				setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
+		//		updateConfigReg(ucConfigArray[i*2],
+		//							ucConfigArray[i*2 + 1],
+		//							0b11111111);
+			}
 			break;
-
-		case MODE_ACCEL_INTERRUPT: //For motion detection: Configs from AN4070
-			// Software reset
-			ucConfigArray[i++] = CTRL_REG2;
-			ucConfigArray[i++] = 0x40;
-
-			// Stand by mode; ORD = 100Hz
-			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = 0x18;
-
-			// “OR”, latch enable, enabling X, Z (change with chip position)
-			// Bit5,6,7 for Z,Y,X respectively
-			ucConfigArray[i++] = A_FFMT_CFG_REG;
-			ucConfigArray[i++] = 0xE8;
-
-			// Motion detection threshold(common to X,Y,Z), MAX:0x7F, 1LSB=.063
-			ucConfigArray[i++] = A_FFMT_THRS_REG;
-			ucConfigArray[i++] = 0x02;
-
-			// Debounce Counter
-			//Calcs: Req Debnc_Time = 100ms, o/p gap = 1/ODR = 10ms => cnt=10
-			ucConfigArray[i++] = A_FFMT_DEBOUNCE_CNT_REG;
-			ucConfigArray[i++] = 0x0A;
-
-			// Enable Motion/Freefall Interrupt Function in the System
-			ucConfigArray[i++] = CTRL_REG4;
-			ucConfigArray[i++] = 0x04;
-
-			// Route the Motion/Freefall Interrupt Function to INT1 hardware pin
-			ucConfigArray[i++] = CTRL_REG5;
-			ucConfigArray[i++] = 0x04;
-
-			// Active Mode
-			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = (0x18|0x01);//Some fields are set earlier
-												// Use updateReg fn if feasible
-
-			ucNoofCfgs = i/2;
-
-			break;
-	}
-
-	for (i = 0; i < ucNoofCfgs; i++)
-	{
-		setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
-//		updateConfigReg(ucConfigArray[i*2],
-//							ucConfigArray[i*2 + 1],
-//							0b11111111);
 	}
 	return;
 }
@@ -276,6 +235,7 @@ void setMotionDetectionThreshold(float_t fAccelThreshold)
 	}
 	return;
 }
+
 
 //******************************************************************************
 //
@@ -342,34 +302,18 @@ void getAccelerationMagnitude(float_t* pfAccel)
 	uint8_t ucAccelOut[6];
 
 	getAccelData(&ucAccelOut[0]);
-//	UART_PRINT("\nAcc Data Read: %x %x %x %x %x %x\n\r",
-//					ucAccelOut[0],
-//					ucAccelOut[1],
-//					ucAccelOut[2],
-//					ucAccelOut[3],
-//					ucAccelOut[4],
-//					ucAccelOut[5]);
-//	UART_PRINT("x: %f", (SENSITIVITY_ACCEL *
-//			(float_t)((int16_t)((ucAccelOut[0] << 8) | ucAccelOut[1]) >> 2)));
-//	UART_PRINT("y: %f", (SENSITIVITY_ACCEL *
-//			(float_t)((int16_t)((ucAccelOut[2] << 8) | ucAccelOut[3]) >> 2)));
-//	UART_PRINT("z: %f", (SENSITIVITY_ACCEL *
-//			(float_t)((int16_t)((ucAccelOut[4] << 8) | ucAccelOut[5]) >> 2)));
-
-
-	UART_PRINT("%f, ", (SENSITIVITY_ACCEL *
-			(float_t)((int16_t)((ucAccelOut[0] << 8) | ucAccelOut[1]) >> 2)));
-	UART_PRINT("%f, ", (SENSITIVITY_ACCEL *
-			(float_t)((int16_t)((ucAccelOut[2] << 8) | ucAccelOut[3]) >> 2)));
-	UART_PRINT("%f, ", (SENSITIVITY_ACCEL *
-			(float_t)((int16_t)((ucAccelOut[4] << 8) | ucAccelOut[5]) >> 2)));
+	UART_PRINT("\nAcc Data Read: %x %x %x %x %x %x",
+					ucAccelOut[0],
+					ucAccelOut[1],
+					ucAccelOut[2],
+					ucAccelOut[3],
+					ucAccelOut[4],
+					ucAccelOut[5]);
 
 	*pfAccel = pow( (int16_t)((ucAccelOut[0] << 8) | ucAccelOut[1]) >> 2, 2);
 	*pfAccel +=  pow( (int16_t)((ucAccelOut[2] << 8) | ucAccelOut[3]) >> 2, 2);
 	*pfAccel +=  pow( (int16_t)((ucAccelOut[4] << 8) | ucAccelOut[5]) >> 2, 2);
 	*pfAccel = sqrt(*pfAccel) * SENSITIVITY_ACCEL;
-
-	UART_PRINT( "%f\n", *pfAccel);
 
 	return;
 }
@@ -408,28 +352,6 @@ void updateConfigReg(uint8_t ucConfigRegAddr,
 						&ucConfigVal);
 }
 
-//******************************************************************************
-//
-//	This function clears the accelerometer motion iterrupt by reading the
-//	Accelerometer Freefall/motion detection interrupt source register
-//
-//	param	none
-//
-//	return	none
-//
-//******************************************************************************
-void clearAccelMotionIntrpt()
-{
-	uint8_t ucMotionIntrptStatus;
-
-	i2cReadRegisters(FXOS8700_I2C_ADDRESS,
-						A_FFMT_SRC_REG,
-						LENGTH_IS_ONE,
-						&ucMotionIntrptStatus);
-	UART_PRINT("\n\rMotion Detect Intrpt Status: %x\n\r", ucMotionIntrptStatus);
-
-	return;
-}
 
 //	Calibration Related Function taken from https://community.freescale.com/docs/DOC-101073
 //	Called by the FXOS8700CQ_Mag_Calibration()

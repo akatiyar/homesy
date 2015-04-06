@@ -24,7 +24,7 @@ void HIBernate()
     UART_PRINT("\n\rCleared sensors\n\r");
 
     DBG_PRINT("\n\rHIB: Entering HIBernate..."
-        		"	\n\r Open up the door to capture the image\n\r");
+        		"	\n\r Switch on light to wake CC3200 up\n\r");
     MAP_UtilsDelay(80000);
 
     //
@@ -36,6 +36,5 @@ void HIBernate()
 
 static void sensorsTriggerSetup()
 {
-//	getLightsensor_intrptStatus();
-	clearAccelMotionIntrpt();
+	getLightsensor_intrptStatus();
 }

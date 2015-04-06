@@ -47,12 +47,6 @@
 #define MOFF_Z_MSB_REG					0x43
 #define MOFF_Z_LSB_REG					0x44
 
-//Accel Motion Detection Registers' Addresses
-#define A_FFMT_CFG_REG					0x15
-#define A_FFMT_THRS_REG					0x17
-#define A_FFMT_DEBOUNCE_CNT_REG			0x18
-#define A_FFMT_SRC_REG					0x16
-
 #define DEVICE_ID 						0xC7
 
 #define FS								2 		// Valid values:2,4,8
@@ -71,7 +65,7 @@
 #define Z_AXIS							2
 
 //	These macros should be fixed according on orientation of the chip and PCB
-#define PARALLEL_AXIS					X_AXIS	//Axis that is Horizontal, and
+#define PARALLEL_AXIS					Y_AXIS	//Axis that is Horizontal, and
 												//parallel to the door
 #define PERPENDICULAR_AXIS				Z_AXIS	//Axis that is Horizontal, and
 												//perpendicular to the door
@@ -79,9 +73,6 @@
 #define PI								(3.14)
 
 #define SENSITIVITY_MAG					.1		//uT per LSB
-
-#define MODE_READ_ACCEL_MAGN_DATA		1
-#define MODE_ACCEL_INTERRUPT			2
 
 //*****************************************************************************
 // 									STRUCTURES
@@ -110,5 +101,5 @@ void FXOS8700CQ_Init (void);
 void FXOS8700CQ_Mag_Calibration (void);
 void writeMagntCalibrationValue(int16_t* psCalibOffsetVals);
 
-void clearAccelMotionIntrpt();
+
 #endif /* FXOS8700_H_ */
