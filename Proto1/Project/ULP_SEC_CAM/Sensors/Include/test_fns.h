@@ -12,6 +12,7 @@ void TestFxosApiReadWrite(void *pvParameters);
 void TestSi7020ApiReadWrite(void *pvParameters);
 void TestIsl29035Api(void *pvParameters);
 void collectTxitSensorData(void *pvParameters);
+void TestFxosMovementDetection(void *pvParameters);
 
 #endif /* TEST_FNS_H_ */
 #endif

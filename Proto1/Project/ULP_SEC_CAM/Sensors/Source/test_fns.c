@@ -189,14 +189,15 @@ void TestFxosApiReadWrite(void *pvParameters)
 
 	while(1)
 	{
-		while(!GPIOPinRead(GPIOA0_BASE,0x80))
+		//while(!GPIOPinRead(GPIOA0_BASE,0x80))
 		{
 			//UART_PRINT("*");
 		}
 		getAccelerationMagnitude( &fAccel );
-		UART_PRINT( "\nAcceleration: %f", fAccel);
-		getDoorDirection( &fDoorDirectionAngle );
-		UART_PRINT("\nAngle:%f\n\n", fDoorDirectionAngle);
+		UtilsDelay(80000000 * .001);
+//		UART_PRINT( "\nAcceleration: %f", fAccel);
+//		getDoorDirection( &fDoorDirectionAngle );
+//		UART_PRINT("\nAngle:%f\n\n", fDoorDirectionAngle);
 		//UtilsDelay( 8000000/3 ); 	// Can uncomment this if data ready
 									// interrupt is not set up
 	}
@@ -204,6 +205,26 @@ void TestFxosApiReadWrite(void *pvParameters)
 //	{
 //		UART_PRINT("\nFailed\n");
 //	}
+}
+
+void TestFxosMovementDetection(void *pvParameters)
+{
+	float_t fDoorDirectionAngle, fAccel;
+
+	verifyAccelMagnSensor();
+	configureFXOS8700(MODE_ACCEL_INTERRUPT);
+
+	while(1)
+	{
+		while(GPIOPinRead(GPIOA0_BASE,0x04))
+		{
+		}
+
+		UART_PRINT("MD	");
+
+		clearAccelMotionIntrpt();
+	}
+
 }
 
 void TestSi7020ApiReadWrite(void *pvParameters)

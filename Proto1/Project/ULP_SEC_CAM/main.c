@@ -226,20 +226,22 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 
 void CollectTxit_ImgTempRH(void *pvParameters)
 {
+
 	CaptureImage();
 
+	ConfigureSimpleLinkToDefaultState();
 	ConnectToNetwork_STA();
 
 	ParseClient clientHandle;
 	clientHandle = InitialiseParse();
 
 	uint8_t ucParseImageUrl[100];
-	memset(ucParseImageUrl, '0', 100);
+	memset(ucParseImageUrl,NULL, 100);
 	UploadImageToParse(clientHandle, (unsigned char*) USER_FILE_NAME, ucParseImageUrl);
 
-	UART_PRINT("\n%s\n", ucParseImageUrl);
+	//UART_PRINT("\n%s\n", ucParseImageUrl);
 
-	//
+	/*//
 	//	Collect Temperature and RH values from Si7020 IC
 	//
 	float_t fTemp, fRH;
@@ -272,7 +274,7 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 	strncat(ucSensorDataTxt, "\"}", sizeof("\"}"""));
 	UART_PRINT("\n%s\n", ucSensorDataTxt);
 
-	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
+	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);*/
 
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);
@@ -280,8 +282,19 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 
 #ifndef USB_DEBUG
 
+//	uint16_t temp = getLightsensor_data();
+//
+//	while(temp > 0x01FF)
+//	{
+//		temp = getLightsensor_data();
+//		UtilsDelay(80000000/3);
+//	}
 
-//	while(!(GPIOPinRead(GPIOA0_BASE, 0x02)));
+	UtilsDelay(80000000);
+	uint16_t temp;
+	temp = sl_Stop(0xFFFF);
+	if(temp<0)
+		UART_PRINT("\nConnection close error");
 	HIBernate();
 #else
 	while(1);
@@ -391,10 +404,15 @@ void main()
 
 		DBG_PRINT("HIB: Wake up on Power ON\n\r");
 
-		UART_PRINT("\n\rLIGHT SENSOR:\n\r");
-		verifyISL29035();
-		configureISL29035(0);
-		UART_PRINT("Configured Light Sensor for wake up\n\r");
+//		UART_PRINT("\n\rLIGHT SENSOR:\n\r");
+//		verifyISL29035();
+//		configureISL29035(0);
+//		UART_PRINT("Configured Light Sensor for wake up\n\r");
+
+		UART_PRINT("\n\rACCELEROMETER:\n\r");
+		verifyAccelMagnSensor();
+		configureFXOS8700(MODE_ACCEL_INTERRUPT);
+		UART_PRINT("Configured Accelerometer for wake up\n\r");
 
 		UART_PRINT("\n\rCAMERA MODULE:\n\r");
 		CamControllerInit(); // Init parallel camera interface of cc3200
@@ -422,17 +440,18 @@ void main()
 //		DBG_PRINT("\n\rACCELMTR, MAGNTMTR:\n\r");
 //		float_t fDoorDirectionAngle, fAccel;
 //		verifyAccelMagnSensor();
+//		FXOS8700CQ_Mag_Calibration();
 //		configureFXOS8700(0);
 //
 //		while(1)
 //		{
 //			getDoorDirection( &fDoorDirectionAngle );
 //			DBG_PRINT("Angle: %f\n\r", fDoorDirectionAngle);
-//			if( fDoorDirectionAngle > 40 )
-//				break;
+////			if( fDoorDirectionAngle > 40 )
+////				break;
 //			UtilsDelay(80000000*.001);
 //		}
-//		DBG_PRINT("Angle condition satisfied\n\r",);
+//		DBG_PRINT("Angle condition satisfied\n\r");
 	}
 
     //
@@ -448,9 +467,9 @@ void main()
     //
     // Start the task
     //
-	lRetVal = osi_TaskCreate(//CollectTxit_ImgTempRH,
+	lRetVal = osi_TaskCreate(CollectTxit_ImgTempRH,
 					//TestSi7020ApiReadWrite,
-					TestFxosApiReadWrite,
+					//TestFxosApiReadWrite,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,
 					NULL,
