@@ -239,7 +239,7 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 	memset(ucParseImageUrl,NULL, 100);
 	UploadImageToParse(clientHandle, (unsigned char*) USER_FILE_NAME, ucParseImageUrl);
 
-	UART_PRINT("\n%s\n", ucParseImageUrl);
+	//UART_PRINT("\n%s\n", ucParseImageUrl);
 
 	/*//
 	//	Collect Temperature and RH values from Si7020 IC
@@ -282,15 +282,16 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 
 #ifndef USB_DEBUG
 
-	uint16_t temp = getLightsensor_data();
+//	uint16_t temp = getLightsensor_data();
+//
+//	while(temp > 0x01FF)
+//	{
+//		temp = getLightsensor_data();
+//		UtilsDelay(80000000/3);
+//	}
 
-	while(temp > 0x01FF)
-	{
-		temp = getLightsensor_data();
-		UtilsDelay(80000000/3);
-	}
-
-//	while(!(GPIOPinRead(GPIOA0_BASE, 0x02)));
+	UtilsDelay(80000000);
+	uint16_t temp;
 	temp = sl_Stop(0xFFFF);
 	if(temp<0)
 		UART_PRINT("\nConnection close error");
@@ -403,10 +404,15 @@ void main()
 
 		DBG_PRINT("HIB: Wake up on Power ON\n\r");
 
-		UART_PRINT("\n\rLIGHT SENSOR:\n\r");
-		verifyISL29035();
-		configureISL29035(0);
-		UART_PRINT("Configured Light Sensor for wake up\n\r");
+//		UART_PRINT("\n\rLIGHT SENSOR:\n\r");
+//		verifyISL29035();
+//		configureISL29035(0);
+//		UART_PRINT("Configured Light Sensor for wake up\n\r");
+
+		UART_PRINT("\n\rACCELEROMETER:\n\r");
+		verifyAccelMagnSensor();
+		configureFXOS8700(MODE_ACCEL_INTERRUPT);
+		UART_PRINT("Configured Accelerometer for wake up\n\r");
 
 		UART_PRINT("\n\rCAMERA MODULE:\n\r");
 		CamControllerInit(); // Init parallel camera interface of cc3200
