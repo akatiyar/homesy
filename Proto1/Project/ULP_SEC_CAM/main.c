@@ -226,55 +226,80 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 
 void CollectTxit_ImgTempRH(void *pvParameters)
 {
-
+	//
+	//	Captute image and save in flash
+	//
 	CaptureImage();
 
+	//
+	//	Connect cc3200 to wifi AP
+	//
 	ConfigureSimpleLinkToDefaultState();
 	ConnectToNetwork_STA();
 
+	//
+	//	Parse initialization
+	//
 	ParseClient clientHandle;
 	clientHandle = InitialiseParse();
 
+	//
+	//	Upload image to Parse and retreive image's unique ID
+	//
 	uint8_t ucParseImageUrl[100];
 	memset(ucParseImageUrl,NULL, 100);
-	UploadImageToParse(clientHandle, (unsigned char*) USER_FILE_NAME, ucParseImageUrl);
+	UploadImageToParse(clientHandle,
+						(unsigned char*) USER_FILE_NAME,
+						ucParseImageUrl);
+	UART_PRINT("\n%s\n", ucParseImageUrl);
 
-	//UART_PRINT("\n%s\n", ucParseImageUrl);
-
-	/*//
+	//
 	//	Collect Temperature and RH values from Si7020 IC
 	//
-	float_t fTemp, fRH;
+	float_t fTemp = 12.34, fRH = 56.78;
 	verifyTempRHSensor();
 	softResetTempRHSensor();
 	configureTempRHSensor();
+	UtilsDelay(80000000);
 	getTempRH(&fTemp, &fRH);
-
-
-	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // Device state JSON object
-	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
-	ucSensorDataTxt[0] = NULL;
 
 	//
 	// Construct the JSON object string
 	//
+	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
+	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
+	ucSensorDataTxt[0] = NULL;
+
 	uint8_t ucCharConv[20];
-	strncat(ucSensorDataTxt, "{\"DeviceID\":\"", sizeof("{\"DeviceID\":\""));
-	strncat(ucSensorDataTxt, VCOGNITION_DEVICE_ID, sizeof("VCOGNITION_DEVICE_ID"));
-	strncat(ucSensorDataTxt, "\",\"Temperature\":\"", sizeof("\",\"Temperature\":\""));
+	memset(ucCharConv, '0', 20);
+	strncat(ucSensorDataTxt, "{\"deviceId\":\"", sizeof("{\"deviceId\":\""));
+	strncat(ucSensorDataTxt,
+					VCOGNITION_DEVICE_ID,
+					sizeof("VCOGNITION_DEVICE_ID"));
+	strncat(ucSensorDataTxt,
+					"\",\"photo\":{\"name\":\"",
+					sizeof("\",\"photo\":{\"name\":\""));
+	strncat(ucSensorDataTxt, ucParseImageUrl, sizeof(ucParseImageUrl));
+	strncat(ucSensorDataTxt,
+					"\",\"__type\":\"File",
+					sizeof("\",\"__type\":\"File"));
+	strncat(ucSensorDataTxt, "\"},\"temp\":", sizeof("\"},\"temp\":"));
 	intToASCII((uint16_t)(fTemp*100), ucCharConv);
 	strncat(ucSensorDataTxt, ucCharConv, 2);
 	strncat(ucSensorDataTxt, ".", 1);
 	strncat(ucSensorDataTxt, ucCharConv + 2, 2);
-	strncat(ucSensorDataTxt, "\",\"RH\":\"", sizeof("\",\"RH\":\""));
+	strncat(ucSensorDataTxt, ",\"humidity\":", sizeof(",\"humidity\":"));
 	intToASCII((uint16_t)(fRH*100), ucCharConv);
 	strncat(ucSensorDataTxt, ucCharConv, 2);
 	strncat(ucSensorDataTxt, ".", 1);
 	strncat(ucSensorDataTxt, ucCharConv+2, 2);
-	strncat(ucSensorDataTxt, "\"}", sizeof("\"}"""));
+	strncat(ucSensorDataTxt, "}", sizeof("}"));
 	UART_PRINT("\n%s\n", ucSensorDataTxt);
 
-	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);*/
+	//
+	//	Upload sensor data to Parse
+	//
+	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
 
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);
@@ -474,7 +499,7 @@ void main()
 					OSI_STACK_SIZE,
 					NULL,
 					1,
-					NULL );
+					0 );
 	if(lRetVal < 0)
 	{
 		ERR_PRINT(lRetVal);

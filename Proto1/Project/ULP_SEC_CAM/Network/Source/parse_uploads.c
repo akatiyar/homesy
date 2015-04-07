@@ -72,10 +72,17 @@ void UploadSensorDataToParse(ParseClient client,
 {
 	parseSendRequest(client,
 						"POST",
-						"/1/classes/DeviceState",
+						"/1/classes/DeviceState", //DeviceState is object name
 						sensorDataFileName,
 						NULL,
 						jsonObject);
+//	parseSendRequestInternal(client,
+//							"POST",
+//							"/1/classes/DeviceState",
+//							sensorDataFileName,
+//							NULL,
+//							1,
+//							jsonObject);
 }
 
 
@@ -85,6 +92,10 @@ void UploadSensorDataToParse(ParseClient client,
 //	response sent by Parse in response to Image POST request
 //
 //	param[out]	pucParseImageUrl - pointer to unique ImageName character array
+//
+//	return none
+//
+//	The search is done starting from the end of the text
 //
 // 	Warning: Use this function only when you know that the HTTP response is in
 //			the memory pointed by dataBuffer pointer
@@ -100,8 +111,8 @@ void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	//	Initialize pointers to the end of http response message
 	//
 	ucResponseLen = strlen(dataBuffer);
-	pucImageIDStart = dataBuffer + ucResponseLen - 4;
-	pucImageIDEnd = pucImageIDStart;
+	pucImageIDStart = dataBuffer + ucResponseLen - 1;
+	pucImageIDEnd = pucImageIDStart - 3; // -3 : ",} and CR characters
 
 	//
 	//	Traverse backward till '/' is found
@@ -119,7 +130,7 @@ void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 
 	strncpy( (uint8_t *)pucParseImageUrl,
 			 (const uint8_t *)pucImageIDStart,
-			 ucLength+1);
+			 ucLength);
 
 }
 

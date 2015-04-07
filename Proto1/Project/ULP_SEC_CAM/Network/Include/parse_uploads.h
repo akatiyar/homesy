@@ -2,7 +2,7 @@
 
 #include "app.h"
 
-// MyApp
+//// MyApp
 //#define PARSE_APP_ID		"InlZ2zle1OJi2f0Tfikz6DVhaz9IUdhHCzTW0f7w"
 //#define PARSE_CLIENT_KEY	"KArqKTEjYrlT29hwW8p7aRYT1iTt1e9w6KS7g42E"
 

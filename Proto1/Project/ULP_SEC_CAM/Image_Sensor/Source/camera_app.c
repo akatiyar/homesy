@@ -555,7 +555,7 @@ long CaptureImage()
     //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 	ASSERT_ON_ERROR(lRetVal);
 
-	UART_PRINT("DONE: Image write to flash\n\r");
+	UART_PRINT("DONE: Image Write to Flash\n\r");
 
     return SUCCESS;
 }
