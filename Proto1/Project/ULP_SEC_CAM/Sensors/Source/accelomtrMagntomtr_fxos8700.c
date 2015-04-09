@@ -104,7 +104,7 @@ void verifyAccelMagnSensor()
 	if(DEVICE_ID == ucDeviceID)
 	{
 		UART_PRINT("\nDevice ID read thru' I2C = expected device ID of FXOS8700"
-					"\nI2C communication with FXOS8700 SUCCESS");
+					"\nI2C communication with FXOS8700 SUCCESS\n\r");
 	}
 	else
 	{
@@ -233,7 +233,6 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 
 			break;
 	}
-
 	for (i = 0; i < ucNoofCfgs; i++)
 	{
 		setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
@@ -241,6 +240,8 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 //							ucConfigArray[i*2 + 1],
 //							0b11111111);
 	}
+	UtilsDelay(80000000*.3);
+
 	return;
 }
 

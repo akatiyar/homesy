@@ -11,8 +11,14 @@
 #include <stdint.h>
 
 int32_t CreateFile_Flash(uint8_t* pucFileName, uint32_t uiMaxFileSize);
-int32_t WriteFile_ToFlash(uint8_t* pucData, uint8_t* pucFileName);
-
+int32_t WriteFile_ToFlash(uint8_t* pucData,
+							uint8_t* pucFileName,
+							uint32_t uiDataSize,
+							uint32_t uiOffsetInFile);
+int32_t ReadFile_FromFlash(uint8_t* pucData,
+							uint8_t* pucFileName,
+							uint32_t uiDataSize,
+							uint32_t uiOffsetInFile);
 #define MAGN_INIT_VALS_FILE_NAME		"Magnetometer_Initial_Vals"
 #define MAGN_INIT_VALS_FILE_MAXSIZE		20
 

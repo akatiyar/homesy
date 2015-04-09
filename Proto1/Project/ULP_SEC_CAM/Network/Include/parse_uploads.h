@@ -18,4 +18,4 @@ void UploadImageToParse(ParseClient client,
 							uint8_t* ucParseImageName);
 void UploadSensorDataToParse(ParseClient client,
 								uint8_t* sensorDataDirName);
-unsigned short intToASCII(short cNum, char *cString);
+
