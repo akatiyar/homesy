@@ -16,6 +16,8 @@
 #include "math.h"
 #include "app.h"
 
+
+#define MOVING_AVG_FLTR_L				10
 //******************************************************************************
 //                      MACRO DEFINITIONS
 //******************************************************************************
@@ -100,6 +102,7 @@ void verifyAccelMagnSensor();
 void configureFXOS8700(uint8_t ucAppMode);
 void getDoorDirection(float_t* pfDegrees);
 void getAccelerationMagnitude(float_t* pfAccel);
+void getMagnFlux_3axis(float_t* pfMagnFlux_3axis);
 
 void setMotionDetectionThreshold(float accelThreshold);
 void updateConfigReg(uint8_t ucConfigRegAddr,

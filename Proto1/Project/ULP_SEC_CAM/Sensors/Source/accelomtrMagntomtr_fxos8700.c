@@ -186,7 +186,8 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 			//0x0D - ; 0x25 - ODR (hybridmode) = 25 Hz
 			//0x05 - ODR (hybridmode) = 400 Hz
 			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = 0x35;
+			//ucConfigArray[i++] = 0x35;
+			ucConfigArray[i++] = 0x05;
 
 			ucNoofCfgs = i/2;
 
@@ -319,13 +320,41 @@ void getDoorDirection(float_t* pfDegrees)
 //	*pfDegrees = (-fYawAngleVal); 	// The above formula gives degrees from door
 //									// to the North
 
-	*pfDegrees = (fYawAngleVal);	// Returning the door angle from north for
-									//	intermediate prototype testing
+//	*pfDegrees = (fYawAngleVal);	// Returning the door angle from north for
+//									// intermediate prototype testing
+
+	if( (fYawAngleVal) >= 0 )
+		*pfDegrees = (fYawAngleVal);	// Door's angle from north (0 to 360)
+										// in anti-clockwise direction
+	else
+		*pfDegrees = 360 + (fYawAngleVal);
 
 	return;
 }
 
+void getMagnFlux_3axis(float_t* pfMagnFlux_3axis)
+{
+	uint8_t ucMagntOut[LENGTH_OUTPUT_DATA];
 
+	//
+	//	Get M_OUT_X_MSB, M_OUT_X_LSB, M_OUT_Y_MSB, etc from FXOS8700
+	//
+	getMagntData(ucMagntOut);
+
+	//
+	//	Calculate Flux Density(uT) from the raw output data for ll and T axis
+	//
+	*pfMagnFlux_3axis = (int16_t)( (ucMagntOut[0] << 8) + ucMagntOut[1] );
+	*pfMagnFlux_3axis = (*pfMagnFlux_3axis) * SENSITIVITY_MAG;
+	pfMagnFlux_3axis++;
+	*pfMagnFlux_3axis = (int16_t)( (ucMagntOut[2] << 8) + ucMagntOut[3] );
+	*pfMagnFlux_3axis = (*pfMagnFlux_3axis) * SENSITIVITY_MAG;
+	pfMagnFlux_3axis++;
+	*pfMagnFlux_3axis = (int16_t)( (ucMagntOut[4] << 8) + ucMagntOut[5] );
+	*pfMagnFlux_3axis = (*pfMagnFlux_3axis) * SENSITIVITY_MAG;
+
+	return;
+}
 //******************************************************************************
 //
 //	This function gives the linear acceleration value (in units of g m/(sec^2))

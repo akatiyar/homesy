@@ -4,6 +4,7 @@
 #include "prcm.h"
 
 #include "lightSens_isl29035.h"
+#include "accelomtrMagntomtr_fxos8700.h"
 
 static void sensorsTriggerSetup();
 
@@ -38,4 +39,6 @@ static void sensorsTriggerSetup()
 {
 //	getLightsensor_intrptStatus();
 	clearAccelMotionIntrpt();
+	configureFXOS8700(MODE_ACCEL_INTERRUPT);
+	UART_PRINT("Configured Accelerometer for wake up\n\r");
 }

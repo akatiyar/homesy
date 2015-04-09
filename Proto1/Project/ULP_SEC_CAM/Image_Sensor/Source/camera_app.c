@@ -69,7 +69,6 @@
 #include "mt9d111.h"
 
 #include "app.h"
-#include "camera_app.h"
 
 #include "network_related_fns.h"
 //*****************************************************************************

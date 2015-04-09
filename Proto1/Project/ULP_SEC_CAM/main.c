@@ -304,7 +304,6 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);
 
-
 #ifndef USB_DEBUG
 
 //	uint16_t temp = getLightsensor_data();
@@ -322,6 +321,9 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 		UART_PRINT("\nConnection close error");
 	HIBernate();
 #else
+	clearAccelMotionIntrpt();
+	configureFXOS8700(MODE_ACCEL_INTERRUPT);
+	UART_PRINT("Configured Accelerometer for wake up\n\r");
 	while(1);
 #endif
 }
@@ -417,6 +419,8 @@ void main()
     //
     I2C_IF_Open(I2C_APP_MODE);
 
+
+
     if(MAP_PRCMSysResetCauseGet() == 0)
 	{
 #ifndef USB_DEBUG
@@ -436,34 +440,122 @@ void main()
 
 		UART_PRINT("\n\rACCELEROMETER:\n\r");
 		verifyAccelMagnSensor();
-		configureFXOS8700(MODE_ACCEL_INTERRUPT);
-		UART_PRINT("Configured Accelerometer for wake up\n\r");
 
-		UART_PRINT("\n\rCAMERA MODULE:\n\r");
-		CamControllerInit(); // Init parallel camera interface of cc3200
-							// since image sensor needs XCLK for its I2C module to work
-		CameraSensorInit();
-		#ifdef ENABLE_JPEG
-			//
-			// Configure Sensor in Capture Mode
-			//
-			lRetVal = StartSensorInJpegMode();
-			if(lRetVal < 0)
+		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
+		UtilsDelay(80000000*.3);
+		float_t fMagnFlx_Init[3], fMFluxMagnitudeInit;
+		getMagnFlux_3axis(fMagnFlx_Init);
+		UART_PRINT("DBG: Init Magnetic Flux Densities %f %f %f\n\r",
+						fMagnFlx_Init[0],
+						fMagnFlx_Init[1],
+						fMagnFlx_Init[2]);
+		UART_PRINT("DBG: Init Magnetic Flux Densities %x %x %x\n\r",
+								fMagnFlx_Init[0],
+								fMagnFlx_Init[1],
+								fMagnFlx_Init[2]);
+		fMFluxMagnitudeInit = sqrtf( (fMagnFlx_Init[0]*fMagnFlx_Init[0]) +
+									(fMagnFlx_Init[1]*fMagnFlx_Init[1]) +
+									(fMagnFlx_Init[2]*fMagnFlx_Init[2]) );
+		UART_PRINT("DBG: Magnitude: %f\n\r", fMFluxMagnitudeInit);
+		float_t fAngleVal = 40;
+		float_t fThreshold_magnitudeOfDiff;
+		fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf(((fAngleVal/2)*PI/180));
+		//DBG
+		float_t fInitDoorDirectionAngle;
+		getDoorDirection( &fInitDoorDirectionAngle );
+		DBG_PRINT("DBG: Angle: %f\n\r", fInitDoorDirectionAngle);
+
+		// configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
+		float_t fMagnFlx_Now[3];
+		float_t fMagnFlx_Dif[3];
+		float_t fMFluxMagnitudeArray[MOVING_AVG_FLTR_L];
+		float_t fMFluxMagnitude, fMFluxMagnitudePrev = 0;
+		memset(fMFluxMagnitudeArray, '0', MOVING_AVG_FLTR_L * sizeof(float_t));
+		uint8_t i = 0, j;
+
+		while(1)
+		{
+			getMagnFlux_3axis(fMagnFlx_Now);
+
+			fMagnFlx_Dif[0] = fMagnFlx_Init[0] - fMagnFlx_Now[0];
+			fMagnFlx_Dif[1] = fMagnFlx_Init[1] - fMagnFlx_Now[1];
+			fMagnFlx_Dif[2] = fMagnFlx_Init[2] - fMagnFlx_Now[2];
+			fMFluxMagnitudeArray[i++] = sqrtf( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
+										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
+										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
+			i = i % MOVING_AVG_FLTR_L;
+//			UART_PRINT("DBG: Magnitude: %f\n\r", fMFluxMagnitudeInit);
+
+			//DBG
+			float_t fDoorDirectionAngle;
+			getDoorDirection( &fDoorDirectionAngle );
+//			DBG_PRINT("DBG: Angle: %f\n\r", fDoorDirectionAngle);
+
+			fMFluxMagnitude = 0;
+			for (j = 0; j < MOVING_AVG_FLTR_L; j++)
 			{
-				LOOP_FOREVER();
+				fMFluxMagnitude += fMFluxMagnitudeArray[j];
 			}
-		#endif
-		UART_PRINT("I2C Camera config done\n\r");
+			fMFluxMagnitude /= MOVING_AVG_FLTR_L;
+
+			if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
+			{
+				//UART_PRINT("<40\n\r");
+				UART_PRINT("-");
+				//if (fMFluxMagnitudePrev > fMFluxMagnitude)
+				if( (fMFluxMagnitudePrev - fMFluxMagnitude) > .5) //2 - noise flor
+				{
+					//UART_PRINT("Door at 40 while closing\n\r");
+					UART_PRINT("O");
+					fMFluxMagnitude = 0;
+				}
+			}
+			else
+			{
+				UART_PRINT("|");
+			}
+			fMFluxMagnitudePrev = fMFluxMagnitude;
+
+			UtilsDelay(80000000*0.001);
+
+		}
+
+//		configureFXOS8700(MODE_ACCEL_INTERRUPT);
+//		UART_PRINT("Configured Accelerometer for wake up\n\r");
+
+
+//		UART_PRINT("\n\rCAMERA MODULE:\n\r");
+//		CamControllerInit();	// Init parallel camera interface of cc3200
+//								// since image sensor needs XCLK for
+//								//its I2C module to work
+//		CameraSensorInit();
+//		#ifdef ENABLE_JPEG
+//			//
+//			// Configure Sensor in Capture Mode
+//			//
+//			lRetVal = StartSensorInJpegMode();
+//			if(lRetVal < 0)
+//			{
+//				LOOP_FOREVER();
+//			}
+//		#endif
+//		UART_PRINT("I2C Camera config done\n\r");
 #ifndef USB_DEBUG
 		HIBernate();
 #endif
 	}
-	else if(MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
+#ifdef USB_DEBUG
+	while(GPIOPinRead(GPIOA0_BASE, 0x04))
+	{
+	}
+#else
+    else if(MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
+#endif
 	{
 		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
 
 //		DBG_PRINT("\n\rACCELMTR, MAGNTMTR:\n\r");
-//		float_t fDoorDirectionAngle, fAccel;
+//		float_t fDoorDirectionAngle, fAccel, fDoorDirDiff;
 //		verifyAccelMagnSensor();
 //		FXOS8700CQ_Mag_Calibration();
 //		configureFXOS8700(0);
@@ -472,11 +564,32 @@ void main()
 //		{
 //			getDoorDirection( &fDoorDirectionAngle );
 //			DBG_PRINT("Angle: %f\n\r", fDoorDirectionAngle);
-////			if( fDoorDirectionAngle > 40 )
-////				break;
+//			fDoorDirDiff =
+//			if( (fDoorDirectionAngle - fInitDoorDirectionAngle)  > 40 )
+//				break;
 //			UtilsDelay(80000000*.001);
 //		}
 //		DBG_PRINT("Angle condition satisfied\n\r");
+
+
+//		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
+//		float_t fMagnFlx_Now[3];
+//		float_t fMagnFlx_Dif[3];
+//
+//		while(1)
+//		{
+//			getMagnFlux_3axis(fMagnFlx_Now);
+//			UART_PRINT("%f, %f, %f\n\r",
+//						fMagnFlx_Now[0],
+//						fMagnFlx_Now[1],
+//						fMagnFlx_Now[2]);
+////			fMagnFlx_Dif =
+//
+//			fMFluxMagnitude = sqrtf( (fMagnFlx_Now[0] * fMagnFlx_Now[0]) +
+//										(fMagnFlx_Now[1] * fMagnFlx_Now[1]) +
+//										(fMagnFlx_Now[2] * fMagnFlx_Now[1]) );
+//			UART_PRINT("DBG: Magnitude: %f", fMFluxMagnitude);
+//		}
 	}
 
     //

@@ -296,7 +296,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
     if (status >= 0) {
         status = socketWrite(socketHandle, dataBuffer, status);
     }
-
+    DEBUG_PRINT("[Parse] socket write status: %d\r\n", status);
     if (status >= 0) {
 #ifdef REQUEST_DEBUG
         DEBUG_PRINT("[Parse] ---------\r\n");
@@ -307,6 +307,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         memset(dataBuffer, 0, dataBufferSize);
         status = socketRead(socketHandle, dataBuffer, dataBufferSize, 5000);
 
+        DEBUG_PRINT("[Parse] socket read status: %d\r\n", status);
 #ifdef REQUEST_DEBUG
         if (status >= 0) {
             DEBUG_PRINT("%s\r\n", dataBuffer);
