@@ -457,9 +457,10 @@ void main()
 									(fMagnFlx_Init[1]*fMagnFlx_Init[1]) +
 									(fMagnFlx_Init[2]*fMagnFlx_Init[2]) );
 		UART_PRINT("DBG: Magnitude: %f\n\r", fMFluxMagnitudeInit);
-		float_t fAngleVal = 40;
-		float_t fThreshold_magnitudeOfDiff;
-		fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf(((fAngleVal/2)*PI/180));
+		float_t fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff;
+		fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf(((DOOR_ANGLE_TO_DETECT/2)*PI/180));
+		fThreshold_higher_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf(((DOOR_ANGLE_HIGHER/2)*PI/180));
+
 		//DBG
 		float_t fInitDoorDirectionAngle;
 		getDoorDirection( &fInitDoorDirectionAngle );
@@ -472,6 +473,8 @@ void main()
 		float_t fMFluxMagnitude, fMFluxMagnitudePrev = 0;
 		memset(fMFluxMagnitudeArray, '0', MOVING_AVG_FLTR_L * sizeof(float_t));
 		uint8_t i = 0, j;
+
+		uint8_t ucOpenFlag = 0;
 
 		while(1)
 		{
@@ -498,26 +501,29 @@ void main()
 			}
 			fMFluxMagnitude /= MOVING_AVG_FLTR_L;
 
-			if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
+			float_t fAngle;
+			fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
+			UART_PRINT("%f, ", fMFluxMagnitude);
+			UART_PRINT("%f\n", fAngle);
+
+			if( ucOpenFlag == 0 )
 			{
-				//UART_PRINT("<40\n\r");
-				UART_PRINT("-");
-				//if (fMFluxMagnitudePrev > fMFluxMagnitude)
-				if( (fMFluxMagnitudePrev - fMFluxMagnitude) > .5) //2 - noise flor
+				UART_PRINT(".");
+				if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
 				{
-					//UART_PRINT("Door at 40 while closing\n\r");
-					UART_PRINT("O");
-					fMFluxMagnitude = 0;
+					ucOpenFlag = 1;
+					UART_PRINT("Open Detected");
 				}
 			}
 			else
 			{
-				UART_PRINT("|");
+				UART_PRINT("O");
+				if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
+				{
+					UART_PRINT("Door at 40 degres while closing");
+					ucOpenFlag = 0; //To repeat DGB
+				}
 			}
-			fMFluxMagnitudePrev = fMFluxMagnitude;
-
-			UtilsDelay(80000000*0.001);
-
 		}
 
 //		configureFXOS8700(MODE_ACCEL_INTERRUPT);

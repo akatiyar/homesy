@@ -18,6 +18,14 @@
 
 
 #define MOVING_AVG_FLTR_L				10
+//#define NO_OF_PAST_VALS					100 // Set this such that:
+//											// angle(n) = 40
+#define DOOR_ANGLE_TO_DETECT			40	// In degrees
+#define MAGNMTR_NOISEFLOOR				5	// In degrees
+											// Experimentally obtained value
+#define DOOR_ANGLE_HIGHER				DOOR_ANGLE_TO_DETECT \
+											+ MAGNMTR_NOISEFLOOR
+											//In Degrees
 //******************************************************************************
 //                      MACRO DEFINITIONS
 //******************************************************************************
