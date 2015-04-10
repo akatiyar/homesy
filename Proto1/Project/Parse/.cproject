@@ -104,6 +104,7 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.library.compilerRelease.95237553" name="ARM Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.library.compilerRelease">
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.DEFINE.1170545117" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="ccs"/>
+									<listOptionValue builtIn="false" value="USE_FREETOS"/>
 									<listOptionValue builtIn="false" value="POST_IMAGE"/>
 									<listOptionValue builtIn="false" value="PART_CC3200"/>
 									<listOptionValue builtIn="false" value="SL_PLATFORM_MULTI_THREADED"/>

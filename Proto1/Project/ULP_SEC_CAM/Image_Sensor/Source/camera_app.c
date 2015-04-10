@@ -405,14 +405,14 @@ long CaptureImage()
 #endif
 
     // Delay added for testing -- Uthra
-    UtilsDelay((80000000/3)*5);
+    //UtilsDelay((80000000/3)*5);
 
     //
     // Configure DMA in ping-pong mode
     //
     DMAConfig();
     
-   //
+    //
     // Perform Image Capture 
     //
     UART_PRINT("sB");

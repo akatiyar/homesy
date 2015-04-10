@@ -6,9 +6,7 @@
 #include "lightSens_isl29035.h"
 #include "accelomtrMagntomtr_fxos8700.h"
 
-static void sensorsTriggerSetup();
-
-
+#include "hibernate_related_fns.h"
 
 void HIBernate()
 {
@@ -22,10 +20,10 @@ void HIBernate()
     //	Configure or clear interrupts of wake-up trigger sensors
     //
     sensorsTriggerSetup();
-    UART_PRINT("\n\rCleared sensors\n\r");
+    UART_PRINT("Cleared sensors\n\r");
 
-    DBG_PRINT("\n\rHIB: Entering HIBernate..."
-        		"	\n\r Open up the door to capture the image\n\r");
+    DBG_PRINT("HIB: Entering HIBernate...\n\r"
+        		"***OPEN DOOR TO CAPTURE IMAGE***\n\r");
     MAP_UtilsDelay(80000);
 
     //
@@ -35,9 +33,15 @@ void HIBernate()
 }
 
 
-static void sensorsTriggerSetup()
+void sensorsTriggerSetup()
 {
-//	getLightsensor_intrptStatus();
+	//		UART_PRINT("\n\rLIGHT SENSOR:\n\r");
+	//		verifyISL29035();
+	//		configureISL29035(0);
+	//		getLightsensor_intrptStatus(); //To clear the interrupt
+	//		UART_PRINT("Configured Light Sensor for wake up\n\r");
+
+	verifyAccelMagnSensor();
 	clearAccelMotionIntrpt();
 	configureFXOS8700(MODE_ACCEL_INTERRUPT);
 	UART_PRINT("Configured Accelerometer for wake up\n\r");

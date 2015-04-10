@@ -147,7 +147,8 @@ static void BoardInit();
 static void DisplayBanner(char * AppName);
 
 
-void CollectTxit_ImgTempRH(void *pvParameters);
+void CollectTxit_ImgTempRH();
+void Main_fn(void *pvParameters);
 
 #ifdef USE_FREERTOS
 //*****************************************************************************
@@ -226,7 +227,7 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 #endif //USE_FREERTOS
 
 
-void CollectTxit_ImgTempRH(void *pvParameters)
+void CollectTxit_ImgTempRH()
 {
 	//
 	//	Captute image and save in flash
@@ -306,28 +307,6 @@ void CollectTxit_ImgTempRH(void *pvParameters)
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);
 
-#ifndef USB_DEBUG
-
-//	uint16_t temp = getLightsensor_data();
-//
-//	while(temp > 0x01FF)
-//	{
-//		temp = getLightsensor_data();
-//		UtilsDelay(80000000/3);
-//	}
-
-	UtilsDelay(80000000);
-	uint16_t temp;
-	temp = sl_Stop(0xFFFF);
-	if(temp<0)
-		UART_PRINT("\nConnection close error");
-	HIBernate();
-#else
-	clearAccelMotionIntrpt();
-	configureFXOS8700(MODE_ACCEL_INTERRUPT);
-	UART_PRINT("Configured Accelerometer for wake up\n\r");
-	while(1);
-#endif
 }
 
 //*****************************************************************************
@@ -397,7 +376,7 @@ BoardInit(void)
 //****************************************************************************
 void main()
 {
-    long lRetVal = -1;
+	long lRetVal = -1;
 
     //
     // Initialize Board configurations
@@ -421,158 +400,12 @@ void main()
     //
     I2C_IF_Open(I2C_APP_MODE);
 
-
-
-    if(MAP_PRCMSysResetCauseGet() == 0)
-	{
-#ifndef USB_DEBUG
-		UtilsDelay(8000000*10);//Time to open UART port
-#endif
-		//
-    	//Display Application Banner
-		//
-		DisplayBanner(APP_NAME);
-
-		DBG_PRINT("HIB: Wake up on Power ON\n\r");
-
-//		UART_PRINT("\n\rLIGHT SENSOR:\n\r");
-//		verifyISL29035();
-//		configureISL29035(0);
-//		UART_PRINT("Configured Light Sensor for wake up\n\r");
-
-		UART_PRINT("\n\rACCELEROMETER:\n\r");
-		verifyAccelMagnSensor();
-
-		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
-
-		//DBG
-		float_t fInitDoorDirectionAngle;
-		getDoorDirection( &fInitDoorDirectionAngle );
-		DBG_PRINT("DBG: Testing Magnetometer working:\n"\
-					" Angle: %f\n\r", fInitDoorDirectionAngle);
-
-		float_t fMagnFlx_Init[3];
-		getMagnFlux_3axis(fMagnFlx_Init);
-
-		lRetVal = sl_Start(0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
-
-		lRetVal = CreateFile_Flash((uint8_t*)MAGN_INIT_VALS_FILE_NAME, MAGN_INIT_VALS_FILE_MAXSIZE);
-		uint8_t ucMagnFluxInit3Axis[3*4], i; //4 for 2.2f precision
-		for(i=0; i<3; i++)
-		{
-			intToASCII(fMagnFlx_Init[i], &ucMagnFluxInit3Axis[i*4]);
-		}
-		lRetVal = WriteFile_ToFlash(ucMagnFluxInit3Axis, (uint8_t*)MAGN_INIT_VALS_FILE_NAME, 12, 0 );
-		uint8_t ucMagnFluxInit3Axis_Read[3*4];
-		lRetVal = ReadFile_FromFlash(ucMagnFluxInit3Axis_Read, (uint8_t*)MAGN_INIT_VALS_FILE_NAME, 12, 0 );
-
-	    lRetVal = sl_Stop(0xFFFF);
-	    //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-		ASSERT_ON_ERROR(lRetVal);
-
-		configureFXOS8700(MODE_ACCEL_INTERRUPT);
-		UART_PRINT("Configured Accelerometer for wake up\n\r");
-
-		UART_PRINT("\n\rCAMERA MODULE:\n\r");
-		CamControllerInit();	// Init parallel camera interface of cc3200
-								// since image sensor needs XCLK for
-								//its I2C module to work
-		CameraSensorInit();
-		#ifdef ENABLE_JPEG
-			//
-			// Configure Sensor in Capture Mode
-			//
-			lRetVal = StartSensorInJpegMode();
-			if(lRetVal < 0)
-			{
-				LOOP_FOREVER();
-			}
-		#endif
-		UART_PRINT("I2C Camera config done\n\r");
-#ifndef USB_DEBUG
-		HIBernate();
-#endif
-	}
-#ifdef USB_DEBUG
-	while(GPIOPinRead(GPIOA0_BASE, 0x04))
-	{
-	}
-#else
-    else if(MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
-#endif
-	{
-		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
-
-		float_t fMagnFlx_Init[3];
-		float_t fMFluxMagnitudeInit;
-		fMFluxMagnitudeInit = sqrtf( (fMagnFlx_Init[0]*fMagnFlx_Init[0]) +
-									(fMagnFlx_Init[1]*fMagnFlx_Init[1]) +
-									(fMagnFlx_Init[2]*fMagnFlx_Init[2]) );
-		UART_PRINT("DBG: Magnitude: %f\n\r", fMFluxMagnitudeInit);
-		float_t fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff;
-		fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_TO_DETECT/2) * PI / 180 );
-		fThreshold_higher_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_HIGHER/2) * PI / 180);
-
-		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
-
-		float_t fMagnFlx_Now[3];
-		float_t fMagnFlx_Dif[3];
-		float_t fMFluxMagnitudeArray[MOVING_AVG_FLTR_L];
-		float_t fMFluxMagnitude, fMFluxMagnitudePrev = 0;
-		memset(fMFluxMagnitudeArray, '0', MOVING_AVG_FLTR_L * sizeof(float_t));
-		uint8_t i = 0, j;
-
-		uint8_t ucOpenFlag = 0;
-
-		while(1)
-		{
-			getMagnFlux_3axis(fMagnFlx_Now);
-
-			fMagnFlx_Dif[0] = fMagnFlx_Init[0] - fMagnFlx_Now[0];
-			fMagnFlx_Dif[1] = fMagnFlx_Init[1] - fMagnFlx_Now[1];
-			fMagnFlx_Dif[2] = fMagnFlx_Init[2] - fMagnFlx_Now[2];
-			fMFluxMagnitudeArray[i++] = sqrtf( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
-										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
-										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
-			i = i % MOVING_AVG_FLTR_L;
-//			UART_PRINT("DBG: Magnitude: %f\n\r", fMFluxMagnitudeInit);
-
-			fMFluxMagnitude = 0;
-			for (j = 0; j < MOVING_AVG_FLTR_L; j++)
-			{
-				fMFluxMagnitude += fMFluxMagnitudeArray[j];
-			}
-			fMFluxMagnitude /= MOVING_AVG_FLTR_L;
-
-//			float_t fAngle;
-//			fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
-//			UART_PRINT("%f, ", fMFluxMagnitude);
-//			UART_PRINT("%f\n", fAngle);
-
-			if( ucOpenFlag == 0 )
-			{
-				UART_PRINT(".");
-				if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
-				{
-					ucOpenFlag = 1;
-					UART_PRINT("Open Detected");
-				}
-			}
-			else
-			{
-				UART_PRINT("O");
-				if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
-				{
-					UART_PRINT("Door at 40 degres while closing");
-//					ucOpenFlag = 0; //To repeat DGB
-					break;
-				}
-			}
-		}
-	}
-
     //
+	//Display Application Banner
+	//
+	DisplayBanner(APP_NAME);
+
+	//
     // Start the SimpleLink Host
     //
     lRetVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
@@ -585,7 +418,7 @@ void main()
     //
     // Start the task
     //
-	lRetVal = osi_TaskCreate(CollectTxit_ImgTempRH,
+	lRetVal = osi_TaskCreate(Main_fn,
 					//TestSi7020ApiReadWrite,
 					//TestFxosApiReadWrite,
 					(const signed char *)"Collect And Txit ImgTempRM",
@@ -611,3 +444,192 @@ void main()
 //! @}
 //
 //*****************************************************************************
+void Main_fn(void *pvParameters)
+{
+	long lRetVal = -1;
+
+    if(MAP_PRCMSysResetCauseGet() == 0)
+	{
+#ifndef USB_DEBUG
+		UtilsDelay(8000000*10);//Time to open UART port and close the
+#endif
+		UART_PRINT("HIB: Wake up on Power ON\n\r");
+		UART_PRINT("***PLEASE KEEP THE DOOR CLOSED***\n\r");
+
+		//
+		// Collect the Initial Magnetometr Readings(door closed)
+		// and save in flash
+		//
+		UART_PRINT("\n\rMAGNETOOMETER:\n\r");
+		verifyAccelMagnSensor();
+		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
+		//DBG
+		float_t fInitDoorDirectionAngle;
+		getDoorDirection( &fInitDoorDirectionAngle );
+		DBG_PRINT("DBG: Testing Magnetometer working:\n"\
+					" Angle: %f\n\r", fInitDoorDirectionAngle);
+
+		float_t fMagnFlx_Init[3];
+		getMagnFlux_3axis(fMagnFlx_Init);
+
+		lRetVal = sl_Start(0, 0, 0);
+		ASSERT_ON_ERROR(lRetVal);
+
+		lRetVal = CreateFile_Flash((uint8_t*)MAGN_INIT_VALS_FILE_NAME, MAGN_INIT_VALS_FILE_MAXSIZE);
+		lRetVal = WriteFile_ToFlash((uint8_t*)fMagnFlx_Init, (uint8_t*)MAGN_INIT_VALS_FILE_NAME, 12, 0 );
+
+	    lRetVal = sl_Stop(0xFFFF);
+	    //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+		ASSERT_ON_ERROR(lRetVal);
+
+
+		//
+		// Set up the camera module through I2C
+		//
+#ifndef NO_CAMERA
+		UART_PRINT("\n\rCAMERA MODULE:\n\r");
+		CamControllerInit();	// Init parallel camera interface of cc3200
+								// since image sensor needs XCLK for
+								//its I2C module to work
+		CameraSensorInit();
+		#ifdef ENABLE_JPEG
+			// Configure Sensor in Capture Mode
+			lRetVal = StartSensorInJpegMode();
+			if(lRetVal < 0)
+			{
+				LOOP_FOREVER();
+			}
+		#endif
+		UART_PRINT("I2C Camera config done\n\r");
+#endif
+
+#ifndef USB_DEBUG
+		//
+		// Set up the trigger source and enter hibernate
+		//
+		HIBernate();
+#endif
+	}
+#ifdef USB_DEBUG
+    sensorsTriggerSetup();
+	while(GPIOPinRead(GPIOA0_BASE, 0x04))
+	{
+	}
+#else
+    else if(MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
+#endif
+	{
+#ifndef USB_DEBUG
+		long lRetVal;
+#endif
+		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
+
+		float_t fMagnFluxInit3Axis_Read[3];
+
+		lRetVal = sl_Start(0, 0, 0);
+		ASSERT_ON_ERROR(lRetVal);
+
+		lRetVal = ReadFile_FromFlash((uint8_t*)fMagnFluxInit3Axis_Read, (uint8_t*)MAGN_INIT_VALS_FILE_NAME, 12, 0 );
+
+		lRetVal = sl_Stop(0xFFFF);
+		//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+		ASSERT_ON_ERROR(lRetVal);
+
+		float_t fMFluxMagnitudeInit;
+		fMFluxMagnitudeInit = sqrtf( (fMagnFluxInit3Axis_Read[0]*fMagnFluxInit3Axis_Read[0]) +
+									(fMagnFluxInit3Axis_Read[1]*fMagnFluxInit3Axis_Read[1]) +
+									(fMagnFluxInit3Axis_Read[2]*fMagnFluxInit3Axis_Read[2]) );
+		UART_PRINT("DBG: Initial Magnitude: %f\n\r", fMFluxMagnitudeInit);
+		float_t fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff;
+		fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_TO_DETECT/2) * PI / 180 );
+//		fThreshold_magnitudeOfDiff *= fThreshold_magnitudeOfDiff;
+		fThreshold_higher_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_HIGHER/2) * PI / 180);
+//		fThreshold_higher_magnitudeOfDiff *= fThreshold_higher_magnitudeOfDiff;
+		UART_PRINT("DBG: Threshold Magnitude: %f   %f\n\r", fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff);
+
+		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
+
+		float_t fMagnFlx_Now[3];
+		float_t fMagnFlx_Dif[3];
+		float_t fMFluxMagnitudeArray[MOVING_AVG_FLTR_L];
+		float_t fMFluxMagnitude, fMFluxMagnitudePrev = 0;
+		memset(fMFluxMagnitudeArray, '0', MOVING_AVG_FLTR_L * sizeof(float_t));
+		uint8_t i = 0, j;
+
+		uint8_t ucOpenFlag = 0;
+
+		while(1)
+		{
+			getMagnFlux_3axis(fMagnFlx_Now);
+
+			fMagnFlx_Dif[0] = fMagnFluxInit3Axis_Read[0] - fMagnFlx_Now[0];
+			fMagnFlx_Dif[1] = fMagnFluxInit3Axis_Read[1] - fMagnFlx_Now[1];
+			fMagnFlx_Dif[2] = fMagnFluxInit3Axis_Read[2] - fMagnFlx_Now[2];
+			fMFluxMagnitudeArray[i++] = sqrtf( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
+										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
+										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
+//			fMFluxMagnitudeArray[i++] = ( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
+//										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
+//										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
+			i = i % MOVING_AVG_FLTR_L;
+//			UART_PRINT("%f\n\r", fMFluxMagnitudeInit);
+
+			fMFluxMagnitude = 0;
+			for (j = 0; j < MOVING_AVG_FLTR_L; j++)
+			{
+				fMFluxMagnitude += fMFluxMagnitudeArray[j];
+			}
+			fMFluxMagnitude /= MOVING_AVG_FLTR_L;
+
+			float_t fAngle;
+			fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
+			UART_PRINT("%f, ", fMFluxMagnitude);
+			UART_PRINT("%f\n", fAngle);
+
+			if( ucOpenFlag == 0 )
+			{
+				UART_PRINT("#,");
+				if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
+				{
+					ucOpenFlag = 1;
+					UART_PRINT("Open Detected");
+				}
+			}
+			else
+			{
+				UART_PRINT("$,");
+				if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
+				{
+					UART_PRINT("Door at 40 degres while closing");
+//					ucOpenFlag = 0; //To repeat DGB
+					break;
+				}
+			}
+			UtilsDelay(30);
+		}
+
+		CollectTxit_ImgTempRH();
+
+#ifndef USB_DEBUG
+//	uint16_t temp = getLightsensor_data();
+//
+//	while(temp > 0x01FF)
+//	{
+//		temp = getLightsensor_data();
+//		UtilsDelay(80000000/3);
+//	}
+
+	UtilsDelay(80000000);
+	uint16_t temp;
+	temp = sl_Stop(0xFFFF);
+	if(temp<0)
+		UART_PRINT("\nConnection close error");
+	HIBernate();
+#else
+	clearAccelMotionIntrpt();
+	configureFXOS8700(MODE_ACCEL_INTERRUPT);
+	UART_PRINT("Configured Accelerometer for wake up\n\r");
+	while(1);
+#endif
+	}
+}
