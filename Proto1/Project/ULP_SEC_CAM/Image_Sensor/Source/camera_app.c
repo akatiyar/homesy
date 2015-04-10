@@ -87,7 +87,7 @@ unsigned long g_frame_size_in_bytes;
 
 static unsigned long *p_buffer = NULL;
 static unsigned char g_dma_txn_done;
-static unsigned char g_frame_end;
+volatile unsigned char g_frame_end;
 static unsigned long g_total_dma_intrpts;
 
 extern volatile unsigned char g_CaptureImage;
@@ -397,12 +397,10 @@ long CaptureImage()
     long lRetVal;
     unsigned char *p_header;
 
-#ifndef USB_DEBUG
     //
 	// Initialize camera controller
 	//
 	CamControllerInit();
-#endif
 
     // Delay added for testing -- Uthra
     //UtilsDelay((80000000/3)*5);
@@ -422,8 +420,7 @@ long CaptureImage()
 
     MAP_CameraCaptureStart(CAMERA_BASE);
     UART_PRINT("sA");
-    while(g_frame_end == 0)
-        ;
+    while(g_frame_end == 0);
     UART_PRINT("pB");
     MAP_CameraCaptureStop(CAMERA_BASE, true);
     UART_PRINT("pA");

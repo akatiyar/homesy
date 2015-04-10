@@ -23,7 +23,7 @@
 #define DOOR_ANGLE_TO_DETECT			40	// In degrees
 #define MAGNMTR_NOISEFLOOR				5	// In degrees
 											// Experimentally obtained value
-#define DOOR_ANGLE_HIGHER				DOOR_ANGLE_TO_DETECT + MAGNMTR_NOISEFLOOR
+#define DOOR_ANGLE_HIGHER				(DOOR_ANGLE_TO_DETECT+MAGNMTR_NOISEFLOOR)
 											//In Degrees
 //******************************************************************************
 //                      MACRO DEFINITIONS

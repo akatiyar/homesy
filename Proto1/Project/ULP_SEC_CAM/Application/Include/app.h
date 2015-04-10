@@ -30,7 +30,7 @@
 #define FN_FAILED	1 //Funtion return values are uint16_t
 
 #define TEST_MODULES_INCLUDE
-#define USB_DEBUG
+//#define USB_DEBUG
 #define DEBUG_ENABLE
 #ifndef DEBUG_ENABLE
 #define NOTERM

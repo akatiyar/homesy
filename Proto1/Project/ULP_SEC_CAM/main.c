@@ -260,11 +260,11 @@ void CollectTxit_ImgTempRH()
 	//	Collect Temperature and RH values from Si7020 IC
 	//
 	float_t fTemp = 12.34, fRH = 56.78;
-	verifyTempRHSensor();
-	softResetTempRHSensor();
-	configureTempRHSensor();
-	UtilsDelay(80000000);
-	getTempRH(&fTemp, &fRH);
+//	verifyTempRHSensor();
+//	softResetTempRHSensor();
+//	configureTempRHSensor();
+//	UtilsDelay(80000000);
+//	getTempRH(&fTemp, &fRH);
 
 	//
 	// Construct the JSON object string
@@ -460,7 +460,7 @@ void Main_fn(void *pvParameters)
 		// Collect the Initial Magnetometr Readings(door closed)
 		// and save in flash
 		//
-		UART_PRINT("\n\rMAGNETOOMETER:\n\r");
+		UART_PRINT("\n\rMAGNETOMETER:\n\r");
 		verifyAccelMagnSensor();
 		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
 		//DBG
@@ -470,7 +470,17 @@ void Main_fn(void *pvParameters)
 					" Angle: %f\n\r", fInitDoorDirectionAngle);
 
 		float_t fMagnFlx_Init[3];
-		getMagnFlux_3axis(fMagnFlx_Init);
+		float_t fMFluxMagnitudeInit = 0;
+		uint8_t j;
+		for (j = 0; j < MOVING_AVG_FLTR_L; j++)
+		{
+			getMagnFlux_3axis(fMagnFlx_Init);
+
+			fMFluxMagnitudeInit += sqrtf( (fMagnFlx_Init[0]*fMagnFlx_Init[0]) +
+												(fMagnFlx_Init[1]*fMagnFlx_Init[1]) +
+												(fMagnFlx_Init[2]*fMagnFlx_Init[2]) );
+		}
+		fMFluxMagnitudeInit /= MOVING_AVG_FLTR_L;
 
 		lRetVal = sl_Start(0, 0, 0);
 		ASSERT_ON_ERROR(lRetVal);
@@ -481,7 +491,6 @@ void Main_fn(void *pvParameters)
 	    lRetVal = sl_Stop(0xFFFF);
 	    //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 		ASSERT_ON_ERROR(lRetVal);
-
 
 		//
 		// Set up the camera module through I2C
@@ -501,6 +510,9 @@ void Main_fn(void *pvParameters)
 			}
 		#endif
 		UART_PRINT("I2C Camera config done\n\r");
+
+	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
+	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
 
 #ifndef USB_DEBUG
@@ -557,7 +569,7 @@ void Main_fn(void *pvParameters)
 		uint8_t i = 0, j;
 
 		uint8_t ucOpenFlag = 0;
-
+		uint8_t ucFirstTimeFlag = 1;
 		while(1)
 		{
 			getMagnFlux_3axis(fMagnFlx_Now);
@@ -574,21 +586,35 @@ void Main_fn(void *pvParameters)
 			i = i % MOVING_AVG_FLTR_L;
 //			UART_PRINT("%f\n\r", fMFluxMagnitudeInit);
 
+			float_t fDoorDirectionAngle;
+			getDoorDirection( &fDoorDirectionAngle );
+
 			fMFluxMagnitude = 0;
 			for (j = 0; j < MOVING_AVG_FLTR_L; j++)
 			{
 				fMFluxMagnitude += fMFluxMagnitudeArray[j];
 			}
-			fMFluxMagnitude /= MOVING_AVG_FLTR_L;
+			if( ucFirstTimeFlag == 0 )
+			{
+				fMFluxMagnitude /= (i);
+				if (i == 0)
+				{
+					ucFirstTimeFlag = 1;
+				}
+			}
+			else
+			{
+				fMFluxMagnitude /= MOVING_AVG_FLTR_L;
+			}
 
 			float_t fAngle;
 			fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
-			UART_PRINT("%f, ", fMFluxMagnitude);
-			UART_PRINT("%f\n", fAngle);
+//			UART_PRINT("%f, ", fMFluxMagnitude);
+//			UART_PRINT("%f\n", fAngle);
 
 			if( ucOpenFlag == 0 )
 			{
-				UART_PRINT("#,");
+				UART_PRINT("0");
 				if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
 				{
 					ucOpenFlag = 1;
@@ -597,15 +623,17 @@ void Main_fn(void *pvParameters)
 			}
 			else
 			{
-				UART_PRINT("$,");
+				UART_PRINT("@");
 				if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
 				{
 					UART_PRINT("Door at 40 degres while closing");
+					UART_PRINT("\n angle,Magnitude - %f , %f\n",fAngle,fMFluxMagnitude);
 //					ucOpenFlag = 0; //To repeat DGB
 					break;
+
 				}
 			}
-			UtilsDelay(30);
+			UtilsDelay(30000);
 		}
 
 		CollectTxit_ImgTempRH();
