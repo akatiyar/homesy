@@ -2,6 +2,7 @@
 #include "parse_uploads.h"
 #include "camera_app.h"
 #include "string.h"
+#include "app_common.h"
 
 extern char* dataBuffer;
 
@@ -129,6 +130,56 @@ void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	strncpy( (uint8_t *)pucParseImageUrl,
 			 (const uint8_t *)pucImageIDStart,
 			 ucLength);
-
 }
 
+
+//******************************************************************************
+//
+//	This function constructs the JSON DeviceStae object that is to be uploaded
+//	to cloud server
+//
+//	param[in]	pucParseImageUrl - pointer to unique ImageName character array
+//	param[in]	fTemp - Temperature
+//	param[in]	fRH - Relative Humidity
+//	param[out]	pucSensorDataTxt - pointer to location where the json object is
+//							to be put
+//
+//	return none
+//
+//	String functions are used
+//
+//******************************************************************************
+
+void ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
+									float_t fTemp,
+									float_t fRH,
+									uint8_t* pucSensorDataTxt)
+{
+	pucSensorDataTxt[0] = NULL;
+
+	uint8_t ucCharConv[20];
+	memset(ucCharConv, '0', 20);
+	strncat(pucSensorDataTxt, "{\"deviceId\":\"", sizeof("{\"deviceId\":\""));
+	strncat(pucSensorDataTxt,
+					VCOGNITION_DEVICE_ID,
+					sizeof("VCOGNITION_DEVICE_ID"));
+	strncat(pucSensorDataTxt,
+					"\",\"photo\":{\"name\":\"",
+					sizeof("\",\"photo\":{\"name\":\""));
+	strncat(pucSensorDataTxt, pucParseImageUrl, strlen(pucParseImageUrl));
+	strncat(pucSensorDataTxt,
+					"\",\"__type\":\"File",
+					sizeof("\",\"__type\":\"File"));
+	strncat(pucSensorDataTxt, "\"},\"temp\":", sizeof("\"},\"temp\":"));
+	intToASCII((uint16_t)(fTemp*100), ucCharConv);
+	strncat(pucSensorDataTxt, ucCharConv, 2);
+	strncat(pucSensorDataTxt, ".", 1);
+	strncat(pucSensorDataTxt, ucCharConv + 2, 2);
+	strncat(pucSensorDataTxt, ",\"humidity\":", sizeof(",\"humidity\":"));
+	intToASCII((uint16_t)(fRH*100), ucCharConv);
+	strncat(pucSensorDataTxt, ucCharConv, 2);
+	strncat(pucSensorDataTxt, ".", 1);
+	strncat(pucSensorDataTxt, ucCharConv+2, 2);
+	strncat(pucSensorDataTxt, "}", sizeof("}"));
+	UART_PRINT("\n%s\n", pucSensorDataTxt);
+}
