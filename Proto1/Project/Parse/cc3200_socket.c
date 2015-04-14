@@ -126,12 +126,15 @@ short socketRead(short socketHandle, char *receiveBuffer, unsigned int receiveBu
     receiveBuffer[0] = 0;
 
     do {
+    	//DEBUG_PRINT("=");
         status = socketWait(socketHandle, readBlock ? READ_SMALL_TIMEOUT_MICROSECONDS : timeoutMilliseconds * 1000, WAIT_READ);
+        DEBUG_PRINT("Select_fn RetVal: %d\n\r", status);
         if (status <= 0) {
             break;
         }
 
         while ((status = recv(socketHandle, receiveBuffer + bytesReceived, receiveBufferSize - bytesReceived - 1, 0)) == EAGAIN) {
+        	//DEBUG_PRINT("???");
             if (readBlock) {
                 break;
             }
@@ -176,13 +179,14 @@ long socketWrite(short socketHandle, const char *sendBuffer, unsigned int sendBu
         sendBufferSize = strlen(sendBuffer);
     }
 
-    if (sendBufferSize > 0) {
-        status = send(socketHandle, sendBuffer, sendBufferSize, 0);
-    }
+//    if (sendBufferSize > 0) {
+//        status = send(socketHandle, sendBuffer, sendBufferSize, 0);
+//    }
 
 
     while (sent_data_size != sendBufferSize )
     {
+  //  	DEBUG_PRINT("^");
         if((sendBufferSize-sent_data_size) >= 1024)
             size_to_send = 1024;
         else

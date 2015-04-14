@@ -414,10 +414,6 @@ long CaptureImage()
     // Perform Image Capture 
     //
     UART_PRINT("sB");
-
-
-
-
     MAP_CameraCaptureStart(CAMERA_BASE);
     UART_PRINT("sA");
     while(g_frame_end == 0);
@@ -444,20 +440,35 @@ long CaptureImage()
     lRetVal = sl_Start(0, 0, 0);
 	ASSERT_ON_ERROR(lRetVal);
 
+//
+//	sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
+//    //
+//    // Error handling if File Operation fails
+//    //
+//    if(lRetVal < 0)
+//    {
+//        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+//        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+//    }
+
     //
     // NVMEM File Open to write to SFLASH
     //
-
-    lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
-    					FS_MODE_OPEN_CREATE(65535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+    lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
+//    					FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+//    					FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+//    					FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						FS_MODE_OPEN_CREATE(IMAGE_BUF_SIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
                         &ulToken,
                         &lFileHandle);
+
     //
     // Error handling if File Operation fails
     //
     if(lRetVal < 0)
     {
-        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+    	UART_PRINT("File Open Error: %i", lRetVal);
+    	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
     //
@@ -465,6 +476,9 @@ long CaptureImage()
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
+
+    SlFsFileInfo_t fileInfo;
+    sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
 
     //
     // Open the file for Write Operation
@@ -516,6 +530,7 @@ long CaptureImage()
     //
     // Error handling if file operation fails
     //
+    UART_PRINT("Image Write No of bytes: %ld", lRetVal);
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -526,6 +541,8 @@ long CaptureImage()
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
+
+    sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
 
 
     lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,

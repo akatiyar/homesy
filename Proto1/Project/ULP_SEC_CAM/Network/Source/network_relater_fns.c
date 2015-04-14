@@ -5,6 +5,8 @@
 #include "app.h"
 #include "network_related_fns.h"
 
+#include "camera_app.h"
+extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
 
 unsigned long  g_ulStatus = 0;//SimpleLink Status
 unsigned long  g_ulGatewayIP = 0; //Network Gateway IP address
@@ -589,6 +591,8 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
                     UART_PRINT("[SOCK ERROR] - close socket (%d) operation "
                     "failed to transmit all queued packets\n\n",
                            pSock->EventData.sd);
+                    long status = socketRead(pSock->EventData.sd, g_image_buffer, NUM_OF_4B_CHUNKS, 5000);
+                    LOOP_FOREVER();
                     break;
                 default:
                     UART_PRINT("[SOCK ERROR] - TX FAILED : socket %d , reason"

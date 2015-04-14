@@ -237,11 +237,12 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void CollectTxit_ImgTempRH()
 {
+#ifndef NO_CAMERA
 	//
 	//	Captute image and save in flash
 	//
 	CaptureImage();
-
+#endif
 	//
 	//	Connect cc3200 to wifi AP
 	//
@@ -314,7 +315,7 @@ void Main_Task(void *pvParameters)
 		UART_PRINT("HIB: Wake up on Power ON\n\r");
 		UART_PRINT("***PLEASE KEEP THE DOOR CLOSED***\n\r");
 
-		//
+/*		//
 		// Collect the Initial Magnetometr Readings(door closed)
 		//
 		UART_PRINT("\n\rMAGNETOMETER:\n\r");
@@ -351,6 +352,7 @@ void Main_Task(void *pvParameters)
 	    lRetVal = sl_Stop(0xFFFF);
 	    //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 		//ASSERT_ON_ERROR(lRetVal);
+*/
 
 		//
 		// Set up the camera module through I2C
@@ -383,10 +385,11 @@ void Main_Task(void *pvParameters)
 #endif
 	}
 #ifdef USB_DEBUG
-    sensorsTriggerSetup();
+/*    sensorsTriggerSetup();
 	while(GPIOPinRead(GPIOA0_BASE, 0x04))
 	{
 	}
+*/
 #else
     else if(MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 #endif
@@ -396,7 +399,7 @@ void Main_Task(void *pvParameters)
 #endif
 		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
 
-		float_t fMagnFluxInit3Axis_Read[3];
+/*		float_t fMagnFluxInit3Axis_Read[3];
 
 		//
 		// Read initial magnetometer readings from flash
@@ -506,7 +509,7 @@ void Main_Task(void *pvParameters)
 			}
 			UtilsDelay(30000);
 		}
-
+*/
 		//
 		// Collect and transmit Image and sensor data
 		//

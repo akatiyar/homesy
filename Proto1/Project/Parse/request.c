@@ -25,8 +25,9 @@
 #include <strings.h>
 
 #include <simplelink.h>
-//#include
+#include "utils.h"
 #include "parse_impl.h"
+
 
 const char g_deviceClientVersion[] = "c-ti-cc3200-rtos-1.0.0";
 
@@ -205,7 +206,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 				currentPosition += status;
 				currentSize -= status;
 				status = addHttpRequestHeaderInt(dataBuffer + currentPosition, currentSize, "Content-Length", fileInfo.FileLen);
-//				status = addHttpRequestHeaderInt(dataBuffer + currentPosition, currentSize, "Content-Length", 11000);
+//				status = addHttpRequestHeaderInt(dataBuffer + currentPosition, currentSize, "Content-Length", 64000);
 			}
 
 			if (status >= 0)
@@ -221,7 +222,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 				currentSize -= status;
 				//status = snprintf(dataBuffer + currentPosition, currentSize, "%s", httpRequestBody);
 				lRetVal = sl_FsRead(lFileHandle, 0, dataBuffer + currentPosition , fileInfo.FileLen);
-//				lRetVal = sl_FsRead(lFileHandle, 0, dataBuffer + currentPosition , 11000);
+//				lRetVal = sl_FsRead(lFileHandle, 0, dataBuffer + currentPosition , 64000);
 				 if (lRetVal < 0)
 				 {
 					 DEBUG_PRINT("\nFile read\n%ld\n\n",lRetVal);
@@ -234,7 +235,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 					for( ;; );
 				}
 				status = fileInfo.FileLen;
-//				status = 11000;
+//				status = 64000;
 			}
 
     	}
@@ -294,7 +295,13 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
     }
 
     if (status >= 0) {
+    	long temp = status;
         status = socketWrite(socketHandle, dataBuffer, status);
+        if(status != temp)
+        {
+        	DEBUG_PRINT("\n\data written != data supposed to be written\n\r");
+        	while(1);
+        }
     }
     DEBUG_PRINT("[Parse] socket write status: %d\r\n", status);
     if (status >= 0) {
@@ -306,6 +313,13 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
 
         memset(dataBuffer, 0, dataBufferSize);
         status = socketRead(socketHandle, dataBuffer, dataBufferSize, 5000);
+        //status = socketRead(socketHandle, dataBuffer, dataBufferSize, 10000);
+        //DBG - to see if trying again helps
+        if( status == 0 )
+        {
+        	DEBUG_PRINT("Trying Read again\n\r");
+        	status = socketRead(socketHandle, dataBuffer, dataBufferSize, 10000);
+        }
 
         DEBUG_PRINT("[Parse] socket read status: %d\r\n", status);
 #ifdef REQUEST_DEBUG
@@ -319,6 +333,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         DEBUG_PRINT("\r\n");
 #endif /* REQUEST_DEBUG */
 
+        UtilsDelay(80000000);
         socketClose(socketHandle);
 #ifdef REQUEST_DEBUG
     } else {

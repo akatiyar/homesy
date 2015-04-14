@@ -184,7 +184,8 @@ static  const s_RegList capture_cmds_list[]= {
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
 #ifdef XGA_FRAME
-    {1, 0xC8, 1024      },
+//    {1, 0xC8, 1024      },
+    {1, 0xC8, 1280      },
 #elif VGA_FRAME
     {1, 0xC8, 640       },
 #elif QVGA_FRAME
@@ -192,7 +193,8 @@ static  const s_RegList capture_cmds_list[]= {
 #endif
     {1, 0xC6, 0x2709    },  // MODE_OUTPUT_HEIGHT_B
 #ifdef XGA_FRAME
-    {1, 0xC8, 768       },
+//    {1, 0xC8, 768       },
+    {1, 0xC8, 720       },
 #elif VGA_FRAME
     {1, 0xC8, 480       },
 #elif QVGA_FRAME
@@ -395,15 +397,16 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
     
     for(ulNdx = 0; ulNdx < ulNofItems; ulNdx++)
     {
-    	UART_PRINT("-");
-        if(pRegLst->ucPageAddr == 100)
+    	if(pRegLst->ucPageAddr == 100)
         {
-            // PageAddr == 100, insret a delay equal to reg value 
+    		UART_PRINT("1");
+    		// PageAddr == 100, insret a delay equal to reg value
             MT9D111Delay(pRegLst->usValue * 80000/3);
         }
         else if(pRegLst->ucPageAddr == 111)
         {
-            // PageAddr == 111, wait for specified register value 
+        	UART_PRINT("2");
+        	// PageAddr == 111, wait for specified register value
             do
             {
                 ucBuffer[0] = pRegLst->ucRegAddr;
@@ -420,6 +423,7 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         }
         else
         {
+        	UART_PRINT("-");
             // Set the page 
             ucBuffer[0] = SENSOR_PAGE_REG;
             ucBuffer[1] = 0x00;
