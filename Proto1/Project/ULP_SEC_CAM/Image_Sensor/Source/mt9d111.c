@@ -183,18 +183,20 @@ static  const s_RegList capture_cmds_list[]= {
     {1,  0xC8, 0x0020   },
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
-#ifdef XGA_FRAME
-//    {1, 0xC8, 1024      },
+#ifdef HD_FRAME
     {1, 0xC8, 1280      },
+#elif XGA_FRAME
+    {1, 0xC8, 1024      },
 #elif VGA_FRAME
     {1, 0xC8, 640       },
 #elif QVGA_FRAME
     {1, 0xC8, 240       },
 #endif
     {1, 0xC6, 0x2709    },  // MODE_OUTPUT_HEIGHT_B
-#ifdef XGA_FRAME
-//    {1, 0xC8, 768       },
+#ifdef HD_FRAME
     {1, 0xC8, 720       },
+#elif XGA_FRAME
+    {1, 0xC8, 768       },
 #elif VGA_FRAME
     {1, 0xC8, 480       },
 #elif QVGA_FRAME

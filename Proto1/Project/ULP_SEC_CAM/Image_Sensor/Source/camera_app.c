@@ -422,6 +422,7 @@ long CaptureImage()
     UART_PRINT("pA");
 
     UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
+    UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
 
 //    MAP_CameraDMADisable(CAMERA_BASE);
 //    MAP_CameraIntDisable(CAMERA_BASE, CAM_INT_FE);
@@ -530,7 +531,7 @@ long CaptureImage()
     //
     // Error handling if file operation fails
     //
-    UART_PRINT("Image Write No of bytes: %ld", lRetVal);
+    UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);

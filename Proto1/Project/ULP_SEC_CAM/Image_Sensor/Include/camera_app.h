@@ -61,11 +61,15 @@ extern "C"
 
 #ifdef ENABLE_JPEG
     // Capture is stopped at 'CAM_INT_FE' anyway 
-    #ifdef XGA_FRAME
-//        #define PIXELS_IN_X_AXIS        (1024)
-//        #define PIXELS_IN_Y_AXIS        (768)
+    #ifdef	HD_FRAME
 		#define PIXELS_IN_X_AXIS        (1280)
         #define PIXELS_IN_Y_AXIS        (720)
+
+		//#define NUM_OF_1KB_BUFFERS      150
+		#define NUM_OF_1KB_BUFFERS      120
+	#elif XGA_FRAME
+        #define PIXELS_IN_X_AXIS        (1024)
+        #define PIXELS_IN_Y_AXIS        (768)
 
         #define NUM_OF_1KB_BUFFERS      120
     #elif VGA_FRAME
