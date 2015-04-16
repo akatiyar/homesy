@@ -591,8 +591,6 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
                     UART_PRINT("[SOCK ERROR] - close socket (%d) operation "
                     "failed to transmit all queued packets\n\n",
                            pSock->EventData.sd);
-                    long status = socketRead(pSock->EventData.sd, g_image_buffer, NUM_OF_4B_CHUNKS, 5000);
-                    LOOP_FOREVER();
                     break;
                 default:
                     UART_PRINT("[SOCK ERROR] - TX FAILED : socket %d , reason"
@@ -602,8 +600,14 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             break;
 
         default:
-            UART_PRINT("[SOCK EVENT] - Unexpected Event [%x0x]\n\n",pSock->Event);
+            UART_PRINT("[SOCK EVENT] "
+            			"- Unexpected Event [%x0x]\n\n",pSock->Event);
     }
+    UART_PRINT("[SOCK EVENT/ERROR]:\nEvent: %x\n Socket: %x\nEventStatus: "
+    				"%x\nAsynchEventValue: %x\nAsynchEventType: %x",
+    				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
+    				pSock->EventData.socketAsyncEvent.val,
+    				pSock->EventData.socketAsyncEvent.type);
 }
 
 //*****************************************************************************

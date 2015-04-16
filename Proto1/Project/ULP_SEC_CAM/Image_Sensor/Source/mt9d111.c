@@ -403,7 +403,8 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         {
     		UART_PRINT("1");
     		// PageAddr == 100, insret a delay equal to reg value
-            MT9D111Delay(pRegLst->usValue * 80000/3);
+            //MT9D111Delay(pRegLst->usValue * 80000/3);
+    		MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
         }
         else if(pRegLst->ucPageAddr == 111)
         {
@@ -476,7 +477,8 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         }
 
         pRegLst++;
-        MT9D111Delay(10);
+        //MT9D111Delay(10);
+        MT9D111Delay(40);
     }
 
     return RET_OK;

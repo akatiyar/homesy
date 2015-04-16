@@ -663,7 +663,8 @@ void CamControllerInit()
 #ifndef ENABLE_JPEG
     MAP_CameraXClkConfig(CAMERA_BASE, 60000000,3750000);
 #else
-    MAP_CameraXClkConfig(CAMERA_BASE, 120000000,24000000);
+    //MAP_CameraXClkConfig(CAMERA_BASE, 120000000,24000000);
+    MAP_CameraXClkConfig(CAMERA_BASE, 120000000, 8000000);
 #endif
 
     MAP_CameraThresholdSet(CAMERA_BASE, 8);

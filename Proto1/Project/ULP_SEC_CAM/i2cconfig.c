@@ -154,7 +154,8 @@ unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
 
         for(ulNdx=1; ulNdx < ulSize-1; ulNdx++)
         {
-            MT9D111Delay(10);
+        	//MT9D111Delay(10);
+            MT9D111Delay(40);
             MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
 
             // continue the transfer. 
