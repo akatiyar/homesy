@@ -241,7 +241,7 @@ void CollectTxit_ImgTempRH()
 	//
 	//	Captute image and save in flash
 	//
-	CaptureImage();
+	CaptureAndStore_Image();
 #endif
 	//
 	//	Connect cc3200 to wifi AP
@@ -354,6 +354,7 @@ void Main_Task(void *pvParameters)
 		//ASSERT_ON_ERROR(lRetVal);
 */
 
+/*
 		//
 		// Set up the camera module through I2C
 		//
@@ -376,6 +377,7 @@ void Main_Task(void *pvParameters)
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
+*/
 
 #ifndef USB_DEBUG
 		//
@@ -632,10 +634,16 @@ void main()
     //
     InitTerm();
 #endif
+
     //
     // I2C Init
     //
     I2C_IF_Open(I2C_APP_MODE);
+
+    //
+	// Initilalize DMA
+	//
+	UDMAInit();
 
     //
 	//Display Application Banner

@@ -230,7 +230,6 @@ long InitCameraComponents();
 //static void CamControllerInit();
 void CamControllerInit();
 static void CameraIntHandler();
-long CaptureImage();
 static void DMAConfig();
 
 
@@ -252,135 +251,7 @@ static int JfifApp0Marker(char *pbuf);
 
 //*****************************************************************************
 //
-//!     Start Camera
-//!   1. Establishes connection w/ AP//
-//!   2. Initializes the camera sub-components//! GPIO Enable & Configuration
-//!   3. Listens and processes the image capture requests from user-applications
-//!
-//!    \param                      None
-//!     \return                     None
-//
-//*****************************************************************************
-
-void StartCamera(void)
-{
-    long lRetVal = -1;
-    InitializeAppVariables();
-
-    //
-    // Following function configure the device to default state by cleaning
-    // the persistent settings stored in NVMEM (viz. connection profiles &
-    // policies, power policy etc)
-    //
-    // Applications may choose to skip this step if the developer is sure
-    // that the device is in its default state at start of applicaton
-    //
-    // Note that all profiles and persistent settings that were done on the
-    // device will be lost
-    //
-    lRetVal = ConfigureSimpleLinkToDefaultState();
-    if(lRetVal < 0)
-    {
-        if (DEVICE_NOT_IN_STATION_MODE == lRetVal)
-         UART_PRINT("Failed to configure the device in its default state\n\r");
-
-        LOOP_FOREVER();
-    }
-
-    UART_PRINT("Device is configured in default state \n\r");
-
-
-    //
-    // Connect to Network - AP Mode
-    //
-    lRetVal = ConnectToNetwork();
-    if(lRetVal < 0)
-    {
-        LOOP_FOREVER();
-    }
-    //
-    // Camera Controller and Camera Sensor Init
-    //
-    lRetVal = InitCameraComponents();
-    if(lRetVal < 0)
-    {
-        LOOP_FOREVER();
-    }
-//    UART_PRINT("I2C Camera config fn 1 done\n");
-
-//#ifdef ENABLE_JPEG
-//        //
-//        // Configure Sensor in Capture Mode
-//        //
-//    lRetVal = StartSensorInJpegMode();
-//    if(lRetVal < 0)
-//    {
-//        LOOP_FOREVER();
-//    }
-//    UART_PRINT("I2C Camera config fn 2 done\n");
-//#endif
-
-    //
-    // Waits in the below loop till Capture button is pressed
-    //
-    do
-    {
-        if(g_CaptureImage)
-        {
-        	UART_PRINT("IN\n");
-            CaptureImage();
-            if(lRetVal < 0)
-            {
-                LOOP_FOREVER();
-            }
-            UtilsDelay(8000000*10);
-            //g_CaptureImage = 0;
-            break;
-        }
-    }while(1);
-}
-//*****************************************************************************
-//
-//!     InitCameraComponents
-//!     PinMux, Camera Initialization and Configuration
-//!
-//!    \param                      None
-//!     \return                     0 - Success
-//!                                   Negative - Failure
-//
-//*****************************************************************************
-
-static long InitCameraComponents()
-{
-    //long lRetVal = -1;
-
-    //
-    // Configure device pins
-    //
-//    PinMuxConfig();
-//    //
-//    // Initialize I2C Interface
-//    //
-//    lRetVal = I2CInit();
-//    ASSERT_ON_ERROR(lRetVal);
-
-    //
-    // Initialize camera controller
-    //
-    CamControllerInit();
-
-    //
-    // Initialize camera sensor
-    //
-//    lRetVal = CameraSensorInit();
-//    ASSERT_ON_ERROR(lRetVal);
-
-    return SUCCESS;
-}
-
-//*****************************************************************************
-//
-//!     CaptureImage 
+//!     CaptureAndStore_Image
 //!     Configures DMA and starts the Capture. Post Capture writes to SFLASH 
 //!    
 //!    \param                      None  
@@ -389,46 +260,12 @@ static long InitCameraComponents()
 //!                               
 //
 //*****************************************************************************
-
-long CaptureImage()
+long CaptureAndStore_Image()
 {
     long lFileHandle;
     unsigned long ulToken = NULL;
     long lRetVal;
     unsigned char *p_header;
-
-    //
-	// Initialize camera controller
-	//
-	CamControllerInit();
-
-    // Delay added for testing -- Uthra
-    //UtilsDelay((80000000/3)*5);
-
-    //
-    // Configure DMA in ping-pong mode
-    //
-    DMAConfig();
-    
-    //
-    // Perform Image Capture 
-    //
-    UART_PRINT("sB");
-    MAP_CameraCaptureStart(CAMERA_BASE);
-    UART_PRINT("sA");
-    while(g_frame_end == 0);
-    UART_PRINT("pB");
-    MAP_CameraCaptureStop(CAMERA_BASE, true);
-    UART_PRINT("pA");
-
-    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
-    UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
-
-    MAP_PRCMPeripheralReset(PRCM_CAMERA);
-    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-
-    MAP_PRCMPeripheralReset(PRCM_UDMA);
-    MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
 
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
@@ -455,10 +292,6 @@ long CaptureImage()
 						FS_MODE_OPEN_CREATE(IMAGE_BUF_SIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
                         &ulToken,
                         &lFileHandle);
-
-    //
-    // Error handling if File Operation fails
-    //
     if(lRetVal < 0)
     {
     	UART_PRINT("File Open Error: %i", lRetVal);
@@ -483,9 +316,6 @@ long CaptureImage()
                         FS_MODE_OPEN_WRITE,
                         &ulToken,
                         &lFileHandle);
-    //
-    // Error handling if File Operation fails
-    //
     if(lRetVal < 0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -494,49 +324,78 @@ long CaptureImage()
     //
     // Create JPEG Header
     //
-#ifdef ENABLE_JPEG
     memset(g_header, '\0', sizeof(g_header));
     g_header_length = CreateJpegHeader((char *)&g_header[0], PIXELS_IN_X_AXIS,
                                        PIXELS_IN_Y_AXIS, 0, 0x0020, 9);
-
     //
     // Write the Header 
     //
-    p_header = (unsigned char *)&g_header[0];
-    lRetVal = sl_FsWrite(lFileHandle, 0, p_header, g_header_length - 1);
-    //
-    // Error handling if file operation fails
-    //
+
+    lRetVal = sl_FsWrite(lFileHandle, 0, g_header, g_header_length - 1);
     if(lRetVal < 0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
-#endif
+	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
+    //
+	// Close the file post writing jpeg header
+	//
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	//
+	// Initialize camera controller
+	//
+	CamControllerInit();
+
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
+    //
+    // Perform Image Capture
+    //
+    UART_PRINT("sB");
+    MAP_CameraCaptureStart(CAMERA_BASE);
+    UART_PRINT("sA");
+    while(g_frame_end == 0);
+    UART_PRINT("pB");
+    MAP_CameraCaptureStop(CAMERA_BASE, true);
+    UART_PRINT("pA");
+
+    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
+    UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
+
+    //
+	// Open the file for Write Operation
+	//
+	lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
+						FS_MODE_OPEN_WRITE,
+						&ulToken,
+						&lFileHandle);
+	if(lRetVal < 0)
+	{
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
     //
     // Write the Image Buffer 
     //
-#ifdef ENABLE_JPEG
     lRetVal =  sl_FsWrite(lFileHandle, g_header_length - 1,
                       (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
-#else
-    lRetVal =  sl_FsWrite(lFileHandle, 0,
-                          (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
-#endif
-    //
-    // Error handling if file operation fails
-    //
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
+    UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
     //
     // Close the file post writing the image
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
-    UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
 
 /*
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
@@ -566,6 +425,14 @@ long CaptureImage()
 
 	UART_PRINT("DONE: Image Write to Flash\n\r");
 
+
+    MAP_PRCMPeripheralReset(PRCM_CAMERA);
+    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+
+    MAP_PRCMPeripheralReset(PRCM_UDMA);
+    MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
+
+
     return SUCCESS;
 }
 //*****************************************************************************
@@ -581,10 +448,7 @@ static void DMAConfig()
 {
     memset(g_image_buffer,0xF80F,sizeof(g_image_buffer));
     p_buffer = &g_image_buffer[0];
-    //
-    // Initilalize DMA 
-    //
-    UDMAInit();
+
     //
     // Setup ping-pong transfer
     //

@@ -141,7 +141,7 @@ extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
 //******************************************************************************
 // APIs
 //******************************************************************************
-long CaptureImage();
+long CaptureAndStore_Image();
 void CamControllerInit();
 void StartCamera();
 //*****************************************************************************
