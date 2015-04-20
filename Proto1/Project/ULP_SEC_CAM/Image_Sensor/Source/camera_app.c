@@ -424,33 +424,26 @@ long CaptureImage()
     UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
 
-//    MAP_CameraDMADisable(CAMERA_BASE);
-//    MAP_CameraIntDisable(CAMERA_BASE, CAM_INT_FE);
-//
-//    MAP_CameraReset(CAMERA_BASE);
-
     MAP_PRCMPeripheralReset(PRCM_CAMERA);
     MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-    //
-    // Enable McASP at the PRCM module
-    //
+
     MAP_PRCMPeripheralReset(PRCM_UDMA);
     MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
 
-
     lRetVal = sl_Start(0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
+   	ASSERT_ON_ERROR(lRetVal);
 
-//
-//	sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
-//    //
-//    // Error handling if File Operation fails
-//    //
-//    if(lRetVal < 0)
-//    {
-//        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//    }
+/*
+	sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
+    //
+    // Error handling if File Operation fails
+    //
+    if(lRetVal < 0)
+    {
+        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+    }
+*/
 
     //
     // NVMEM File Open to write to SFLASH
@@ -478,8 +471,10 @@ long CaptureImage()
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
+/*
     SlFsFileInfo_t fileInfo;
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
+*/
 
     //
     // Open the file for Write Operation
@@ -531,7 +526,6 @@ long CaptureImage()
     //
     // Error handling if file operation fails
     //
-    UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -542,9 +536,10 @@ long CaptureImage()
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
+    UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
 
+/*
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
-
 
     lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
     					FS_MODE_OPEN_READ,
@@ -555,7 +550,7 @@ long CaptureImage()
 		 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		 ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	 }
-	 lRetVal = sl_FsRead(lFileHandle, 0, g_image_buffer , 500);
+	 lRetVal = sl_FsRead(lFileHandle, 0, (unsigned char*)g_image_buffer , 500);
 	 if (lRetVal < 0)
 	 {
 		 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -563,7 +558,7 @@ long CaptureImage()
 	 }
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	ASSERT_ON_ERROR(lRetVal);
-
+*/
 
     lRetVal = sl_Stop(0xFFFF);
     //lRetVal = sl_Stop(SL_STOP_TIMEOUT);

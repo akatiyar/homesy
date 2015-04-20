@@ -205,11 +205,13 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2737    },  // MODE_CROP_X1_B
-    {1, 0xC8, 1600  },
+    {1, 0xC8, 1280  },
+    //{1, 0xC8, 1600  },
     {1, 0xC6, 0x2739    },  // MODE_CROP_Y0_B
-    {1, 0xC8, 0x0000    },
+    {1, 0xC8, 0x0064    },
     {1, 0xC6, 0x273B    },  // MODE_CROP_Y1_B
-    {1, 0xC8, 1200      },
+    //{1, 0xC8, 1200      },
+    {1, 0xC8, 820      },
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
     {1, 0xC8, 0x0002    },
     {100, 0x00, 0x01F4  },  // Delay =500ms
@@ -222,6 +224,8 @@ static  const s_RegList init_cmds_list[]= {
     {1, 0xC6, 0xA115    }, // SEQ_LLMODE
     {1, 0xC8, 0x0020    }, // SEQ_LLMODE
     {0, 0x38, 0x0866    }, // RESERVED_CORE_38
+    //{1, 0x98, 0x0002	},	//	added Y suppression
+    //{1, 0x98, 0x0007	},	//	added Y, Cr, Cb suppression
     {2, 0x80, 0x0168    }, // LENS_CORRECTION_CONTROL
     {2, 0x81, 0x6432    }, // ZONE_BOUNDS_X1_X2
     {2, 0x82, 0x3296    }, // ZONE_BOUNDS_X0_X3
