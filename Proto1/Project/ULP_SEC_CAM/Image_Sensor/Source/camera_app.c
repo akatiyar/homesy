@@ -87,8 +87,7 @@
 
 unsigned long g_frame_size_in_bytes;
 
-static unsigned long *ping_buffer = NULL;
-static unsigned long *pong_buffer = NULL;
+static unsigned long *p_buffer = NULL;
 static unsigned char g_dma_txn_done;
 volatile unsigned char g_frame_end;
 static unsigned long g_total_dma_intrpts;
@@ -471,8 +470,7 @@ long CaptureAndStore_Image()
 static void DMAConfig()
 {
     memset(g_image_buffer,0xF80F,sizeof(g_image_buffer));
-    ping_buffer = &g_image_buffer[0];
-    pong_buffer = &g_image_buffer[0] + TOTAL_DMA_ELEMENTS;
+    p_buffer = &g_image_buffer[0];
 
     //
     // Setup ping-pong transfer
@@ -480,19 +478,19 @@ static void DMAConfig()
     DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32,
                      UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, UDMA_SRC_INC_32,
-                     (void *)ping_buffer, UDMA_DST_INC_32);
+                     (void *)p_buffer, UDMA_DST_INC_32);
     //
     //  Pong Buffer
     // 
-    //p_buffer += TOTAL_DMA_ELEMENTS;
+    p_buffer += TOTAL_DMA_ELEMENTS;
     DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,UDMA_MODE_PINGPONG,
                      TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32, UDMA_ARB_8,(void *)CAM_BUFFER_ADDR,
-                     UDMA_SRC_INC_32, (void *)pong_buffer, UDMA_DST_INC_32);
+                     UDMA_SRC_INC_32, (void *)p_buffer, UDMA_DST_INC_32);
     //
     //  Ping Buffer
     // 
-    //p_buffer += TOTAL_DMA_ELEMENTS;
+    p_buffer += TOTAL_DMA_ELEMENTS;
 
     g_dma_txn_done = 0;
     g_frame_size_in_bytes = 0;
@@ -594,8 +592,8 @@ static void CameraIntHandler()
                                  TOTAL_DMA_ELEMENTS,UDMA_SIZE_32,
                                  UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, 
                                  UDMA_SRC_INC_32,
-                                 (void *)ping_buffer, UDMA_DST_INC_32);
-                //p_buffer += TOTAL_DMA_ELEMENTS;
+                                 (void *)p_buffer, UDMA_DST_INC_32);
+                p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 1;
                 UART_PRINT("1");
 
@@ -607,9 +605,9 @@ static void CameraIntHandler()
                                  UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                                  UDMA_SIZE_32, UDMA_ARB_8,
                                  (void *)CAM_BUFFER_ADDR,
-                                 UDMA_SRC_INC_32, (void *)pong_buffer,
+                                 UDMA_SRC_INC_32, (void *)p_buffer,
                                  UDMA_DST_INC_32);
-                //p_buffer += TOTAL_DMA_ELEMENTS;
+                p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 0;
                 UART_PRINT("2");
 
