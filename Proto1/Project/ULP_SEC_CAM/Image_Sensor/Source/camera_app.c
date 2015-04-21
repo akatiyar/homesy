@@ -71,6 +71,8 @@
 #include "app.h"
 
 #include "network_related_fns.h"
+#include "timer_fns.h"
+#include "math.h"
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -85,12 +87,16 @@
 
 unsigned long g_frame_size_in_bytes;
 
-static unsigned long *p_buffer = NULL;
+static unsigned long *ping_buffer = NULL;
+static unsigned long *pong_buffer = NULL;
 static unsigned char g_dma_txn_done;
 volatile unsigned char g_frame_end;
 static unsigned long g_total_dma_intrpts;
 
 extern volatile unsigned char g_CaptureImage;
+
+extern volatile uint8_t g_flagPingFull;
+extern volatile uint8_t g_flagPongFull;
 
 unsigned long  g_ulPingPacketsRecv = 0; //Number of Ping Packets received 
 
@@ -325,24 +331,26 @@ long CaptureAndStore_Image()
     // Create JPEG Header
     //
     memset(g_header, '\0', sizeof(g_header));
-    g_header_length = CreateJpegHeader((char *)&g_header[0], PIXELS_IN_X_AXIS,
-                                       PIXELS_IN_Y_AXIS, 0, 0x0020, 9);
+    g_header_length = CreateJpegHeader((char *)&g_header[0],
+    									PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
+    									0, 0x0020, 9);
+    InitializeTimer();
+    StartTimer();
     //
     // Write the Header 
     //
-
     lRetVal = sl_FsWrite(lFileHandle, 0, g_header, g_header_length - 1);
+    StopTimer();
     if(lRetVal < 0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
 	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
-    //
-	// Close the file post writing jpeg header
-	//
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
+
+	float_t fHeaderWriteDuration;
+	GetTimeDuration(&fHeaderWriteDuration);
+	UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
 
 	//
 	// Initialize camera controller
@@ -358,28 +366,38 @@ long CaptureAndStore_Image()
     // Perform Image Capture
     //
     UART_PRINT("sB");
+    InitializeTimer();
+    StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
-    UART_PRINT("sA");
-    while(g_frame_end == 0);
-    UART_PRINT("pB");
+
+    while(g_frame_end == 0)
+    {
+//    	if(g_flagPingFull)
+//    	{
+//    		UART_PRINT("p");
+//    		//lRetVal =  sl_FsWrite(lFileHandle,
+//    		g_flagPingFull = 0;
+//    	}
+//    	if(g_flagPongFull)
+//    	{
+//    		UART_PRINT("g");
+//    		g_flagPongFull = 0;
+//    	}
+    }
+
     MAP_CameraCaptureStop(CAMERA_BASE, true);
+    StopTimer();
     UART_PRINT("pA");
+
+    float_t fPicCaptureDuration;
+    GetTimeDuration(&fPicCaptureDuration);
+    UART_PRINT("\n\rImage Capture Duration: %f\n\r", fPicCaptureDuration);
 
     UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
 
-    //
-	// Open the file for Write Operation
-	//
-	lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
-						FS_MODE_OPEN_WRITE,
-						&ulToken,
-						&lFileHandle);
-	if(lRetVal < 0)
-	{
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
+    InitializeTimer();
+    StartTimer();
     //
     // Write the Image Buffer 
     //
@@ -396,6 +414,12 @@ long CaptureAndStore_Image()
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
+
+    StopTimer();
+
+    float_t fPicWriteDuration;
+    GetTimeDuration(&fPicWriteDuration);
+    UART_PRINT("\n\rImage Write Duration: %f\n\r", fPicWriteDuration);
 
 /*
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
@@ -447,7 +471,8 @@ long CaptureAndStore_Image()
 static void DMAConfig()
 {
     memset(g_image_buffer,0xF80F,sizeof(g_image_buffer));
-    p_buffer = &g_image_buffer[0];
+    ping_buffer = &g_image_buffer[0];
+    pong_buffer = &g_image_buffer[0] + TOTAL_DMA_ELEMENTS;
 
     //
     // Setup ping-pong transfer
@@ -455,19 +480,19 @@ static void DMAConfig()
     DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32,
                      UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, UDMA_SRC_INC_32,
-                     (void *)p_buffer, UDMA_DST_INC_32);
+                     (void *)ping_buffer, UDMA_DST_INC_32);
     //
     //  Pong Buffer
     // 
-    p_buffer += TOTAL_DMA_ELEMENTS; 
+    //p_buffer += TOTAL_DMA_ELEMENTS;
     DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,UDMA_MODE_PINGPONG,
                      TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32, UDMA_ARB_8,(void *)CAM_BUFFER_ADDR,
-                     UDMA_SRC_INC_32, (void *)p_buffer, UDMA_DST_INC_32);
+                     UDMA_SRC_INC_32, (void *)pong_buffer, UDMA_DST_INC_32);
     //
     //  Ping Buffer
     // 
-    p_buffer += TOTAL_DMA_ELEMENTS; 
+    //p_buffer += TOTAL_DMA_ELEMENTS;
 
     g_dma_txn_done = 0;
     g_frame_size_in_bytes = 0;
@@ -569,10 +594,12 @@ static void CameraIntHandler()
                                  TOTAL_DMA_ELEMENTS,UDMA_SIZE_32,
                                  UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, 
                                  UDMA_SRC_INC_32,
-                                 (void *)p_buffer, UDMA_DST_INC_32);
-                p_buffer += TOTAL_DMA_ELEMENTS;
+                                 (void *)ping_buffer, UDMA_DST_INC_32);
+                //p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 1;
                 UART_PRINT("1");
+
+                g_flagPingFull = 1;
             }
             else
             {
@@ -580,11 +607,13 @@ static void CameraIntHandler()
                                  UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                                  UDMA_SIZE_32, UDMA_ARB_8,
                                  (void *)CAM_BUFFER_ADDR,
-                                 UDMA_SRC_INC_32, (void *)p_buffer, 
+                                 UDMA_SRC_INC_32, (void *)pong_buffer,
                                  UDMA_DST_INC_32);
-                p_buffer += TOTAL_DMA_ELEMENTS;
+                //p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 0;
                 UART_PRINT("2");
+
+                g_flagPongFull = 1;
             }
         }
         else

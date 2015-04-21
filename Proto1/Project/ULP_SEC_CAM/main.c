@@ -104,13 +104,15 @@
 #include "hibernate_related_fns.h"
 #include "flash_files.h"
 #include "app_common.h"
+#include "timer_fns.h"
+
 
 #include "test_fns.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
 #define APPLICATION_VERSION     "1.1.0"
-#define APP_NAME                "VGA IMAGE, SENSOR DATA UPLOAD TO PARSE ON LIGHT TRIGGER"
+#define APP_NAME                "HD IMAGE, SENSOR DATA UPLOAD TO PARSE ON ACCELEROMETER TRIGGER"
 
 #define SERVER_RESPONSE_TIMEOUT 10
 #define SLEEP_TIME              8000000
@@ -126,6 +128,9 @@
 unsigned long g_ulTimerInts;   //  Variable used in Timer Interrupt Handler
 volatile unsigned char g_CaptureImage; //An app status
 SlSecParams_t SecurityParams = {0};  // AP Security Parameters
+
+volatile uint8_t g_flagPingFull = 0;
+volatile uint8_t g_flagPongFull = 0;
 
 unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
 
@@ -636,6 +641,11 @@ void main()
 #endif
 
     //
+	//Display Application Banner
+	//
+	DisplayBanner(APP_NAME);
+
+    //
     // I2C Init
     //
     I2C_IF_Open(I2C_APP_MODE);
@@ -645,10 +655,16 @@ void main()
 	//
 	UDMAInit();
 
-    //
-	//Display Application Banner
 	//
-	DisplayBanner(APP_NAME);
+	// Initialize timer and test working
+	//
+	InitializeTimer();
+	StartTimer();
+	UtilsDelay(80000000/3); //2 sec delay
+	StopTimer();
+    float_t fTestDuration;
+    GetTimeDuration(&fTestDuration);
+    UART_PRINT("\n\rUtilsDelay Duration: %f\n\r", fTestDuration);
 
 	//
     // Start the SimpleLink Host
