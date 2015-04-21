@@ -81,6 +81,11 @@
 //#define USER_FILE_NAME          "www/123.txt"
 #define TOTAL_DMA_ELEMENTS      64
 
+//#define BUFFER_SIZE_IN_BYTES	71960 //70K
+//#define BUFFER_SIZE_IN_BYTES	72192
+//#define BUFFER_SIZE_IN_BYTES	25600
+#define BUFFER_SIZE_IN_BYTES	81920 //80K
+#define PING_BUFFER_SIZE_IN_BYTES	(BUFFER_SIZE_IN_BYTES/2)
 //*****************************************************************************
 //                      GLOBAL VARIABLES
 //*****************************************************************************
@@ -102,6 +107,8 @@ unsigned long  g_ulPingPacketsRecv = 0; //Number of Ping Packets received
 #ifdef ENABLE_JPEG
 char g_header[SMTP_BUF_LEN] = {'\0'};
 unsigned long g_header_length;
+
+
 #endif 
 
 typedef enum pictureRequest{
@@ -272,6 +279,8 @@ long CaptureAndStore_Image()
     long lRetVal;
     unsigned char *p_header;
 
+    uint32_t uiImageFile_Offset = 0;
+
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
 
@@ -314,6 +323,7 @@ long CaptureAndStore_Image()
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
 */
 
+
     //
     // Open the file for Write Operation
     //
@@ -326,6 +336,7 @@ long CaptureAndStore_Image()
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
+
     //
     // Create JPEG Header
     //
@@ -345,6 +356,7 @@ long CaptureAndStore_Image()
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
+    uiImageFile_Offset += lRetVal;
 	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
 
 	float_t fHeaderWriteDuration;
@@ -371,17 +383,36 @@ long CaptureAndStore_Image()
 
     while(g_frame_end == 0)
     {
-//    	if(g_flagPingFull)
-//    	{
-//    		UART_PRINT("p");
-//    		//lRetVal =  sl_FsWrite(lFileHandle,
-//    		g_flagPingFull = 0;
-//    	}
-//    	if(g_flagPongFull)
-//    	{
-//    		UART_PRINT("g");
-//    		g_flagPongFull = 0;
-//    	}
+    	if(g_flagPingFull)
+    	{
+    		UART_PRINT("p");
+    		//UtilsDelay(.0001*80000000/(3*2));
+    		lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
+    		                      (unsigned char *)g_image_buffer, PING_BUFFER_SIZE_IN_BYTES);
+    		g_flagPingFull = 0;
+    		if (lRetVal <0)
+			{
+				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+				ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+			}
+			uiImageFile_Offset += lRetVal;
+			//g_flagPingFull = 0;
+    	}
+    	else if(g_flagPongFull)
+    	{
+    		UART_PRINT("g");
+    		//UtilsDelay(.0001*80000000/(3*2));
+    		lRetVal = sl_FsWrite(lFileHandle, uiImageFile_Offset,
+    								(unsigned char *)(g_image_buffer + (PING_BUFFER_SIZE_IN_BYTES/4)),
+    		    		            PING_BUFFER_SIZE_IN_BYTES);
+    		g_flagPongFull = 0;
+    		if (lRetVal <0)
+			{
+				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+				ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+			}
+			uiImageFile_Offset += lRetVal;
+    	}
     }
 
     MAP_CameraCaptureStop(CAMERA_BASE, true);
@@ -395,30 +426,24 @@ long CaptureAndStore_Image()
     UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
 
-    InitializeTimer();
-    StartTimer();
     //
-    // Write the Image Buffer 
+    // Write the Image Buffer
     //
-    lRetVal =  sl_FsWrite(lFileHandle, g_header_length - 1,
-                      (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
+    lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
+                      (unsigned char *)(g_image_buffer),
+                      (g_frame_size_in_bytes % PING_BUFFER_SIZE_IN_BYTES));
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
-    UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
+    uiImageFile_Offset += lRetVal;
+    UART_PRINT("Image Write No of bytes: %ld\n", uiImageFile_Offset);
     //
     // Close the file post writing the image
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
-
-    StopTimer();
-
-    float_t fPicWriteDuration;
-    GetTimeDuration(&fPicWriteDuration);
-    UART_PRINT("\n\rImage Write Duration: %f\n\r", fPicWriteDuration);
 
 /*
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
@@ -565,18 +590,18 @@ void CamControllerInit()
 //*****************************************************************************
 static void CameraIntHandler()
 {
-	UART_PRINT("!");
+	//UART_PRINT("!");
     if(g_total_dma_intrpts > 1 && MAP_CameraIntStatus(CAMERA_BASE) & CAM_INT_FE)
     {
         MAP_CameraIntClear(CAMERA_BASE, CAM_INT_FE);
         g_frame_end = 1;
         MAP_CameraCaptureStop(CAMERA_BASE, true);
-        UART_PRINT("++++++");
+        //UART_PRINT("++++++");
     }
 
     if(HWREG(0x440260A4) & (1<<8))
     {
-    	UART_PRINT(".");
+    	//UART_PRINT(".");
     	// Camera DMA Done clear
         HWREG(0x4402609C) |= 1 << 8;
 
@@ -595,9 +620,7 @@ static void CameraIntHandler()
                                  (void *)p_buffer, UDMA_DST_INC_32);
                 p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 1;
-                UART_PRINT("1");
-
-                g_flagPingFull = 1;
+                //UART_PRINT("1");
             }
             else
             {
@@ -609,9 +632,31 @@ static void CameraIntHandler()
                                  UDMA_DST_INC_32);
                 p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 0;
-                UART_PRINT("2");
-
-                g_flagPongFull = 1;
+                //UART_PRINT("2");
+            }
+            if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
+            {
+            	p_buffer = g_image_buffer;
+            	if (g_flagPingFull != 0)
+            	{
+            		//UART_PRINT("P BUF OVERWRITE!\n\r");
+            		UART_PRINT("SSSS\n\r");
+            	}
+            	g_flagPongFull = 1;
+            	UART_PRINT("&");
+            }
+            else
+            {
+            	if ((p_buffer - g_image_buffer) == (PING_BUFFER_SIZE_IN_BYTES / 4))
+				{
+            		if (g_flagPongFull != 0)
+					{
+						//UART_PRINT("G BUF OVERWRITE!\n\r");
+            			UART_PRINT("HHHH\n\r");
+					}
+            		g_flagPingFull = 1;
+            		UART_PRINT("K");
+				}
             }
         }
         else
