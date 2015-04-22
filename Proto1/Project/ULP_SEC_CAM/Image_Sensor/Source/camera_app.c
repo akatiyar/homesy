@@ -96,6 +96,7 @@ static unsigned long *p_buffer = NULL;
 static unsigned char g_dma_txn_done;
 volatile unsigned char g_frame_end;
 static unsigned long g_total_dma_intrpts;
+volatile long g_position_in_buffer;
 
 extern volatile unsigned char g_CaptureImage;
 
@@ -381,37 +382,34 @@ long CaptureAndStore_Image()
     StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
 
-    while(g_frame_end == 0)
+    while((g_frame_end == 0) || g_flagPingFull || g_flagPongFull)
     {
-    	if(g_flagPingFull)
+    	if( g_flagPingFull )
     	{
     		UART_PRINT("p");
-    		//UtilsDelay(.0001*80000000/(3*2));
-    		lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
-    		                      (unsigned char *)g_image_buffer, PING_BUFFER_SIZE_IN_BYTES);
-    		g_flagPingFull = 0;
-    		if (lRetVal <0)
+			lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
+								  (unsigned char *)g_image_buffer, PING_BUFFER_SIZE_IN_BYTES);
+			if (lRetVal <0)
 			{
 				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 				ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 			}
 			uiImageFile_Offset += lRetVal;
-			//g_flagPingFull = 0;
+			g_flagPingFull = 0;
     	}
-    	else if(g_flagPongFull)
+    	if ( g_flagPongFull )
     	{
     		UART_PRINT("g");
-    		//UtilsDelay(.0001*80000000/(3*2));
     		lRetVal = sl_FsWrite(lFileHandle, uiImageFile_Offset,
     								(unsigned char *)(g_image_buffer + (PING_BUFFER_SIZE_IN_BYTES/4)),
     		    		            PING_BUFFER_SIZE_IN_BYTES);
-    		g_flagPongFull = 0;
     		if (lRetVal <0)
 			{
 				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 				ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 			}
 			uiImageFile_Offset += lRetVal;
+			g_flagPongFull = 0;
     	}
     }
 
@@ -522,6 +520,8 @@ static void DMAConfig()
     g_frame_end = 0;
     g_total_dma_intrpts = 0;
 
+    g_position_in_buffer = 0;
+
     //
     // Clear any pending interrupt
     //
@@ -572,6 +572,7 @@ void CamControllerInit()
 #else
     //MAP_CameraXClkConfig(CAMERA_BASE, 120000000,24000000);
     MAP_CameraXClkConfig(CAMERA_BASE, 120000000, 8000000);
+//    MAP_CameraXClkConfig(CAMERA_BASE, 120000000, 6000000);
 #endif
 
     MAP_CameraThresholdSet(CAMERA_BASE, 8);
@@ -606,6 +607,7 @@ static void CameraIntHandler()
         HWREG(0x4402609C) |= 1 << 8;
 
         g_total_dma_intrpts++;
+        g_position_in_buffer++;
 
         g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
         if(g_frame_size_in_bytes < FRAME_SIZE_IN_BYTES && 
@@ -634,7 +636,19 @@ static void CameraIntHandler()
                 g_dma_txn_done = 0;
                 //UART_PRINT("2");
             }
-            if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
+
+            if( g_position_in_buffer == ( BUFFER_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)) ) )
+            {
+            	p_buffer = g_image_buffer;
+            	if (g_flagPingFull) {UART_PRINT("\novflw\n");}
+            	g_flagPongFull = 1;
+            	g_position_in_buffer = -1;
+            }
+            else if( g_position_in_buffer == ( PING_BUFFER_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)) ) )
+            {
+            	g_flagPingFull = 1;
+            }
+            /*if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
             {
             	p_buffer = g_image_buffer;
             	if (g_flagPingFull != 0)
@@ -657,7 +671,7 @@ static void CameraIntHandler()
             		g_flagPingFull = 1;
             		UART_PRINT("K");
 				}
-            }
+            }*/
         }
         else
         {
