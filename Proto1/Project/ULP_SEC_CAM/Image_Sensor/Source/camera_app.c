@@ -81,11 +81,15 @@
 //#define USER_FILE_NAME          "www/123.txt"
 #define TOTAL_DMA_ELEMENTS      64
 
-//#define BUFFER_SIZE_IN_BYTES	71960 //70K
+//#define BUFFER_SIZE_IN_BYTES	71960	//70K
 //#define BUFFER_SIZE_IN_BYTES	72192
 //#define BUFFER_SIZE_IN_BYTES	25600
-#define BUFFER_SIZE_IN_BYTES	81920 //80K
-#define PING_BUFFER_SIZE_IN_BYTES	(BUFFER_SIZE_IN_BYTES/2)
+#define BLOCK_SIZE_IN_BYTES		4096	//4K
+#define NUM_BLOCKS_IN_IMAGE_BUFFER			(BUFFER_SIZE_IN_BYTES / BLOCK_SIZE_IN_BYTES)
+#define LAST_BLOCK_IN_BUFFER	(NUM_BLOCKS_IN_IMAGE_BUFFER-1)
+
+#define DMA_TRANSFERS_TOFILL_BUFFER	( BUFFER_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
+#define DMA_TRANSFERS_TOFILL_BLOCK	( BLOCK_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
 //*****************************************************************************
 //                      GLOBAL VARIABLES
 //*****************************************************************************
@@ -96,12 +100,22 @@ static unsigned long *p_buffer = NULL;
 static unsigned char g_dma_txn_done;
 volatile unsigned char g_frame_end;
 static unsigned long g_total_dma_intrpts;
-volatile long g_position_in_buffer;
+
+volatile long g_block_lastFilled; //Holds the block number that was filled latest by Cam
+								 // can hold values -1(initialize) or between 0 and NUM_OB_BLOCKS_IN_IMAGE_BUFFER
+volatile long g_position_in_block;
+
+volatile long g_readHeader; //The block number that is to be read next and
+							//stored in Flash
 
 extern volatile unsigned char g_CaptureImage;
 
-extern volatile uint8_t g_flagPingFull;
-extern volatile uint8_t g_flagPongFull;
+volatile uint8_t g_flag_blockFull[NUM_BLOCKS_IN_IMAGE_BUFFER];
+						//Flag is set if the block has been written by camera,
+						//but not stored in flash yet
+volatile uint8_t g_flag_DataBlockFilled;
+						//To denote that atleast one data block is filled
+
 
 unsigned long  g_ulPingPacketsRecv = 0; //Number of Ping Packets received 
 
@@ -374,7 +388,11 @@ long CaptureAndStore_Image()
 	//
 	DMAConfig();
 
-    //
+	memset(g_flag_blockFull,'0',NUM_BLOCKS_IN_IMAGE_BUFFER);
+	g_readHeader = 0;
+	g_flag_DataBlockFilled = 0;
+
+	//
     // Perform Image Capture
     //
     UART_PRINT("sB");
@@ -382,35 +400,35 @@ long CaptureAndStore_Image()
     StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
 
-    while((g_frame_end == 0) || g_flagPingFull || g_flagPongFull)
+    while((g_frame_end == 0))
     {
-    	if( g_flagPingFull )
+    	//UART_PRINT("B");
+    	while( g_flag_DataBlockFilled )
     	{
-    		UART_PRINT("p");
-			lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
-								  (unsigned char *)g_image_buffer, PING_BUFFER_SIZE_IN_BYTES);
-			if (lRetVal <0)
-			{
-				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-				ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-			}
-			uiImageFile_Offset += lRetVal;
-			g_flagPingFull = 0;
+    		if(g_flag_blockFull[g_readHeader])
+    		{
+    			UART_PRINT("s%d ", g_readHeader);
+				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
+									  (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
+									  BLOCK_SIZE_IN_BYTES);
+				if (lRetVal <0)
+				{
+					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+				}
+
+				uiImageFile_Offset += lRetVal;
+				g_flag_blockFull[g_readHeader] = 0;
+				g_readHeader++;
+				g_readHeader %= NUM_BLOCKS_IN_IMAGE_BUFFER;
+    		}
+    		else
+    		{
+    			g_flag_DataBlockFilled = 0;
+    			UART_PRINT("f");
+    		}
     	}
-    	if ( g_flagPongFull )
-    	{
-    		UART_PRINT("g");
-    		lRetVal = sl_FsWrite(lFileHandle, uiImageFile_Offset,
-    								(unsigned char *)(g_image_buffer + (PING_BUFFER_SIZE_IN_BYTES/4)),
-    		    		            PING_BUFFER_SIZE_IN_BYTES);
-    		if (lRetVal <0)
-			{
-				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-				ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-			}
-			uiImageFile_Offset += lRetVal;
-			g_flagPongFull = 0;
-    	}
+		//UART_PRINT("F");
     }
 
     MAP_CameraCaptureStop(CAMERA_BASE, true);
@@ -428,8 +446,8 @@ long CaptureAndStore_Image()
     // Write the Image Buffer
     //
     lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
-                      (unsigned char *)(g_image_buffer),
-                      (g_frame_size_in_bytes % PING_BUFFER_SIZE_IN_BYTES));
+                      (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
+                      (g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -472,7 +490,7 @@ long CaptureAndStore_Image()
 	UART_PRINT("DONE: Image Write to Flash\n\r");
 
 
-    MAP_PRCMPeripheralReset(PRCM_CAMERA);
+	MAP_PRCMPeripheralReset(PRCM_CAMERA);
     MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 
     MAP_PRCMPeripheralReset(PRCM_UDMA);
@@ -520,7 +538,7 @@ static void DMAConfig()
     g_frame_end = 0;
     g_total_dma_intrpts = 0;
 
-    g_position_in_buffer = 0;
+    g_block_lastFilled = -1;
 
     //
     // Clear any pending interrupt
@@ -607,7 +625,6 @@ static void CameraIntHandler()
         HWREG(0x4402609C) |= 1 << 8;
 
         g_total_dma_intrpts++;
-        g_position_in_buffer++;
 
         g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
         if(g_frame_size_in_bytes < FRAME_SIZE_IN_BYTES && 
@@ -615,18 +632,18 @@ static void CameraIntHandler()
         {
             if(g_dma_txn_done == 0)
             {
-                DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,
+            	DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,
                                  TOTAL_DMA_ELEMENTS,UDMA_SIZE_32,
                                  UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, 
                                  UDMA_SRC_INC_32,
                                  (void *)p_buffer, UDMA_DST_INC_32);
-                p_buffer += TOTAL_DMA_ELEMENTS;
-                g_dma_txn_done = 1;
-                //UART_PRINT("1");
+            	p_buffer += TOTAL_DMA_ELEMENTS;
+            	g_dma_txn_done = 1;
+                //UART_PRINT("I");
             }
             else
             {
-                DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,
+            	DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,
                                  UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                                  UDMA_SIZE_32, UDMA_ARB_8,
                                  (void *)CAM_BUFFER_ADDR,
@@ -634,20 +651,59 @@ static void CameraIntHandler()
                                  UDMA_DST_INC_32);
                 p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 0;
-                //UART_PRINT("2");
+                //UART_PRINT("G");
             }
 
-            if( g_position_in_buffer == ( BUFFER_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)) ) )
+        	g_position_in_block++;
+
+        	if( g_position_in_block == (DMA_TRANSFERS_TOFILL_BLOCK - 2) )
+        	{
+        		if(g_block_lastFilled == (LAST_BLOCK_IN_BUFFER - 1 ))
+				{
+					UART_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
+					p_buffer = g_image_buffer;
+				}
+
+        	}
+
+        	// See if end of any block is reached
+            if( g_position_in_block == DMA_TRANSFERS_TOFILL_BLOCK )
             {
-            	p_buffer = g_image_buffer;
-            	if (g_flagPingFull) {UART_PRINT("\novflw\n");}
-            	g_flagPongFull = 1;
-            	g_position_in_buffer = -1;
+            	g_block_lastFilled++;
+            	UART_PRINT("%d ", g_block_lastFilled);
+
+            	// Special case when the end of buffer is reached
+            	/*if( g_position_in_buffer ==  (DMA_TRANSFERS_TOFILL_BUFFER) )
+				{
+            		UART_PRINT("BufFll:%d ",(p_buffer - g_image_buffer));
+					p_buffer = g_image_buffer;
+            		//p_buffer = (g_image_buffer - TOTAL_DMA_ELEMENTS);
+            		//g_position_in_buffer = 0; //Reset g_position_in_buffer to 0
+            		g_position_in_buffer = 0;
+				}*/
+
+
+					//else
+
+
+//            	if(g_flag_blockFull[g_block_lastFilled] == 1)
+//            	{
+//            		UART_PRINT(" ovflw%d ",g_block_lastFilled);
+//            	}
+
+            	g_flag_blockFull[g_block_lastFilled] = 1;
+            	g_flag_DataBlockFilled = 1;
+            	g_position_in_block = 0;
+            	if( g_block_lastFilled == LAST_BLOCK_IN_BUFFER )
+            	{
+            		g_block_lastFilled = -1;
+            	}
             }
-            else if( g_position_in_buffer == ( PING_BUFFER_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)) ) )
-            {
-            	g_flagPingFull = 1;
-            }
+/*            if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
+			{
+            	UART_PRINT("Reloc header");
+				p_buffer = g_image_buffer;
+			}*/
             /*if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
             {
             	p_buffer = g_image_buffer;
@@ -680,7 +736,7 @@ static void CameraIntHandler()
             MAP_uDMAChannelDisable(UDMA_CH22_CAMERA);
             HWREG(0x44026090) |= 1 << 8;
             g_frame_end = 1;
-            UART_PRINT("------");
+            UART_PRINT(",,,,,");
         }
     }
 }

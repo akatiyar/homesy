@@ -6,7 +6,6 @@
 #include "network_related_fns.h"
 
 #include "camera_app.h"
-extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
 
 unsigned long  g_ulStatus = 0;//SimpleLink Status
 unsigned long  g_ulGatewayIP = 0; //Network Gateway IP address

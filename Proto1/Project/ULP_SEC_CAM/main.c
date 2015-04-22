@@ -129,10 +129,8 @@ unsigned long g_ulTimerInts;   //  Variable used in Timer Interrupt Handler
 volatile unsigned char g_CaptureImage; //An app status
 SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 
-volatile uint8_t g_flagPingFull = 0;
-volatile uint8_t g_flagPongFull = 0;
-
 unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
+//unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)]; //Appropriate name change to be done
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -294,6 +292,7 @@ void Main_Task(void *pvParameters)
 		//ASSERT_ON_ERROR(lRetVal);
 */
 
+/*
 		//
 		// Set up the camera module through I2C
 		//
@@ -316,6 +315,7 @@ void Main_Task(void *pvParameters)
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
+*/
 
 #ifndef USB_DEBUG
 		//
