@@ -338,7 +338,6 @@ long CaptureAndStore_Image()
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
 */
 
-
     //
     // Open the file for Write Operation
     //
@@ -408,6 +407,8 @@ long CaptureAndStore_Image()
     		if(g_flag_blockFull[g_readHeader])
     		{
     			UART_PRINT("s%d ", g_readHeader);
+
+    			// Write a Block of Image from RAM to Flash
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
 									  (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
 									  BLOCK_SIZE_IN_BYTES);
@@ -417,8 +418,13 @@ long CaptureAndStore_Image()
 					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 				}
 
+				// Update Num of bytes written into flash
 				uiImageFile_Offset += lRetVal;
+
+				// Indicate that Block is not full
 				g_flag_blockFull[g_readHeader] = 0;
+
+				// Change Block# to be read nexr
 				g_readHeader++;
 				g_readHeader %= NUM_BLOCKS_IN_IMAGE_BUFFER;
     		}
@@ -443,7 +449,7 @@ long CaptureAndStore_Image()
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
 
     //
-    // Write the Image Buffer
+    // Write the remaining Image data from RAM to Flash
     //
     lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
                       (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
@@ -455,9 +461,8 @@ long CaptureAndStore_Image()
     }
     uiImageFile_Offset += lRetVal;
     UART_PRINT("Image Write No of bytes: %ld\n", uiImageFile_Offset);
-    //
+
     // Close the file post writing the image
-    //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
@@ -656,79 +661,41 @@ static void CameraIntHandler()
 
         	g_position_in_block++;
 
+        	//
+        	// If buffer end is reached, change write pointer to point top of buffer
+        	//
         	if( g_position_in_block == (DMA_TRANSFERS_TOFILL_BLOCK - 2) )
         	{
         		if(g_block_lastFilled == (LAST_BLOCK_IN_BUFFER - 1 ))
 				{
-					UART_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
+					//UART_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
 					p_buffer = g_image_buffer;
 				}
-
         	}
 
-        	// See if end of any block is reached
+        	//
+        	// See if end of block is reached
+        	//
             if( g_position_in_block == DMA_TRANSFERS_TOFILL_BLOCK )
             {
+            	// reset counter
+            	g_position_in_block = 0;
+
+            	// Update block#
             	g_block_lastFilled++;
             	UART_PRINT("%d ", g_block_lastFilled);
 
-            	// Special case when the end of buffer is reached
-            	/*if( g_position_in_buffer ==  (DMA_TRANSFERS_TOFILL_BUFFER) )
-				{
-            		UART_PRINT("BufFll:%d ",(p_buffer - g_image_buffer));
-					p_buffer = g_image_buffer;
-            		//p_buffer = (g_image_buffer - TOTAL_DMA_ELEMENTS);
-            		//g_position_in_buffer = 0; //Reset g_position_in_buffer to 0
-            		g_position_in_buffer = 0;
-				}*/
-
-
-					//else
-
-
-//            	if(g_flag_blockFull[g_block_lastFilled] == 1)
-//            	{
-//            		UART_PRINT(" ovflw%d ",g_block_lastFilled);
-//            	}
-
+            	// Set Block full flag
             	g_flag_blockFull[g_block_lastFilled] = 1;
             	g_flag_DataBlockFilled = 1;
-            	g_position_in_block = 0;
+
+            	// If the last block is filled, reset block# to -1
             	if( g_block_lastFilled == LAST_BLOCK_IN_BUFFER )
             	{
             		g_block_lastFilled = -1;
             	}
             }
-/*            if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
-			{
-            	UART_PRINT("Reloc header");
-				p_buffer = g_image_buffer;
-			}*/
-            /*if ((p_buffer - g_image_buffer) > (BUFFER_SIZE_IN_BYTES / 4))
-            {
-            	p_buffer = g_image_buffer;
-            	if (g_flagPingFull != 0)
-            	{
-            		//UART_PRINT("P BUF OVERWRITE!\n\r");
-            		UART_PRINT("SSSS\n\r");
-            	}
-            	g_flagPongFull = 1;
-            	UART_PRINT("&");
-            }
-            else
-            {
-            	if ((p_buffer - g_image_buffer) == (PING_BUFFER_SIZE_IN_BYTES / 4))
-				{
-            		if (g_flagPongFull != 0)
-					{
-						//UART_PRINT("G BUF OVERWRITE!\n\r");
-            			UART_PRINT("HHHH\n\r");
-					}
-            		g_flagPingFull = 1;
-            		UART_PRINT("K");
-				}
-            }*/
-        }
+      }
         else
         {
             // Disable DMA 
