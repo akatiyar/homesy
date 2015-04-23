@@ -4,8 +4,6 @@
 #include "string.h"
 #include "app_common.h"
 
-#include "parse_impl.h"
-
 extern char* dataBuffer;
 
 void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
