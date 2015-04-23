@@ -292,6 +292,7 @@ void Main_Task(void *pvParameters)
 		//ASSERT_ON_ERROR(lRetVal);
 */
 
+/*
 		//
 		// Set up the camera module through I2C
 		//
@@ -314,6 +315,7 @@ void Main_Task(void *pvParameters)
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
+*/
 
 #ifndef USB_DEBUG
 		//

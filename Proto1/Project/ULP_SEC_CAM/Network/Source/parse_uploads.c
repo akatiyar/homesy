@@ -1,6 +1,5 @@
 
 #include "parse_uploads.h"
-
 #include "camera_app.h"
 #include "string.h"
 #include "app_common.h"
@@ -25,8 +24,6 @@ ParseClient InitialiseParse()
 
 	setDataBufferPointer(g_image_buffer,sizeof(g_image_buffer));
 	client = parseInitialize(PARSE_APP_ID, PARSE_CLIENT_KEY);
-
-	//getInstallation(getInternalClient(client));
 
 	return client;
 }
