@@ -165,8 +165,9 @@ static  const s_RegList capture_cmds_list[]= {
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0xA102    },  // SEQ_MODE
     {1, 0xC8, 0x0001    },  // SEQ_MODE
-    {1, 0xC6, 0xA102    },  // SEQ_MODE
-    {1, 0xC8, 0x0005    },  // SEQ_MODE
+    // Commenting off to not enable AWB driver
+    //{1, 0xC6, 0xA102    },  // SEQ_MODE
+    //{1, 0xC8, 0x0005    },  // SEQ_MODE
     {1,  0xC6, 0xA120   },  // Enable Capture video
     {1,  0xC8, 0x0002   },
     {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass
@@ -205,13 +206,13 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2737    },  // MODE_CROP_X1_B
-    {1, 0xC8, 1280  },
-    //{1, 0xC8, 1600  },
+    {1, 0xC8, 1600  },
+    //{1, 0xC8, 1280  },
     {1, 0xC6, 0x2739    },  // MODE_CROP_Y0_B
     {1, 0xC8, 0x0064    },
     {1, 0xC6, 0x273B    },  // MODE_CROP_Y1_B
-    //{1, 0xC8, 1200      },
-    {1, 0xC8, 820      },
+    {1, 0xC8, 1200      },
+    //{1, 0xC8, 820      },
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
     {1, 0xC8, 0x0002    },
     {100, 0x00, 0x01F4  },  // Delay =500ms

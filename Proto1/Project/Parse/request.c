@@ -357,7 +357,7 @@ void parseSendRequestInternal(ParseClient client, const char *httpVerb, const ch
 }
 
 void parseSendRequest(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, Payload_Type payloadType) {
-    getInstallation(getInternalClient(client));
+    //getInstallation(getInternalClient(client));
 
 #ifdef REQUEST_TRACE
     DEBUG_PRINT("[Parse] Send %s request to %s \r\n", httpVerb, httpPath);

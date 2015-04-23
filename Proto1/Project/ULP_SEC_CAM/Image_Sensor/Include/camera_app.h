@@ -100,6 +100,7 @@ extern "C"
 
 #define ONE_KB                      (1024)
 #define IMAGE_BUF_SIZE              (ONE_KB * NUM_OF_1KB_BUFFERS)
+#define MAX_IMAGE_SIZE              (ONE_KB * 150)
 
 #define NUM_OF_4B_CHUNKS            ((IMAGE_BUF_SIZE)/(sizeof(unsigned long)))
 #define NUM_OF_1KB_CHUNKS           (IMAGE_BUF_SIZE/ONE_KB)

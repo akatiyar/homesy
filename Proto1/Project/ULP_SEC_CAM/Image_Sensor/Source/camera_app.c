@@ -633,7 +633,7 @@ static void CameraIntHandler()
 
         g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
         if(g_frame_size_in_bytes < FRAME_SIZE_IN_BYTES && 
-                                    g_frame_size_in_bytes < IMAGE_BUF_SIZE)
+                                    g_frame_size_in_bytes < MAX_IMAGE_SIZE)
         {
             if(g_dma_txn_done == 0)
             {
