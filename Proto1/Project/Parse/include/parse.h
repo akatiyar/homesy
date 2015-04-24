@@ -370,6 +370,15 @@ int parseGetErrorCode(const char *httpResponseBody);
 
 void setDataBufferPointer(unsigned long* ucDataBufferPtr,unsigned long len);
 
+/*
+// Added so that I can call from application fn
+// From installation.c
+extern void getInstallation(ParseClientInternal *parseClient);
+// From parse_impl.c
+extern ParseClientInternal *getInternalClient(ParseClient client);
+*/
+
+
 #ifdef __cplusplus
 }
 #endif

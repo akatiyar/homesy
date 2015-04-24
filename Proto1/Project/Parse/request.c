@@ -312,14 +312,15 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
 #endif /* REQUEST_DEBUG */
 
         memset(dataBuffer, 0, dataBufferSize);
-        status = socketRead(socketHandle, dataBuffer, dataBufferSize, 5000);
+        status = socketRead(socketHandle, dataBuffer, dataBufferSize, 20000);
+        //status = socketRead(socketHandle, dataBuffer, dataBufferSize, 5000);
         //status = socketRead(socketHandle, dataBuffer, dataBufferSize, 10000);
-        //DBG - to see if trying again helps
+        /*//DBG - to see if trying again helps
         if( status == 0 )
         {
         	DEBUG_PRINT("Trying Read again\n\r");
         	status = socketRead(socketHandle, dataBuffer, dataBufferSize, 10000);
-        }
+        }*/
 
         DEBUG_PRINT("[Parse] socket read status: %d\r\n", status);
 #ifdef REQUEST_DEBUG
