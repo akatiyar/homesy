@@ -104,22 +104,19 @@
 #include "hibernate_related_fns.h"
 #include "flash_files.h"
 #include "app_common.h"
+#include "timer_fns.h"
+
 
 #include "test_fns.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
 #define APPLICATION_VERSION     "1.1.0"
-#define APP_NAME                "VGA IMAGE, SENSOR DATA UPLOAD TO PARSE ON LIGHT TRIGGER"
+#define APP_NAME                "HD IMAGE, SENSOR DATA UPLOAD ON A/M TRIGGER"
 
 #define SERVER_RESPONSE_TIMEOUT 10
 #define SLEEP_TIME              8000000
 #define SUCCESS                 0
-
-#define PREFIX_BUFFER "GET /data/2.5/weather?q="
-#define POST_BUFFER "&mode=xml&units=imperial HTTP/1.1\r\nHost: api.openweathermap.org\r\nAccept: */"
-#define POST_BUFFER2 "*\r\n\r\n"
-
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- Start
 //*****************************************************************************
@@ -127,7 +124,8 @@ unsigned long g_ulTimerInts;   //  Variable used in Timer Interrupt Handler
 volatile unsigned char g_CaptureImage; //An app status
 SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 
-unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
+//unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
+unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)]; //Appropriate name change to be done
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -228,71 +226,6 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 
 //*****************************************************************************
 //
-//	The function captures image and sensor data and uploads to Parse
-//
-//	param none
-//
-//	return none
-//
-//*****************************************************************************
-void CollectTxit_ImgTempRH()
-{
-#ifndef NO_CAMERA
-	//
-	//	Captute image and save in flash
-	//
-	CaptureImage();
-#endif
-	//
-	//	Connect cc3200 to wifi AP
-	//
-	ConfigureSimpleLinkToDefaultState();
-	ConnectToNetwork_STA();
-
-	//
-	//	Parse initialization
-	//
-	ParseClient clientHandle;
-	clientHandle = InitialiseParse();
-
-	//
-	//	Upload image to Parse and retreive image's unique ID
-	//
-	uint8_t ucParseImageUrl[100];
-	memset(ucParseImageUrl,NULL, 100);
-	UploadImageToParse(clientHandle,
-						(unsigned char*) USER_FILE_NAME,
-						ucParseImageUrl);
-	UART_PRINT("\n%s\n", ucParseImageUrl);
-
-	//
-	//	Collect Temperature and RH values from Si7020 IC
-	//
-	float_t fTemp = 12.34, fRH = 56.78;
-//	verifyTempRHSensor();
-//	softResetTempRHSensor();
-//	configureTempRHSensor();
-//	UtilsDelay(80000000);
-//	getTempRH(&fTemp, &fRH);
-
-	//
-	// Construct the JSON object string
-	//
-	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
-	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
-	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucSensorDataTxt);
-
-	//
-	//	Upload sensor data to Parse
-	//
-	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
-
-//	CollectSensorData();
-//	txitSensorData(clientHandle,"",ucParseImageUrl);
-}
-
-//*****************************************************************************
-//
 //	Main Task
 //
 //	Initialize and hibernate. Wake on trigger and wait for 40degree closing
@@ -354,7 +287,7 @@ void Main_Task(void *pvParameters)
 		//ASSERT_ON_ERROR(lRetVal);
 */
 
-		//
+/*		//
 		// Set up the camera module through I2C
 		//
 #ifndef NO_CAMERA
@@ -376,6 +309,7 @@ void Main_Task(void *pvParameters)
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
+*/
 
 #ifndef USB_DEBUG
 		//
@@ -632,15 +566,32 @@ void main()
     //
     InitTerm();
 #endif
+
+    //
+	//Display Application Banner
+	//
+	DisplayBanner(APP_NAME);
+
     //
     // I2C Init
     //
     I2C_IF_Open(I2C_APP_MODE);
 
     //
-	//Display Application Banner
+	// Initilalize DMA
 	//
-	DisplayBanner(APP_NAME);
+	UDMAInit();
+
+	//
+	// Initialize timer and test working
+	//
+	InitializeTimer();
+	StartTimer();
+	UtilsDelay(80000000/3); //2 sec delay
+	StopTimer();
+    float_t fTestDuration;
+    GetTimeDuration(&fTestDuration);
+    UART_PRINT("\n\rUtilsDelay Duration: %f\n\r", fTestDuration);
 
 	//
     // Start the SimpleLink Host

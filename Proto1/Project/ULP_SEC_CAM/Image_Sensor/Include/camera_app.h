@@ -59,6 +59,8 @@ extern "C"
 #define ENABLE                            (1)
 #define SL_VERSION_LENGTH                 (11)
 
+#define BUFFER_SIZE_IN_BYTES	81920	//80K //Image buffer
+
 #ifdef ENABLE_JPEG
     // Capture is stopped at 'CAM_INT_FE' anyway 
     #ifdef	HD_FRAME
@@ -137,11 +139,12 @@ typedef struct cmd_struct{
 //******************************************************************************
 // Externs
 //******************************************************************************
-extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
+//extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
+extern unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)];
 //******************************************************************************
 // APIs
 //******************************************************************************
-long CaptureImage();
+long CaptureAndStore_Image();
 void CamControllerInit();
 void StartCamera();
 //*****************************************************************************
