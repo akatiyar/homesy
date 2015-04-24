@@ -387,7 +387,7 @@ long CaptureAndStore_Image()
 	//
 	DMAConfig();
 
-	memset(g_flag_blockFull,'0',NUM_BLOCKS_IN_IMAGE_BUFFER);
+	memset(g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
 

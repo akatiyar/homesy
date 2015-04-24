@@ -167,8 +167,8 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC8, 0x0001    },  // SEQ_MODE
     //{1, 0xC8, 0x0000    },  // SEQ_MODE Will turn off AE, AWB
     // Commenting off to not turn on auto white balance
-    //{1, 0xC6, 0xA102    },  // SEQ_MODE
-    //{1, 0xC8, 0x0005    },  // SEQ_MODE
+    {1, 0xC6, 0xA102    },  // SEQ_MODE
+    {1, 0xC8, 0x0005    },  // SEQ_MODE
     {1,  0xC6, 0xA120   },  // Enable Capture video
     {1,  0xC8, 0x0002   },
     {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass

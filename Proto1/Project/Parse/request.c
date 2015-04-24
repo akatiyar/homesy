@@ -34,9 +34,10 @@ const char g_deviceClientVersion[] = "c-ti-cc3200-rtos-1.0.0";
 static char parseServer[] = "api.parse.com";
 unsigned short sshPort = 443;
 
-#define REQUEST_HEADERS_SIZE 400
-#define REQUEST_BODY_SIZE 500
+#define REQUEST_HEADERS_SIZE	400
+#define REQUEST_BODY_SIZE		500
 
+#define SIZE_SOCK_WRITE_DATA	1024
 // We need roughly 400 bytes for headers
 // and about 500 bytes for a reasonably big object
 // (enough to fit a full installation object)
@@ -136,7 +137,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
     	//if(cnt == 0)
     	if (payloadType == jsonObject)
     	{
-    		DEBUG_PRINT("Object Payload");
+    		//DEBUG_PRINT("Object Payload");
 			if (status >= 0)
 			{
 				currentPosition += status;
@@ -160,16 +161,21 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 			if (status >= 0)
 			{
 				currentPosition += status;
+			}
+
+			/*if (status >= 0)
+			{
+				currentPosition += status;
 				currentSize -= status;
 				status = snprintf(dataBuffer + currentPosition, currentSize, "%s", httpRequestBody);
-			}
+			}*/
     	}
 
 //#ifdef POST_IMAGE
 //    	if(cnt == 1)
     	if( payloadType == image)
     	{
-    		DEBUG_PRINT("Image Payload");
+    		//DEBUG_PRINT("Image Payload");
     		if (status >= 0)
 			{
 				currentPosition += status;
@@ -183,7 +189,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
     		long lFileHandle;
     		unsigned long ulToken;
     		long lRetVal;
-//			 lRetVal = sl_FsOpen(myFile, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
+/*//			 lRetVal = sl_FsOpen(myFile, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
     		lRetVal = sl_FsOpen(httpRequestBody, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
 			 if(lRetVal < 0)
 			 {
@@ -191,13 +197,13 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 				 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 				 for( ;; );
 			 }
-
+*/
 			 SlFsFileInfo_t fileInfo;
 //			 sl_FsGetInfo(myFile, ulToken, &fileInfo);
 			 sl_FsGetInfo(httpRequestBody, ulToken, &fileInfo);
 			 if (lRetVal < 0)
 			 {
-				 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+/*				 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);*/
 				 for( ;; );
 			 }
 
@@ -219,6 +225,11 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 			if (status >= 0)
 			{
 				currentPosition += status;
+			}
+
+/*			if (status >= 0)
+			{
+				currentPosition += status;
 				currentSize -= status;
 				//status = snprintf(dataBuffer + currentPosition, currentSize, "%s", httpRequestBody);
 				lRetVal = sl_FsRead(lFileHandle, 0, dataBuffer + currentPosition , fileInfo.FileLen);
@@ -236,28 +247,12 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 				}
 				status = fileInfo.FileLen;
 //				status = 64000;
-			}
+			}*/
 
     	}
 //#endif
     }
-    else
-    {
-        if (status >= 0)
-        {
-            currentPosition += status;
-            currentSize -= status;
-            status = snprintf(dataBuffer + currentPosition, currentSize, "\r\n");
-        }
-    }
 
-
-    if (status >= 0)
-    {
-        currentPosition += status;
-        currentSize -= status;
-        dataBuffer[currentPosition] = 0;
-    }
 
 //#ifdef POST_IMAGE
 //			cnt++;
@@ -265,50 +260,185 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
     return (status < 0) ? status : currentPosition;
 }
 
+int headerSend(ParseClientInternal *parseClient,
+				const char *host,
+				const char *httpVerb,
+				const char *httpRequestBody,
+				int addInstallationHeader,
+				Payload_Type payloadType,
+				short socketHandle)
+{
+	long status;
+
+	status = buildRequestHeaders(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType);
+
+	(status >= 0)?DEBUG_PRINT("Header:\n\r%s", dataBuffer):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
+
+	if (status >= 0)
+	{
+		long temp = status;
+		status = socketWrite(socketHandle, dataBuffer, status);
+		DEBUG_PRINT("[Parse] Header Socket Write status: %d\r\n", status);
+		if(status != temp)
+		{
+			DEBUG_PRINT("\nHeader data written != data supposed to be written\n\r");
+			while(1);
+		}
+	}
+
+	return status;
+}
+
+int payloadSend( const char *httpRequestBody,
+					Payload_Type payloadType,
+					short socketHandle)
+{
+	long status;
+
+	if (payloadType == jsonObject)
+	{
+		status = snprintf(dataBuffer, dataBufferSize , "%s", httpRequestBody);
+
+
+	}
+	else if( payloadType == image )
+	{
+		long lFileHandle;
+		unsigned long ulToken = 0;
+		SlFsFileInfo_t fileInfo;
+
+		sl_FsGetInfo(httpRequestBody, ulToken, &fileInfo);
+
+		status = sl_FsOpen(httpRequestBody, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
+		if(status < 0)
+		{
+			DEBUG_PRINT("\nFile open\n%l\n\n",status);
+			status = sl_FsClose(lFileHandle, 0, 0, 0);
+			for( ;; );
+		}
+
+		unsigned int i, size_readBytes = 0;
+
+		for (i=0; i<(fileInfo.FileLen/SIZE_SOCK_WRITE_DATA); i++)
+		{
+			status = sl_FsRead(lFileHandle,
+								(SIZE_SOCK_WRITE_DATA*i),
+								(unsigned char*)dataBuffer,
+								SIZE_SOCK_WRITE_DATA);
+			 if (status < 0)
+			 {
+				 DEBUG_PRINT("\nFile read failed: \n%ld\n\n",status);
+				 status = sl_FsClose(lFileHandle, 0, 0, 0);
+				 for( ;; );
+			}
+			size_readBytes += status;
+
+			if (status >= 0)
+			{
+				long temp = status;
+				status = socketWrite(socketHandle, dataBuffer, (status));
+				//DEBUG_PRINT("[Parse] Payload Socket Write status: %d\r\n", status);
+				if(status != temp)
+				{
+					DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
+					while(1);
+				}
+			}
+		}
+
+		status = sl_FsRead(lFileHandle,
+							(SIZE_SOCK_WRITE_DATA*i),
+							(unsigned char*)dataBuffer,
+							(fileInfo.FileLen%SIZE_SOCK_WRITE_DATA));
+		 if (status < 0)
+		 {
+			 DEBUG_PRINT("\nFile read failed: \n%ld\n\n",status);
+			 status = sl_FsClose(lFileHandle, 0, 0, 0);
+			 for( ;; );
+		 }
+		 size_readBytes += status;
+
+
+		status = sl_FsClose(lFileHandle, 0, 0, 0);
+		if (SL_RET_CODE_OK != status)
+		{
+			for( ;; );
+		}
+
+		status = (fileInfo.FileLen%SIZE_SOCK_WRITE_DATA);
+	}
+	else
+	{
+		//DEBUG_PRINT("\n\r^^^^^^^^^^NO PAYLOAD^^^^^^^^^^^^^^\n\r");
+		if (status >= 0)
+		{
+			status = snprintf(dataBuffer, dataBufferSize , "\r\n");
+		}
+	}
+
+	if (status >= 0)
+    {
+        dataBuffer[status] = 0;
+        status++;
+    }
+
+	//(status >= 0)?DEBUG_PRINT("Payload:\n\r%s\n\r", dataBuffer):DEBUG_PRINT("[Parse] Build request Payload error: %d\r\n", status);
+	(status >= 0)?DEBUG_PRINT("Payload built\n\r"):DEBUG_PRINT("[Parse] Build request Payload error: %d\r\n", status);
+
+	if (status >= 0)
+	{
+		long temp = status;
+		status = socketWrite(socketHandle, dataBuffer, (status));
+		DEBUG_PRINT("[Parse] Payload Socket Write status: %d\r\n", status);
+		if(status != temp)
+		{
+			DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
+			while(1);
+		}
+	}
+
+	return status;
+}
+
 int sendRequest(ParseClientInternal *parseClient, const char *host, const char *httpVerb, const char *httpRequestBody, int addInstallationHeader, Payload_Type payloadType) {
     short socketHandle = -1;
+
     long status = socketSslConnect(parseServer, sshPort);
 
-    if (status >= 0) {
+    if (status >= 0)
+    {
         socketHandle = status;
 
 #ifdef REQUEST_DEBUG
-        DEBUG_PRINT("\r\n");
-
-        DEBUG_PRINT("[Parse] ---------\r\n");
-        DEBUG_PRINT("[Parse] Request :\r\n");
-        DEBUG_PRINT("[Parse] --------- Start -\r\n");
+        DEBUG_PRINT("\r\n[Parse] --------Request--------- Start -\r\n");
 #endif /* REQUEST_DEBUG */
 
-        status = buildRequestHeaders(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType);
+        headerSend(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType, socketHandle);
+
+        payloadSend(httpRequestBody, payloadType, socketHandle);
+
+//        if (status >= 0)
+//		{
+//			long temp = status;
+//			status = socketWrite(socketHandle, dataBuffer, status);
+//			DEBUG_PRINT("[Parse] Header Socket Write status: %d\r\n", status);
+//			if(status != temp)
+//			{
+//				DEBUG_PRINT("\nHeader data written != data supposed to be written\n\r");
+//				while(1);
+//			}
+//		}
 
 #ifdef REQUEST_DEBUG
-        if (status >= 0) {
-            DEBUG_PRINT("%s\r\n", dataBuffer);
-        } else {
-            DEBUG_PRINT("[Parse] Build request error: %d\r\n", status);
-        }
-
-        DEBUG_PRINT("[Parse] ---------  End  -\r\n");
-        DEBUG_PRINT("\r\n");
+        DEBUG_PRINT("[Parse] --------Request--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
     }
 
-    if (status >= 0) {
-    	long temp = status;
-        status = socketWrite(socketHandle, dataBuffer, status);
-        if(status != temp)
-        {
-        	DEBUG_PRINT("\n\data written != data supposed to be written\n\r");
-        	while(1);
-        }
-    }
-    DEBUG_PRINT("[Parse] socket write status: %d\r\n", status);
-    if (status >= 0) {
+
+    if (status >= 0)
+    {
 #ifdef REQUEST_DEBUG
-        DEBUG_PRINT("[Parse] ---------\r\n");
-        DEBUG_PRINT("[Parse] Response:\r\n");
-        DEBUG_PRINT("[Parse] --------- Start -\r\n");
+    	DEBUG_PRINT("\r\n[Parse] --------Response--------- Start -\r\n");
 #endif /* REQUEST_DEBUG */
 
         memset(dataBuffer, 0, dataBufferSize);
@@ -322,16 +452,16 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         	status = socketRead(socketHandle, dataBuffer, dataBufferSize, 10000);
         }*/
 
-        DEBUG_PRINT("[Parse] socket read status: %d\r\n", status);
+        DEBUG_PRINT("[Parse] Socket read status: %d\r\n", status);
 #ifdef REQUEST_DEBUG
-        if (status >= 0) {
+        if (status >= 0)
+        {
             DEBUG_PRINT("%s\r\n", dataBuffer);
-        } else {
+        } else
+        {
             DEBUG_PRINT("[Parse] Response read error: %d\r\n", status);
         }
-
-        DEBUG_PRINT("[Parse] ---------  End  -\r\n");
-        DEBUG_PRINT("\r\n");
+        DEBUG_PRINT("[Parse] --------Response--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
 
         UtilsDelay(80000000);
@@ -376,3 +506,4 @@ int parseGetErrorCode(const char *httpResponseBody) {
 
     return 2;
 }
+

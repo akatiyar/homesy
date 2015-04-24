@@ -139,8 +139,8 @@ typedef struct cmd_struct{
 //******************************************************************************
 // Externs
 //******************************************************************************
-extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
-//extern unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)];
+//extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
+extern unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)];
 //******************************************************************************
 // APIs
 //******************************************************************************
