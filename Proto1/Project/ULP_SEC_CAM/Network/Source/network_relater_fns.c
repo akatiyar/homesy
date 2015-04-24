@@ -602,8 +602,8 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             UART_PRINT("[SOCK EVENT] "
             			"- Unexpected Event [%x0x]\n\n",pSock->Event);
     }
-    UART_PRINT("[SOCK EVENT/ERROR]:\nEvent: %x\n Socket: %x\nEventStatus: "
-    				"%x\nAsynchEventValue: %x\nAsynchEventType: %x",
+    UART_PRINT("[SOCK EVENT/ERROR]:\n Event: %x\n Socket: %x\n EventStatus: "
+    				"%x\n AsynchEventValue: %x\n AsynchEventType: %x\n\r",
     				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
     				pSock->EventData.socketAsyncEvent.val,
     				pSock->EventData.socketAsyncEvent.type);

@@ -112,16 +112,11 @@
 //                          LOCAL DEFINES                                   
 //****************************************************************************
 #define APPLICATION_VERSION     "1.1.0"
-#define APP_NAME                "HD IMAGE, SENSOR DATA UPLOAD TO PARSE ON ACCELEROMETER TRIGGER"
+#define APP_NAME                "HD IMAGE, SENSOR DATA UPLOAD ON A/M TRIGGER"
 
 #define SERVER_RESPONSE_TIMEOUT 10
 #define SLEEP_TIME              8000000
 #define SUCCESS                 0
-
-#define PREFIX_BUFFER "GET /data/2.5/weather?q="
-#define POST_BUFFER "&mode=xml&units=imperial HTTP/1.1\r\nHost: api.openweathermap.org\r\nAccept: */"
-#define POST_BUFFER2 "*\r\n\r\n"
-
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- Start
 //*****************************************************************************
@@ -129,8 +124,8 @@ unsigned long g_ulTimerInts;   //  Variable used in Timer Interrupt Handler
 volatile unsigned char g_CaptureImage; //An app status
 SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 
-unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
-//unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)]; //Appropriate name change to be done
+//unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
+unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)]; //Appropriate name change to be done
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -292,7 +287,7 @@ void Main_Task(void *pvParameters)
 		//ASSERT_ON_ERROR(lRetVal);
 */
 
-		//
+/*		//
 		// Set up the camera module through I2C
 		//
 #ifndef NO_CAMERA
@@ -314,6 +309,7 @@ void Main_Task(void *pvParameters)
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
+*/
 
 #ifndef USB_DEBUG
 		//
