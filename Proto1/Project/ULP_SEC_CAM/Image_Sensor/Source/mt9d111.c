@@ -150,74 +150,6 @@ static  const s_RegList preview_cmds_list[]= {
     {1, 0xC6, 0xA103    },  // SEQ_CMD
     {1, 0xC8, 0x0005    }   // SEQ_CMD, refresh
 };
-#else 
-static  const s_RegList capture_cmds_list[]= {
-    {0, 0x65, 0xA000    },  // Disable PLL
-    {0, 0x65, 0xE000    },  // Power DOWN PLL
-    {100, 0x00, 0x01F4  },  // Delay =500ms
-    {0,  0x66,  0x1E03  },
-    {0,  0x67,  0x0501  },
-    {0, 0x65,   0xA000  },  // Disable PLL
-    {0,  0x65,  0x2000  },  // Enable PLL
-    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
-    {100, 0x00, 0x01F4  },  // Delay =500ms
-    {100, 0x00, 0x01F4  },  // Delay =500ms
-    {100, 0x00, 0x01F4  },  // Delay =500ms
-    {1, 0xC6, 0xA102    },  // SEQ_MODE
-    {1, 0xC8, 0x0001    },  // SEQ_MODE
-    //{1, 0xC8, 0x0000    },  // SEQ_MODE Will turn off AE, AWB
-    // Commenting off to not turn on auto white balance
-    {1, 0xC6, 0xA102    },  // SEQ_MODE
-    {1, 0xC8, 0x0005    },  // SEQ_MODE
-    {1,  0xC6, 0xA120   },  // Enable Capture video
-    {1,  0xC8, 0x0002   },
-    {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass
-    {1,  0xC8, 0x0000   },
-    {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
-    {1,  0xC8, 0x001E   },
-    {1,  0xC6, 0xA907   },  // JPEG mode config, video
-    {1,  0xC8, 0x0035   },
-    {1,  0xC6, 0xA906   },  // Format YCbCr422
-    {1,  0xC8, 0x0000   },
-    {1,  0xC6, 0xA90A   },  // Set the qscale1
-    {1,  0xC8, 0x0089   },
-    {1,  0xC6, 0x2908   },  // Set the restartInt
-    {1,  0xC8, 0x0020   },
-    {100, 0x00, 0x01F4  },  // Delay =500ms
-    {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
-#ifdef HD_FRAME
-    {1, 0xC8, 1280      },
-#elif XGA_FRAME
-    {1, 0xC8, 1024      },
-#elif VGA_FRAME
-    {1, 0xC8, 640       },
-#elif QVGA_FRAME
-    {1, 0xC8, 240       },
-#endif
-    {1, 0xC6, 0x2709    },  // MODE_OUTPUT_HEIGHT_B
-#ifdef HD_FRAME
-    {1, 0xC8, 720       },
-#elif XGA_FRAME
-    {1, 0xC8, 768       },
-#elif VGA_FRAME
-    {1, 0xC8, 480       },
-#elif QVGA_FRAME
-    {1, 0xC8, 320       },
-#endif
-    {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
-    {1, 0xC8, 0x0000    },
-    {1, 0xC6, 0x2737    },  // MODE_CROP_X1_B
-    {1, 0xC8, 1600  },
-    //{1, 0xC8, 1280  },
-    {1, 0xC6, 0x2739    },  // MODE_CROP_Y0_B
-    {1, 0xC8, 0x0064    },
-    {1, 0xC6, 0x273B    },  // MODE_CROP_Y1_B
-    {1, 0xC8, 1200      },
-    //{1, 0xC8, 820      },
-    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
-    {1, 0xC8, 0x0002    },
-    {100, 0x00, 0x01F4  },  // Delay =500ms
-};
 #endif 
 
 static  const s_RegList init_cmds_list[]= {
@@ -304,11 +236,81 @@ static  const s_RegList init_cmds_list[]= {
     {1, 0xC8, 0x0005    }, // SEQ_CMD
 };
 
+#ifdef ENABLE_JPEG
+static  const s_RegList capture_cmds_list[]= {
+    {0, 0x65, 0xA000    },  // Disable PLL
+    {0, 0x65, 0xE000    },  // Power DOWN PLL
+    {100, 0x00, 0x01F4  },  // Delay =500ms
+    {0,  0x66,  0x1E03  },
+    {0,  0x67,  0x0501  },
+    {0, 0x65,   0xA000  },  // Disable PLL
+    {0,  0x65,  0x2000  },  // Enable PLL
+    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+    {100, 0x00, 0x01F4  },  // Delay =500ms
+    {100, 0x00, 0x01F4  },  // Delay =500ms
+    {100, 0x00, 0x01F4  },  // Delay =500ms
+    {1, 0xC6, 0xA102    },  // SEQ_MODE
+    {1, 0xC8, 0x0001    },  // SEQ_MODE
+    //{1, 0xC8, 0x0000    },  // SEQ_MODE Will turn off AE, AWB
+    // Commenting off to not turn on auto white balance
+    {1, 0xC6, 0xA102    },  // SEQ_MODE
+    {1, 0xC8, 0x0005    },  // SEQ_MODE
+    {1,  0xC6, 0xA120   },  // Enable Capture video
+    {1,  0xC8, 0x0002   },
+    {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass
+    {1,  0xC8, 0x0000   },
+    {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
+    {1,  0xC8, 0x001E   },
+    {1,  0xC6, 0xA907   },  // JPEG mode config, video
+    {1,  0xC8, 0x0035   },
+    {1,  0xC6, 0xA906   },  // Format YCbCr422
+    {1,  0xC8, 0x0000   },
+    {1,  0xC6, 0xA90A   },  // Set the qscale1
+    {1,  0xC8, 0x0089   },
+    {1,  0xC6, 0x2908   },  // Set the restartInt
+    {1,  0xC8, 0x0020   },
+    {100, 0x00, 0x01F4  },  // Delay =500ms
+    {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
+#ifdef HD_FRAME
+    {1, 0xC8, 1280      },
+#elif XGA_FRAME
+    {1, 0xC8, 1024      },
+#elif VGA_FRAME
+    {1, 0xC8, 640       },
+#elif QVGA_FRAME
+    {1, 0xC8, 240       },
+#endif
+    {1, 0xC6, 0x2709    },  // MODE_OUTPUT_HEIGHT_B
+#ifdef HD_FRAME
+    {1, 0xC8, 720       },
+#elif XGA_FRAME
+    {1, 0xC8, 768       },
+#elif VGA_FRAME
+    {1, 0xC8, 480       },
+#elif QVGA_FRAME
+    {1, 0xC8, 320       },
+#endif
+    {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
+    {1, 0xC8, 0x0000    },
+    {1, 0xC6, 0x2737    },  // MODE_CROP_X1_B
+    {1, 0xC8, 1600  },
+    //{1, 0xC8, 1280  },
+    {1, 0xC6, 0x2739    },  // MODE_CROP_Y0_B
+    {1, 0xC8, 0x0064    },
+    {1, 0xC6, 0x273B    },  // MODE_CROP_Y1_B
+    {1, 0xC8, 1200      },
+    //{1, 0xC8, 820      },
+    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
+    {1, 0xC8, 0x0002    },
+    {100, 0x00, 0x01F4  },  // Delay =500ms
+};
+#endif
 //*****************************************************************************
 // Static Function Declarations
 //*****************************************************************************
 static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems);
 extern void MT9D111Delay(unsigned long ucDelay);
+static long RegRead(s_RegList *pRegLst, uint16_t* pusRegVal);
 
 
 //*****************************************************************************
@@ -490,6 +492,262 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
     return RET_OK;
 }
 
+long RegStatusRead()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+
+	s_RegList StatusRegLst = {0x02, 0x02, 0xBADD};
+
+	lRetVal = RegRead(&StatusRegLst, &usRegVal);
+
+	return lRetVal;
+}
+
+long WriteAllAEnAWBRegs()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0026},
+								{0x00, 0x2C, 0x0030},
+								{0x00, 0x2D, 0x002E},
+								{0x00, 0x2E, 0x0026},
+
+								{0x01, 0x6E, 0x008A},
+								{0x01, 0x6A, 0x00A9},
+								{0x01, 0x6B, 0x008A},
+								{0x01, 0x6C, 0x008A},
+								{0x01, 0x6D, 0x0085},
+								{0x01, 0x4E, 0x0020},
+
+								{0x01, 0x60, 0x3923},
+								{0x01, 0x61, 0x04E4},
+								{0x01, 0x62, 0x91D7},
+								{0x01, 0x63, 0x8319},
+								{0x01, 0x64, 0x41E4},
+								{0x01, 0x65, 0x894B},
+								{0x01, 0x66, 0x3F99},
+
+								{0x00, 0x09, 0x0274},
+								{0x00, 0x0C, 0x0000}};
+
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
+
+	return lRetVal;
+}
+
+long ReadAllAEnAWBRegs()
+{
+	long lRetVal;
+
+	lRetVal = AnalogGainReg_Read();
+	ASSERT_ON_ERROR(lRetVal);
+	lRetVal = DigitalGainRegs_Read();
+	ASSERT_ON_ERROR(lRetVal);
+	lRetVal = CCMRegs_Read();
+	ASSERT_ON_ERROR(lRetVal);
+	lRetVal = ShutterRegs_Read();
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+long enableAWB()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+
+	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
+			    				{1, 0xC8, 0x0004    },  };
+
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+
+	StatusRegLst[1].usValue |= usRegVal;
+
+	lRetVal = RegLstWrite(StatusRegLst, 2);
+
+	return lRetVal;
+}
+
+long disableAWB()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+
+	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
+			    				{1, 0xC8, 0x0004    },  };
+
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+
+	StatusRegLst[1].usValue = usRegVal & ~(StatusRegLst[1].usValue);
+
+	lRetVal = RegLstWrite(StatusRegLst, 2);
+
+	return lRetVal;
+}
+
+long enableAE()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+
+	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
+			    				{1, 0xC8, 0x0001    },  };
+
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+
+	StatusRegLst[1].usValue |= usRegVal;
+
+	lRetVal = RegLstWrite(StatusRegLst, 2);
+
+	return lRetVal;
+}
+
+long disableAE()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+
+	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
+			    				{1, 0xC8, 0x0001    },  };
+
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+
+	StatusRegLst[1].usValue = usRegVal & ~(StatusRegLst[1].usValue);
+
+	lRetVal = RegLstWrite(StatusRegLst, 2);
+
+	return lRetVal;
+}
+
+long CCMRegs_Read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	int i;
+
+	UART_PRINT("CCM Regs(0x60 to 0x67):\n\r");
+	s_RegList StatusRegLst[] = {{0x01, 0x60, 0xBADD},
+								{0x01, 0x61, 0xBADD},
+								{0x01, 0x62, 0xBADD},
+								{0x01, 0x63, 0xBADD},
+								{0x01, 0x64, 0xBADD},
+								{0x01, 0x65, 0xBADD},
+								{0x01, 0x66, 0xBADD}};
+
+	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+	}
+
+	return lRetVal;
+}
+
+long DigitalGainRegs_Read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	int i;
+
+	UART_PRINT("Digital Gain Regs(0x6A to 0x6E, 0x4E):\n\r");
+	s_RegList StatusRegLst[] = {{0x01, 0x6A, 0xBADD},
+								{0x01, 0x6B, 0xBADD},
+								{0x01, 0x6C, 0xBADD},
+								{0x01, 0x6D, 0xBADD},
+								{0x01, 0x6E, 0xBADD},
+								{0x01, 0x4E, 0xBADD}};
+
+	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+	}
+
+	return lRetVal;
+}
+
+long ShutterRegs_Read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	int i;
+
+	UART_PRINT("Shutter Width and Delay Regs:\n\r");
+	s_RegList StatusRegLst[] = {{0x00, 0x09, 0xBADD},
+								{0x00, 0x0C, 0xBADD}};
+
+	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+	}
+
+	return lRetVal;
+}
+
+long AnalogGainReg_Read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	int i;
+
+	UART_PRINT("Analog Gain Regs:\n\r");
+	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0xBADD},
+								{0x00, 0x2C, 0xBADD},
+								{0x00, 0x2D, 0xBADD},
+								{0x00, 0x2E, 0xBADD}};
+
+	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+	}
+
+	return lRetVal;
+}
+
+static long RegRead(s_RegList *pRegLst, uint16_t* pusRegVal)
+{
+	unsigned char ucBuffer[20];
+	unsigned short usTemp;
+	long lRetVal = -1;
+
+	// Set the page
+	ucBuffer[0] = SENSOR_PAGE_REG;	//Page Change register available in all pages
+	ucBuffer[1] = 0x00;				//Most Significant Byte to be written in the register
+	ucBuffer[2] = (unsigned char)(pRegLst->ucPageAddr);	//LSByte to be written in the register
+	if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,3,I2C_SEND_STOP))
+	{
+	   return RET_ERROR;
+	}
+	ucBuffer[0] = SENSOR_PAGE_REG;
+	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
+	ASSERT_ON_ERROR(lRetVal);
+
+	usTemp = ucBuffer[0] << 8;
+	usTemp |= ucBuffer[1];
+	//UART_PRINT("Page no now: %x\n\r", usTemp);
+
+	//Read from the register
+	uint8_t ulSize = 3;
+
+	ucBuffer[0] = pRegLst->ucRegAddr;
+	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1);
+	ASSERT_ON_ERROR(lRetVal);
+
+	*pusRegVal = ucBuffer[0] << 8;
+	*pusRegVal |= ucBuffer[1];
+	UART_PRINT("Register Val: %x\n\r", *pusRegVal);
+
+	return lRetVal;
+}
 //*****************************************************************************
 //
 // Close the Doxygen group.

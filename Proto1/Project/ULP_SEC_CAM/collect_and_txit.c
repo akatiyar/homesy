@@ -11,6 +11,7 @@
 #include "parse_uploads.h"
 #include "math.h"
 #include "string.h"
+#include "mt9d111.h"
 
 extern void CollectTxit_ImgTempRH();
 //*****************************************************************************
@@ -30,6 +31,22 @@ void CollectTxit_ImgTempRH()
 	//
 	CaptureAndStore_Image();
 #endif
+
+	/*while(1)
+	{
+		//AnalogGainReg_Read();
+		ReadAllAEnAWBRegs();
+
+		disableAE();
+		disableAWB();
+
+		ReadAllAEnAWBRegs();
+
+		enableAE();
+		enableAWB();
+	}*/
+
+	//while(1);
 	//
 	//	Connect cc3200 to wifi AP
 	//
