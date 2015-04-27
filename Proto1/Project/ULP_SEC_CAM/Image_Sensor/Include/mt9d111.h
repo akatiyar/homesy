@@ -40,6 +40,9 @@ long StartSensorInJpegMode();
 
 long RegStatusRead();
 
+long ResetImageSensorMCU();
+long ReadMCUBootModeReg();
+
 long AnalogGainReg_Read();
 long DigitalGainRegs_Read();
 long CCMRegs_Read();
@@ -49,10 +52,14 @@ long ReadAllAEnAWBRegs();
 
 long WriteAllAEnAWBRegs();
 
+long SoftReset_ImageSensor();
+
 long disableAWB();
 long enableAWB();
 long enableAE();
 long disableAE();
+
+long Verify_ImageSensor();
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

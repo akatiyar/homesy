@@ -61,6 +61,8 @@
 #define SENSOR_PAGE_REG         0xF0
 #define CAM_I2C_SLAVE_ADDR      ((0xBA >> 1))
 //#define CAM_I2C_SLAVE_ADDR      ((0x90 >> 1))
+#define MARGIN_NUMCLKS			10
+#define CHIP_VERSION			(0x1519)
 
 typedef struct MT9D111RegLst
 {
@@ -310,7 +312,7 @@ static  const s_RegList capture_cmds_list[]= {
 //*****************************************************************************
 static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems);
 extern void MT9D111Delay(unsigned long ucDelay);
-static long RegRead(s_RegList *pRegLst, uint16_t* pusRegVal);
+static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal);
 
 
 //*****************************************************************************
@@ -499,7 +501,7 @@ long RegStatusRead()
 
 	s_RegList StatusRegLst = {0x02, 0x02, 0xBADD};
 
-	lRetVal = RegRead(&StatusRegLst, &usRegVal);
+	lRetVal = Register_Read(&StatusRegLst, &usRegVal);
 
 	return lRetVal;
 }
@@ -561,7 +563,7 @@ long enableAWB()
 			    				{1, 0xC8, 0x0004    },  };
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
-	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
 
 	StatusRegLst[1].usValue |= usRegVal;
 
@@ -579,7 +581,7 @@ long disableAWB()
 			    				{1, 0xC8, 0x0004    },  };
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
-	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
 
 	StatusRegLst[1].usValue = usRegVal & ~(StatusRegLst[1].usValue);
 
@@ -597,7 +599,7 @@ long enableAE()
 			    				{1, 0xC8, 0x0001    },  };
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
-	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
 
 	StatusRegLst[1].usValue |= usRegVal;
 
@@ -615,11 +617,12 @@ long disableAE()
 			    				{1, 0xC8, 0x0001    },  };
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
-	lRetVal = RegRead(&StatusRegLst[1], &usRegVal);
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
 
 	StatusRegLst[1].usValue = usRegVal & ~(StatusRegLst[1].usValue);
 
-	lRetVal = RegLstWrite(StatusRegLst, 2);
+	//lRetVal = RegLstWrite(StatusRegLst, 2);
+	lRetVal = RegLstWrite(&StatusRegLst[1], 1);
 
 	return lRetVal;
 }
@@ -641,7 +644,7 @@ long CCMRegs_Read()
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
-		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
 	}
 
 	return lRetVal;
@@ -663,7 +666,7 @@ long DigitalGainRegs_Read()
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
-		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
 	}
 
 	return lRetVal;
@@ -681,7 +684,7 @@ long ShutterRegs_Read()
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
-		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
 	}
 
 	return lRetVal;
@@ -701,13 +704,93 @@ long AnalogGainReg_Read()
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
-		lRetVal = RegRead(&StatusRegLst[i], &usRegVal);
+		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
+		UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
 	}
 
 	return lRetVal;
 }
 
-static long RegRead(s_RegList *pRegLst, uint16_t* pusRegVal)
+// Dont use this fn. Not able to reset
+// Trying ImageSensor MCU/Firmware disable or reset
+// Not succeeded. Some fields in R195 which hold these controls are ReadOnly
+long ResetImageSensorMCU()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	s_RegList StatusRegLst[] = {0x01, 0xC3, 0x0001};
+
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
+	StatusRegLst[1].usValue = usRegVal | (StatusRegLst[1].usValue);
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+
+	return lRetVal;
+}
+
+long ReadMCUBootModeReg()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	s_RegList StatusRegLst[] = {0x01, 0xC3, 0xBADD};
+
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	Does a soft reset of MT9D111
+//
+//	return SUCCESS or failure code
+//******************************************************************************
+long SoftReset_ImageSensor()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = {{0x00, 0x65, 0xA000},	//Bypass PLL
+								{0x01, 0xC3, 0x0501},	//MCU reset
+								{0x00, 0x0D, 0x0021},	//SensorCore, SOC reset
+								{0x00, 0x0D, 0x0000}};	//Disable the resets
+
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
+
+	MT9D111Delay(24/3 + MARGIN_NUMCLKS);	//Wait 24 clocks before using I2C
+
+	return lRetVal;
+}
+
+
+long Verify_ImageSensor()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	s_RegList StatusRegLst[] = {0x00, 0x00, 0xBADD};	// Sensor Chip Version#
+
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
+
+	if (usRegVal != CHIP_VERSION)
+	{
+		UART_PRINT("MT9D111 Chip Version# error\n\r");
+		lRetVal = MT9D111_NOT_FOUND;
+	}
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	Register_Read(): Reads value of one register in MT9D111
+//
+//	param[in]	pRegLst(struct ptr):[in]ucPageAddr - Page of reg to be read
+//									[in]ucRegAddr - Address of reg to be read
+//									usVal - not used
+//	param[out]	pusRegVal	Pointer to Value of Register
+//
+//	return SUCCESS or failure value
+//
+//	NOTE: Simple Register Read is implemented. Firmware Variable Read has to be
+//	implemented by calling function using 0xC6 and 0xC8 registers
+//******************************************************************************
+static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 {
 	unsigned char ucBuffer[20];
 	unsigned short usTemp;
@@ -728,13 +811,11 @@ static long RegRead(s_RegList *pRegLst, uint16_t* pusRegVal)
 	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
 	ASSERT_ON_ERROR(lRetVal);
 
-	usTemp = ucBuffer[0] << 8;
-	usTemp |= ucBuffer[1];
+	//usTemp = ucBuffer[0] << 8;
+	//usTemp |= ucBuffer[1];
 	//UART_PRINT("Page no now: %x\n\r", usTemp);
 
 	//Read from the register
-	uint8_t ulSize = 3;
-
 	ucBuffer[0] = pRegLst->ucRegAddr;
 	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
 	ASSERT_ON_ERROR(lRetVal);
@@ -745,6 +826,8 @@ static long RegRead(s_RegList *pRegLst, uint16_t* pusRegVal)
 	*pusRegVal = ucBuffer[0] << 8;
 	*pusRegVal |= ucBuffer[1];
 	UART_PRINT("Register Val: %x\n\r", *pusRegVal);
+
+	pRegLst->usValue = *pusRegVal;
 
 	return lRetVal;
 }

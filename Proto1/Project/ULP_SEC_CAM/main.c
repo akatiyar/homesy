@@ -297,18 +297,17 @@ void Main_Task(void *pvParameters)
 								// since image sensor needs XCLK for
 								//its I2C module to work
 
-		ReadAllAEnAWBRegs();
+		UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+								// 10 is margin
+
+		SoftReset_ImageSensor();
 
 		CameraSensorInit();
-		ReadAllAEnAWBRegs();
-		#ifdef ENABLE_JPEG
-			// Configure Sensor in Capture Mode
-			lRetVal = StartSensorInJpegMode();
-			if(lRetVal < 0)
-			{
-				LOOP_FOREVER();
-			}
-		#endif
+
+		// Configure Sensor in Capture Mode
+		lRetVal = StartSensorInJpegMode();
+		STOPHERE_ON_ERROR(lRetVal);
+
 		UART_PRINT("I2C Camera config done\n\r");
 
 		ReadAllAEnAWBRegs();
@@ -458,7 +457,7 @@ void Main_Task(void *pvParameters)
 
 		//ReadAllAEnAWBRegs();
 
-		disableAE();
+		/*disableAE();
 		disableAWB();
 
 		WriteAllAEnAWBRegs();
@@ -472,7 +471,7 @@ void Main_Task(void *pvParameters)
 		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 
 		MAP_PRCMPeripheralReset(PRCM_UDMA);
-		MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
+		MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);*/
 
 
 #ifndef USB_DEBUG

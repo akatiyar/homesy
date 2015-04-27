@@ -62,11 +62,20 @@ typedef enum
 	FILE_READ_FAILED = FILE_OPEN_WRITE_FAILED - 1,
 	FILE_WRITE_FAILED = FILE_READ_FAILED - 1,
 
+	//
+	MT9D111_NOT_FOUND = FILE_WRITE_FAILED - 1,
+
     STATUS_CODE_MAX = -0xBB8
 }e_AppStatusCodes;
 
 
-
+#define STOPHERE_ON_ERROR(error_code)\
+            {\
+                 if(error_code < 0) \
+                   {\
+                	 	 while(1);\
+					}\
+            }
 
 
 
