@@ -494,12 +494,14 @@ long CaptureAndStore_Image()
 
 	UART_PRINT("DONE: Image Write to Flash\n\r");
 
+	//RegStatusRead();
+	//AnalogGainReg_Read();
 
-	MAP_PRCMPeripheralReset(PRCM_CAMERA);
-    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-
-    MAP_PRCMPeripheralReset(PRCM_UDMA);
-    MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
+//	MAP_PRCMPeripheralReset(PRCM_CAMERA);
+//    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+//
+//    MAP_PRCMPeripheralReset(PRCM_UDMA);
+//    MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
 
 
     return SUCCESS;

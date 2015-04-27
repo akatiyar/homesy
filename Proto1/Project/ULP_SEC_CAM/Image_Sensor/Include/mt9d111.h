@@ -38,6 +38,21 @@ long CameraSensorInit();
 */
 long StartSensorInJpegMode();
 
+long RegStatusRead();
+
+long AnalogGainReg_Read();
+long DigitalGainRegs_Read();
+long CCMRegs_Read();
+long ShutterRegs_Read();
+
+long ReadAllAEnAWBRegs();
+
+long WriteAllAEnAWBRegs();
+
+long disableAWB();
+long enableAWB();
+long enableAE();
+long disableAE();
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

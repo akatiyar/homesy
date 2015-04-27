@@ -287,15 +287,20 @@ void Main_Task(void *pvParameters)
 		//ASSERT_ON_ERROR(lRetVal);
 */
 
-/*		//
+		//
 		// Set up the camera module through I2C
 		//
+
 #ifndef NO_CAMERA
 		UART_PRINT("\n\rCAMERA MODULE:\n\r");
 		CamControllerInit();	// Init parallel camera interface of cc3200
 								// since image sensor needs XCLK for
 								//its I2C module to work
+
+		ReadAllAEnAWBRegs();
+
 		CameraSensorInit();
+		ReadAllAEnAWBRegs();
 		#ifdef ENABLE_JPEG
 			// Configure Sensor in Capture Mode
 			lRetVal = StartSensorInJpegMode();
@@ -306,10 +311,12 @@ void Main_Task(void *pvParameters)
 		#endif
 		UART_PRINT("I2C Camera config done\n\r");
 
+		ReadAllAEnAWBRegs();
+
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
-*/
+
 
 #ifndef USB_DEBUG
 		//
@@ -448,6 +455,25 @@ void Main_Task(void *pvParameters)
 		// Collect and transmit Image and sensor data
 		//
 		CollectTxit_ImgTempRH();
+
+		//ReadAllAEnAWBRegs();
+
+		disableAE();
+		disableAWB();
+
+		WriteAllAEnAWBRegs();
+		ReadAllAEnAWBRegs();
+
+		CollectTxit_ImgTempRH();
+
+		ReadAllAEnAWBRegs();
+
+		MAP_PRCMPeripheralReset(PRCM_CAMERA);
+		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+
+		MAP_PRCMPeripheralReset(PRCM_UDMA);
+		MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
+
 
 #ifndef USB_DEBUG
 //	uint16_t temp = getLightsensor_data();
