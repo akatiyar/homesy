@@ -32,6 +32,8 @@ void CollectTxit_ImgTempRH()
 	CaptureAndStore_Image();
 #endif
 
+	ReadAllAEnAWBRegs();
+
 	/*while(1)
 	{
 		//AnalogGainReg_Read();

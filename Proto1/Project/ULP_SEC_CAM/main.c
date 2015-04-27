@@ -125,7 +125,7 @@ volatile unsigned char g_CaptureImage; //An app status
 SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 
 //unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
-unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)]; //Appropriate name change to be done
+unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))]; //Appropriate name change to be done
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -310,7 +310,7 @@ void Main_Task(void *pvParameters)
 
 		UART_PRINT("I2C Camera config done\n\r");
 
-		ReadAllAEnAWBRegs();
+		//ReadAllAEnAWBRegs();
 
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
@@ -450,10 +450,21 @@ void Main_Task(void *pvParameters)
 			UtilsDelay(30000);
 		}
 */
+
+		//CollectTxit_ImgTempRH();
+
+		disableAE();
+		disableAWB();
+
+		WriteAllAEnAWBRegs();
+
 		//
 		// Collect and transmit Image and sensor data
 		//
-		CollectTxit_ImgTempRH();
+		while(1)
+		{
+			CollectTxit_ImgTempRH();
+		}
 
 		//ReadAllAEnAWBRegs();
 
@@ -471,7 +482,9 @@ void Main_Task(void *pvParameters)
 		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 
 		MAP_PRCMPeripheralReset(PRCM_UDMA);
-		MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);*/
+		MAP_PRCMPeripheralClkDisable(PRCM_UDMA,P
+
+		RCM_RUN_MODE_CLK);*/
 
 
 #ifndef USB_DEBUG

@@ -52,14 +52,19 @@ extern "C"
 
 #define USER_FILE_NAME          "www/images/cc3200_camera_capture.jpg"
 
-#define UART_COMMAND_IMG_CAPTURE                    ('x')
-#define LOWER_TO_UPPER_CASE                         (32)
+#define UART_COMMAND_IMG_CAPTURE		('x')
+#define LOWER_TO_UPPER_CASE				(32)
 
-#define DISABLE                           (0)
-#define ENABLE                            (1)
-#define SL_VERSION_LENGTH                 (11)
+#define DISABLE							(0)
+#define ENABLE							(1)
+#define SL_VERSION_LENGTH				(11)
 
-#define BUFFER_SIZE_IN_BYTES	81920	//80K //Image buffer
+//#define IMAGE_BUF_SIZE_BYTES			71960	//70K
+//#define IMAGE_BUF_SIZE_BYTES			72192
+//#define IMAGE_BUF_SIZE_BYTES			25600
+#define IMAGE_BUF_SIZE_BYTES			81920	//80K //Image buffer
+
+#define ONE_KB                      	(1024)
 
 #ifdef ENABLE_JPEG
     // Capture is stopped at 'CAM_INT_FE' anyway 
@@ -68,8 +73,10 @@ extern "C"
         #define PIXELS_IN_Y_AXIS        (720)
 
 		//#define NUM_OF_1KB_BUFFERS      150
-		#define NUM_OF_1KB_BUFFERS      120
-	#elif XGA_FRAME
+		//#define NUM_OF_1KB_BUFFERS      120
+		#define MAX_IMAGE_SIZE_BYTES	(150*ONE_KB)		//Expected Val
+
+#elif XGA_FRAME
         #define PIXELS_IN_X_AXIS        (1024)
         #define PIXELS_IN_Y_AXIS        (768)
 
@@ -94,19 +101,18 @@ extern "C"
     #endif
 #endif  
 
-#define BYTES_PER_PIXEL             (2)       // RGB 565 
+#define BYTES_PER_PIXEL             	(2)       // RGB 565
 #define FRAME_SIZE_IN_BYTES         \
 (PIXELS_IN_X_AXIS * PIXELS_IN_Y_AXIS * BYTES_PER_PIXEL)
 
-#define ONE_KB                      (1024)
-#define IMAGE_BUF_SIZE              (ONE_KB * NUM_OF_1KB_BUFFERS)
+#define NUM_OF_4B_CHUNKS            	((IMAGE_BUF_SIZE_BYTES)/(sizeof(unsigned long)))
+#define NUM_OF_1KB_CHUNKS           	(IMAGE_BUF_SIZE_BYTES/ONE_KB)
+#define NUM_OF_4B_CHUNKS_IN_1KB     	(ONE_KB/(sizeof(unsigned long)))
 
-#define NUM_OF_4B_CHUNKS            ((IMAGE_BUF_SIZE)/(sizeof(unsigned long)))
-#define NUM_OF_1KB_CHUNKS           (IMAGE_BUF_SIZE/ONE_KB)
-#define NUM_OF_4B_CHUNKS_IN_1KB     (ONE_KB/(sizeof(unsigned long)))
+#define MAX_IMAGE_HEADER_SIZE_BYTES		1024
 
-#define MAX_EMAIL_ID_LENGTH         34
-#define SMTP_BUF_LEN                1024
+#define MAX_EMAIL_ID_LENGTH         	34
+#define SMTP_BUF_LEN                	1024
   
 //*****************************************************************************
 //
@@ -140,7 +146,7 @@ typedef struct cmd_struct{
 // Externs
 //******************************************************************************
 //extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
-extern unsigned long g_image_buffer[(BUFFER_SIZE_IN_BYTES/4)];
+extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 //******************************************************************************
 // APIs
 //******************************************************************************

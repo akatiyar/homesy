@@ -77,19 +77,16 @@
 // Macros
 //*****************************************************************************
 
-//#define USER_FILE_NAME          "www/images/testimage.jpg"
-//#define USER_FILE_NAME          "www/123.txt"
-#define TOTAL_DMA_ELEMENTS      64
+//#define USER_FILE_NAME          		"www/images/testimage.jpg"
+//#define USER_FILE_NAME          		"www/123.txt"
+#define TOTAL_DMA_ELEMENTS      		64
 
-//#define BUFFER_SIZE_IN_BYTES	71960	//70K
-//#define BUFFER_SIZE_IN_BYTES	72192
-//#define BUFFER_SIZE_IN_BYTES	25600
-#define BLOCK_SIZE_IN_BYTES		4096	//4K
-#define NUM_BLOCKS_IN_IMAGE_BUFFER			(BUFFER_SIZE_IN_BYTES / BLOCK_SIZE_IN_BYTES)
-#define LAST_BLOCK_IN_BUFFER	(NUM_BLOCKS_IN_IMAGE_BUFFER-1)
+#define BLOCK_SIZE_IN_BYTES				4096	//4K
+#define NUM_BLOCKS_IN_IMAGE_BUFFER		(IMAGE_BUF_SIZE_BYTES / BLOCK_SIZE_IN_BYTES)
+#define LAST_BLOCK_IN_BUFFER			(NUM_BLOCKS_IN_IMAGE_BUFFER-1)
 
-#define DMA_TRANSFERS_TOFILL_BUFFER	( BUFFER_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
-#define DMA_TRANSFERS_TOFILL_BLOCK	( BLOCK_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
+#define DMA_TRANSFERS_TOFILL_BUFFER		( IMAGE_BUF_SIZE_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
+#define DMA_TRANSFERS_TOFILL_BLOCK		( BLOCK_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
 //*****************************************************************************
 //                      GLOBAL VARIABLES
 //*****************************************************************************
@@ -292,7 +289,6 @@ long CaptureAndStore_Image()
     long lFileHandle;
     unsigned long ulToken = NULL;
     long lRetVal;
-    unsigned char *p_header;
 
     uint32_t uiImageFile_Offset = 0;
 
@@ -318,7 +314,7 @@ long CaptureAndStore_Image()
 //    					FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
 //    					FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
 //    					FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-						FS_MODE_OPEN_CREATE(IMAGE_BUF_SIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						FS_MODE_OPEN_CREATE((MAX_IMAGE_SIZE_BYTES+MAX_IMAGE_HEADER_SIZE_BYTES),_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
                         &ulToken,
                         &lFileHandle);
     if(lRetVal < 0)
@@ -387,7 +383,7 @@ long CaptureAndStore_Image()
 	//
 	DMAConfig();
 
-	memset(g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
+	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
 
@@ -412,7 +408,7 @@ long CaptureAndStore_Image()
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
 									  (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
 									  BLOCK_SIZE_IN_BYTES);
-				if (lRetVal <0)
+				if (lRetVal < 0)
 				{
 					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
@@ -547,6 +543,8 @@ static void DMAConfig()
 
     g_block_lastFilled = -1;
 
+    g_position_in_block = 0;
+
     //
     // Clear any pending interrupt
     //
@@ -635,7 +633,7 @@ static void CameraIntHandler()
 
         g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
         if(g_frame_size_in_bytes < FRAME_SIZE_IN_BYTES && 
-                                    g_frame_size_in_bytes < IMAGE_BUF_SIZE)
+                                    g_frame_size_in_bytes < MAX_IMAGE_SIZE_BYTES)
         {
             if(g_dma_txn_done == 0)
             {
