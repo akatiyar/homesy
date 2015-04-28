@@ -57,7 +57,9 @@
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Application/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/example/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/driverlib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/../Parse/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink/include&quot;"/>
@@ -84,7 +86,6 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.linkerID.MAP_FILE.1940025089" name="Input and output sections listed into &lt;file&gt; (--map_file, -m)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.linkerID.MAP_FILE" value="&quot;${ProjName}.map&quot;" valueType="string"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.linkerID.LIBRARY.1564179287" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.linkerID.LIBRARY" valueType="libs">
 									<listOptionValue builtIn="false" value="&quot;libc.a&quot;"/>
-									<listOptionValue builtIn="false" value="libparse.a"/>
 									<listOptionValue builtIn="false" value="simplelink.a"/>
 									<listOptionValue builtIn="false" value="driverlib.a"/>
 									<listOptionValue builtIn="false" value="free_rtos.a"/>
@@ -110,13 +111,11 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="main1.c|network_if.c|demo1_collectAndTxitSensorData.c|customer_demo1_collectAndTxitSensorData.c|Sensors/Source/fxos8700-112.c|get_weather.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Parse_Library/common/tests/simplejson_tests.cc|main1.c|network_if.c|demo1_collectAndTxitSensorData.c|customer_demo1_collectAndTxitSensorData.c|Sensors/Source/fxos8700-112.c|get_weather.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
-				<externalSettings containerId="parse;com.ti.ccstudio.buildDefinitions.TMS470.Release.1296262338" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier"/>
-			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>

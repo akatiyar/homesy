@@ -186,8 +186,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 			 // open a user file for reading
 //    		unsigned char myFile[] = "www/images/testimage.jpg";
 //    		unsigned char myFile[] = "www/images/cc3200_camera_capture.jpg";
-    		long lFileHandle;
-    		unsigned long ulToken;
+    		unsigned long ulToken = NULL;
     		long lRetVal;
 /*//			 lRetVal = sl_FsOpen(myFile, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
     		lRetVal = sl_FsOpen(httpRequestBody, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
@@ -200,10 +199,9 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 */
 			 SlFsFileInfo_t fileInfo;
 //			 sl_FsGetInfo(myFile, ulToken, &fileInfo);
-			 sl_FsGetInfo(httpRequestBody, ulToken, &fileInfo);
+			 lRetVal = sl_FsGetInfo(httpRequestBody, ulToken, &fileInfo);
 			 if (lRetVal < 0)
 			 {
-/*				 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);*/
 				 for( ;; );
 			 }
 

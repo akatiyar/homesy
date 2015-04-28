@@ -71,7 +71,7 @@ void CollectTxit_ImgTempRH()
 	lRetVal = UploadImageToParse(clientHandle,
 									(unsigned char*) USER_FILE_NAME,
 									ucParseImageUrl);
-	ASSERT_ON_ERROR(lRetVal)
+	ASSERT_ON_ERROR(lRetVal);
 	UART_PRINT("\n%s\n", ucParseImageUrl);
 
 	//

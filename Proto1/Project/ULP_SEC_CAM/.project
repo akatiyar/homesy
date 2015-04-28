@@ -3,7 +3,6 @@
 	<name>ULP_SEC_CAM</name>
 	<comment></comment>
 	<projects>
-		<project>parse</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
