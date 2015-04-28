@@ -354,7 +354,7 @@ long CaptureAndStore_Image()
     memset(g_header, '\0', sizeof(g_header));
     g_header_length = CreateJpegHeader((char *)&g_header[0],
     									PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
-    									0, 0x0020, 9);
+    									0, 0x0020,(int)IMAGE_QUANTIZ_SCALE);
     InitializeTimer();
     StartTimer();
     //
@@ -660,6 +660,33 @@ static void CameraIntHandler()
                 //UART_PRINT("G");
             }
 
+            /*//
+            //	For Block Size = 256Bytes. Overwrite happening
+            //
+            // Update block#
+			g_block_lastFilled++;
+			UART_PRINT("%d ", g_block_lastFilled);
+
+			// Set Block full flag
+			g_flag_blockFull[g_block_lastFilled] = 1;
+			g_flag_DataBlockFilled = 1;
+
+        	// If the last block is filled, reset block# to -1
+        	if( g_block_lastFilled == LAST_BLOCK_IN_BUFFER )
+        	{
+        		g_block_lastFilled = -1;
+        	}
+
+        	// If buffer end is reached, change write pointer to point top of buffer
+        	if(g_block_lastFilled == (LAST_BLOCK_IN_BUFFER - 2 ))
+			{
+				//UART_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
+				p_buffer = g_image_buffer;
+			}*/
+
+        	//
+			//	For Block Size = 4MBytes
+			//
         	g_position_in_block++;
 
         	//

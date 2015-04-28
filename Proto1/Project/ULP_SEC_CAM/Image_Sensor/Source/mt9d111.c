@@ -243,8 +243,10 @@ static  const s_RegList capture_cmds_list[]= {
     {0, 0x65, 0xA000    },  // Disable PLL
     {0, 0x65, 0xE000    },  // Power DOWN PLL
     {100, 0x00, 0x01F4  },  // Delay =500ms
-    {0,  0x66,  0x1E03  },
-    {0,  0x67,  0x0501  },
+    //{0,  0x66,  0x1E03  },
+    //{0,  0x67,  0x0501  },
+    {0,  0x66,  0x1E01  },	//N = 1, M = 30
+    {0,  0x67,  0x0503  },	//P = 3
     {0, 0x65,   0xA000  },  // Disable PLL
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
@@ -264,11 +266,16 @@ static  const s_RegList capture_cmds_list[]= {
     {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
     {1,  0xC8, 0x001E   },
     {1,  0xC6, 0xA907   },  // JPEG mode config, video
-    {1,  0xC8, 0x0035   },
+    //{1,  0xC8, 0x0035   },
+    {1,  0xC8, 0x0015   },	// Auto QScale selection disabled
     {1,  0xC6, 0xA906   },  // Format YCbCr422
     {1,  0xC8, 0x0000   },
     {1,  0xC6, 0xA90A   },  // Set the qscale1
-    {1,  0xC8, 0x0089   },
+    //{1,  0xC8, 0x0089   },	// SDK val: 9
+    {1,  0xC8, (0x0080|IMAGE_QUANTIZ_SCALE)   },
+    //{1,  0xC8, 0x0094   },	// 20
+    //{1,  0xC8, 0x00C0   },	// 64
+    //{1,  0xC8, 0x00A0   },	// 32
     {1,  0xC6, 0x2908   },  // Set the restartInt
     {1,  0xC8, 0x0020   },
     {100, 0x00, 0x01F4  },  // Delay =500ms
@@ -413,8 +420,8 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         {
     		UART_PRINT("1");
     		// PageAddr == 100, insret a delay equal to reg value
-            //MT9D111Delay(pRegLst->usValue * 80000/3);
-    		MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
+            MT9D111Delay(pRegLst->usValue * 80000/3);
+    		//MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
         }
         else if(pRegLst->ucPageAddr == 111)
         {
@@ -534,6 +541,7 @@ long WriteAllAEnAWBRegs()
 								{0x00, 0x09, 0x0274},
 								{0x00, 0x0C, 0x0000}};
 */
+/*
 	// Fridge
 	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0024},
 								{0x00, 0x2C, 0x003A},
@@ -556,6 +564,31 @@ long WriteAllAEnAWBRegs()
 								{0x01, 0x66, 0x3fDA},
 
 								{0x00, 0x09, 0x03ae},
+								{0x00, 0x0C, 0x0000}};
+*/
+
+	// Imaging Test Chart on my table
+	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0022},
+								{0x00, 0x2C, 0x002e},
+								{0x00, 0x2D, 0x0026},
+								{0x00, 0x2E, 0x0022},
+
+								{0x01, 0x6E, 0x008f},
+								{0x01, 0x6A, 0x00b3},
+								{0x01, 0x6B, 0x008f},
+								{0x01, 0x6C, 0x008f},
+								{0x01, 0x6D, 0x0085},
+								{0x01, 0x4E, 0x0020},
+
+								{0x01, 0x60, 0x3923},
+								{0x01, 0x61, 0x04e4},
+								{0x01, 0x62, 0xbbeb},
+								{0x01, 0x63, 0x8b12},
+								{0x01, 0x64, 0x3fe9},
+								{0x01, 0x65, 0xad5c},
+								{0x01, 0x66, 0x3fb0},
+
+								{0x00, 0x09, 0x044b},
 								{0x00, 0x0C, 0x0000}};
 
 	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
