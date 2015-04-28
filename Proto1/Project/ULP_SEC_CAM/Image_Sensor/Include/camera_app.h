@@ -109,11 +109,11 @@ extern "C"
 #define NUM_OF_1KB_CHUNKS           	(IMAGE_BUF_SIZE_BYTES/ONE_KB)
 #define NUM_OF_4B_CHUNKS_IN_1KB     	(ONE_KB/(sizeof(unsigned long)))
 
-#define MAX_IMAGE_HEADER_SIZE_BYTES		1024
 
 #define MAX_EMAIL_ID_LENGTH         	34
 #define SMTP_BUF_LEN                	1024
-  
+
+#define MAX_IMAGE_HEADER_SIZE_BYTES		1024
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header

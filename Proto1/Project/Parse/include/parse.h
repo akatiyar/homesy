@@ -351,7 +351,7 @@ void parseRunPushLoop(ParseClient client);
  *  The caller retains ownership of the httpVerb, httpPath, and requestBody buffers, and is responsible for
  *  freeing them and reclaiming the memory after this call.
  */
-void parseSendRequest(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, Payload_Type payloadType);
+long parseSendRequest(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, Payload_Type payloadType);
 
 /*! \fn int parseGetErrorCode(const char *httpResponseBody)
  *  \brief Extract Parse error code.

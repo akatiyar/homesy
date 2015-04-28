@@ -6,7 +6,7 @@
 
 extern char* dataBuffer;
 
-void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
+int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
 
 
 //******************************************************************************
@@ -41,18 +41,24 @@ ParseClient InitialiseParse()
 //	image posted.
 //
 //*****************************************************************************
-void UploadImageToParse(ParseClient client,
+int32_t UploadImageToParse(ParseClient client,
 							uint8_t* pucImageFileName,
 							uint8_t* pucParseImageUrl)
 {
-	parseSendRequest(client,
-						"POST",
-						"/1/files/myPic1.jpg",
-						pucImageFileName,
-						NULL,
-						image);
+	int32_t lRetVal;
+
+	lRetVal = parseSendRequest(client,
+									"POST",
+									"/1/files/myPic1.jpg",
+									pucImageFileName,
+									NULL,
+									image);
+
+	ASSERT_ON_ERROR(lRetVal);
 
 	retreiveImageIDfromHTTPResponse(pucParseImageUrl);
+
+	return lRetVal;
 }
 
 //*****************************************************************************
@@ -66,10 +72,12 @@ void UploadImageToParse(ParseClient client,
 //	is handled within.
 //
 //*****************************************************************************
-void UploadSensorDataToParse(ParseClient client,
+int32_t UploadSensorDataToParse(ParseClient client,
 								uint8_t* sensorDataFileName)
 {
-	parseSendRequest(client,
+	int32_t lRetVal;
+
+	lRetVal = parseSendRequest(client,
 						"POST",
 						"/1/classes/DeviceState", //DeviceState is object name
 						sensorDataFileName,
@@ -82,6 +90,10 @@ void UploadSensorDataToParse(ParseClient client,
 //							NULL,
 //							1,
 //							jsonObject);
+
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
 }
 
 
@@ -100,7 +112,7 @@ void UploadSensorDataToParse(ParseClient client,
 //			the memory pointed by dataBuffer pointer
 //
 //******************************************************************************
-void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
+int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 {
 	uint16_t ucResponseLen;
 	uint8_t* pucImageIDStart, *pucImageIDEnd;
@@ -130,6 +142,8 @@ void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	strncpy( (uint8_t *)pucParseImageUrl,
 			 (const uint8_t *)pucImageIDStart,
 			 ucLength);
+
+	return 0;
 }
 
 
@@ -150,7 +164,7 @@ void retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 //
 //******************************************************************************
 
-void ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
+int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
 									uint8_t* pucSensorDataTxt)
@@ -182,4 +196,6 @@ void ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 	strncat(pucSensorDataTxt, ucCharConv+2, 2);
 	strncat(pucSensorDataTxt, "}", sizeof("}"));
 	UART_PRINT("\n%s\n", pucSensorDataTxt);
+
+	return 0;
 }

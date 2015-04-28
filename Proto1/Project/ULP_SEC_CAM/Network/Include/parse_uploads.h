@@ -14,12 +14,12 @@
 #define DEVICE_STATE_OBJECT_SIZE	500
 
 ParseClient InitialiseParse();
-void UploadImageToParse(ParseClient client,
+int32_t UploadImageToParse(ParseClient client,
 							uint8_t* ucImageDirName,
 							uint8_t* ucParseImageName);
-void UploadSensorDataToParse(ParseClient client,
+int32_t UploadSensorDataToParse(ParseClient client,
 								uint8_t* sensorDataDirName);
-void ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
+int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
 									uint8_t* pucSensorDataTxt);

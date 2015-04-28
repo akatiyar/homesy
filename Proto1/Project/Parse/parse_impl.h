@@ -132,7 +132,7 @@ void getInstallation(ParseClientInternal *parseClient);
 ParseClientInternal *getInternalClient(ParseClient client);
 
 /* request.c */
-void parseSendRequestInternal(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, int addInstallationHeader, Payload_Type payloadType);
+long parseSendRequestInternal(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, int addInstallationHeader, Payload_Type payloadType);
 
 #ifdef __cplusplus
 }

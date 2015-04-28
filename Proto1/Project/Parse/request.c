@@ -475,8 +475,8 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
     return status;
 }
 
-void parseSendRequestInternal(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, int addInstallationHeader, Payload_Type payloadType) {
-    short status = sendRequest(getInternalClient(client), httpPath, httpVerb, httpRequestBody, addInstallationHeader, payloadType);
+long parseSendRequestInternal(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, int addInstallationHeader, Payload_Type payloadType) {
+    long status = sendRequest(getInternalClient(client), httpPath, httpVerb, httpRequestBody, addInstallationHeader, payloadType);
 
     if (callback) {
         if (status >= 0) {
@@ -485,16 +485,23 @@ void parseSendRequestInternal(ParseClient client, const char *httpVerb, const ch
             callback(client, status, -1, NULL);
         }
     }
+
+    return status;
 }
 
-void parseSendRequest(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, Payload_Type payloadType) {
-    getInstallation(getInternalClient(client));
+long parseSendRequest(ParseClient client, const char *httpVerb, const char *httpPath, const char *httpRequestBody, parseRequestCallback callback, Payload_Type payloadType) {
+
+	long status;
+
+	getInstallation(getInternalClient(client));
 
 #ifdef REQUEST_TRACE
     DEBUG_PRINT("[Parse] Send %s request to %s \r\n", httpVerb, httpPath);
 #endif /* REQUEST_TRACE */
 
-    parseSendRequestInternal(client, httpVerb, httpPath, httpRequestBody, callback, TRUE, payloadType);
+    status = parseSendRequestInternal(client, httpVerb, httpPath, httpRequestBody, callback, TRUE, payloadType);
+
+    return status;
 }
 
 int parseGetErrorCode(const char *httpResponseBody) {

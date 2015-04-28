@@ -25,6 +25,8 @@ extern void CollectTxit_ImgTempRH();
 //*****************************************************************************
 void CollectTxit_ImgTempRH()
 {
+	int32_t lRetVal;
+
 #ifndef NO_CAMERA
 	//
 	//	Captute image and save in flash
@@ -66,9 +68,10 @@ void CollectTxit_ImgTempRH()
 	//
 	uint8_t ucParseImageUrl[100];
 	memset(ucParseImageUrl,NULL, 100);
-	UploadImageToParse(clientHandle,
-						(unsigned char*) USER_FILE_NAME,
-						ucParseImageUrl);
+	lRetVal = UploadImageToParse(clientHandle,
+									(unsigned char*) USER_FILE_NAME,
+									ucParseImageUrl);
+	ASSERT_ON_ERROR(lRetVal)
 	UART_PRINT("\n%s\n", ucParseImageUrl);
 
 	//
