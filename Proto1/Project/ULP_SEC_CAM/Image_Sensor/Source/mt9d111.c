@@ -246,7 +246,7 @@ static  const s_RegList capture_cmds_list[]= {
     //{0,  0x66,  0x1E03  },
     //{0,  0x67,  0x0501  },
     {0,  0x66,  0x1E01  },	//N = 1, M = 30
-    {0,  0x67,  0x0503  },	//P = 3
+    {0,  0x67,  0x0506  },	//P = 9		// Changed to 9 -Uthra
     {0, 0x65,   0xA000  },  // Disable PLL
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
@@ -277,7 +277,11 @@ static  const s_RegList capture_cmds_list[]= {
     //{1,  0xC8, 0x00C0   },	// 64
     //{1,  0xC8, 0x00A0   },	// 32
     {1,  0xC6, 0x2908   },  // Set the restartInt
-    {1,  0xC8, 0x0020   },
+    {1,  0xC8, 0x0006   },
+	{0x02, 0x0D, 0x0027 },	// Disable adaptive clocking
+	{0x02, 0x0E, 0x0405 },	// Set Pclk divisor
+//	{0x02, 0x0D, 0x0067 },
+
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
 #ifdef HD_FRAME
@@ -759,6 +763,27 @@ long AnalogGainReg_Read()
 								{0x00, 0x2C, 0xBADD},
 								{0x00, 0x2D, 0xBADD},
 								{0x00, 0x2E, 0xBADD}};
+
+	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
+		UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+	}
+
+	return lRetVal;
+}
+
+long PCLK_Rate_read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	int i;
+
+	UART_PRINT("Output Clock Reg:\n\r");
+	s_RegList StatusRegLst[] = {{0x02, 0x0E, 0xBADD},
+								{0x02, 0x0F, 0xBADD},
+								{0x02, 0x02, 0xBADD},
+								{0x02, 0x0D, 0xBADD}};
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{

@@ -354,7 +354,7 @@ long CaptureAndStore_Image()
     memset(g_header, '\0', sizeof(g_header));
     g_header_length = CreateJpegHeader((char *)&g_header[0],
     									PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
-    									0, 0x0020,(int)IMAGE_QUANTIZ_SCALE);
+    									0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
     InitializeTimer();
     StartTimer();
     //
@@ -374,15 +374,8 @@ long CaptureAndStore_Image()
 	GetTimeDuration(&fHeaderWriteDuration);
 	UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
 
-	//
-	// Initialize camera controller
-	//
-	CamControllerInit();
 
-	//
-	// Configure DMA in ping-pong mode
-	//
-	DMAConfig();
+
 
 	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
 	g_readHeader = 0;
@@ -394,7 +387,18 @@ long CaptureAndStore_Image()
     UART_PRINT("sB");
     InitializeTimer();
     StartTimer();
+
+	//
+	// Initialize camera controller
+	//
+	CamControllerInit();
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
     MAP_CameraCaptureStart(CAMERA_BASE);
+   // HWREG(0x4402609C) |= 1 << 8;
 
     while((g_frame_end == 0))
     {
@@ -514,7 +518,10 @@ long CaptureAndStore_Image()
 //*****************************************************************************
 static void DMAConfig()
 {
-    memset(g_image_buffer,0xF80F,sizeof(g_image_buffer));
+	int i=0;
+ //   memset(g_image_buffer,0xF80F,sizeof(g_image_buffer));
+	for(i=0;i<sizeof(g_image_buffer)/sizeof(unsigned long);i++)
+		g_image_buffer[i]=0x0;
     p_buffer = &g_image_buffer[0];
 
     //
@@ -600,7 +607,7 @@ void CamControllerInit()
 #endif
 
     MAP_CameraThresholdSet(CAMERA_BASE, 8);
-    MAP_CameraIntEnable(CAMERA_BASE, CAM_INT_FE);
+    MAP_CameraIntEnable(CAMERA_BASE, CAM_INT_FE | CAM_INT_DMA);
     MAP_CameraDMAEnable(CAMERA_BASE);
 }
 
@@ -616,6 +623,7 @@ void CamControllerInit()
 static void CameraIntHandler()
 {
 	//UART_PRINT("!");
+
     if(g_total_dma_intrpts > 1 && MAP_CameraIntStatus(CAMERA_BASE) & CAM_INT_FE)
     {
         MAP_CameraIntClear(CAMERA_BASE, CAM_INT_FE);
@@ -623,8 +631,7 @@ static void CameraIntHandler()
         MAP_CameraCaptureStop(CAMERA_BASE, true);
         //UART_PRINT("++++++");
     }
-
-    if(HWREG(0x440260A4) & (1<<8))
+    else if(HWREG(0x440260A0) & (1<<8))
     {
     	//UART_PRINT(".");
     	// Camera DMA Done clear
@@ -638,6 +645,8 @@ static void CameraIntHandler()
         {
             if(g_dma_txn_done == 0)
             {
+//            	if(g_image_buffer[10]==0x0FF80FF8)
+//            		while(1);
             	DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,
                                  TOTAL_DMA_ELEMENTS,UDMA_SIZE_32,
                                  UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, 
@@ -731,7 +740,7 @@ static void CameraIntHandler()
             MAP_uDMAChannelDisable(UDMA_CH22_CAMERA);
             HWREG(0x44026090) |= 1 << 8;
             g_frame_end = 1;
-            UART_PRINT(",,,,,");
+            UART_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
         }
     }
 }
@@ -1241,7 +1250,7 @@ static int CreateJpegHeader(char *header, int width, int height,
     pbuf = header + length;
     length += ScanHeaderMarker(pbuf, format);
 
-    return length;
+    return length+1;
 }
 #endif 
 

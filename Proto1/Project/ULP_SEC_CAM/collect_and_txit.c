@@ -31,10 +31,13 @@ void CollectTxit_ImgTempRH()
 	//
 	//	Captute image and save in flash
 	//
-	CaptureAndStore_Image();
+//	while(1)
+		CaptureAndStore_Image();
 #endif
 
-	ReadAllAEnAWBRegs();
+//	PCLK_Rate_read();
+
+//	ReadAllAEnAWBRegs();
 
 	/*while(1)
 	{
@@ -55,6 +58,7 @@ void CollectTxit_ImgTempRH()
 	//	Connect cc3200 to wifi AP
 	//
 	ConfigureSimpleLinkToDefaultState();
+	UtilsDelay(8000000);
 	ConnectToNetwork_STA();
 
 	//
@@ -95,6 +99,8 @@ void CollectTxit_ImgTempRH()
 	//	Upload sensor data to Parse
 	//
 	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
+
+	sl_Stop(0xFFFF);
 
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);

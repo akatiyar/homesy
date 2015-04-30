@@ -44,6 +44,7 @@ long ResetImageSensorMCU();
 long ReadMCUBootModeReg();
 
 long AnalogGainReg_Read();
+long PCLK_Rate_read();
 long DigitalGainRegs_Read();
 long CCMRegs_Read();
 long ShutterRegs_Read();

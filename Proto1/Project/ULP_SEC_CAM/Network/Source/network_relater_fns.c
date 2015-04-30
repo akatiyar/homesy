@@ -340,7 +340,7 @@ void ConnectToNetwork_STA()
 	memset(&dateTime, 0, sizeof(dateTime));
 	dateTime.sl_tm_year = 2015;
 	dateTime.sl_tm_mon = 4;
-	dateTime.sl_tm_day = 2;
+	dateTime.sl_tm_day = 30;
 	dateTime.sl_tm_hour = 19;
 	sl_DevSet(SL_DEVICE_GENERAL_CONFIGURATION, SL_DEVICE_GENERAL_CONFIGURATION_DATE_TIME, sizeof(SlDateTime_t), (unsigned char *)&dateTime);
 }

@@ -304,9 +304,13 @@ void Main_Task(void *pvParameters)
 
 		CameraSensorInit();
 
+//		PCLK_Rate_read();
+
 		// Configure Sensor in Capture Mode
 		lRetVal = StartSensorInJpegMode();
 		STOPHERE_ON_ERROR(lRetVal);
+
+//		PCLK_Rate_read();
 
 		UART_PRINT("I2C Camera config done\n\r");
 
@@ -463,6 +467,9 @@ void Main_Task(void *pvParameters)
 		//
 		while(1)
 		{
+			CamControllerInit();	// Init parallel camera interface of cc3200
+									// since image sensor needs XCLK for
+									//its I2C module to work
 			CollectTxit_ImgTempRH();
 		}
 
@@ -591,7 +598,6 @@ void main()
     // Initialize Board configurations
     //
     BoardInit();
-
     //
     // Pinmux for UART
     //
