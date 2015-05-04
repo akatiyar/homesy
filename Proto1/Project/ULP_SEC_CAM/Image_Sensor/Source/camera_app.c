@@ -88,6 +88,8 @@
 
 #define DMA_TRANSFERS_TOFILL_BUFFER		( IMAGE_BUF_SIZE_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
 #define DMA_TRANSFERS_TOFILL_BLOCK		( BLOCK_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
+
+#define CAM_DMA_BLOCK_SIZE_IN_BYTES		(TOTAL_DMA_ELEMENTS*sizeof(unsigned long))
 //*****************************************************************************
 //                      GLOBAL VARIABLES
 //*****************************************************************************
@@ -291,12 +293,19 @@ long CaptureAndStore_Image()
     unsigned long ulToken = NULL;
     long lRetVal;
 
+    // Initial values set
     uint32_t uiImageFile_Offset = 0;
+    g_block_lastFilled = -1;
+    g_position_in_block = 0;
+	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
+	g_readHeader = 0;
+	g_flag_DataBlockFilled = 0;
 
+	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
 
-/*
+   	/*
 	sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
     //
     // Error handling if File Operation fails
@@ -306,15 +315,15 @@ long CaptureAndStore_Image()
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
-*/
+   	 */
 
     //
     // NVMEM File Open to write to SFLASH
     //
     lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
-//    					FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-//    					FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-//    					FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+    					//FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+    					//FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+   						//FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
 						FS_MODE_OPEN_CREATE((MAX_IMAGE_SIZE_BYTES+MAX_IMAGE_HEADER_SIZE_BYTES),_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
                         &ulToken,
                         &lFileHandle);
@@ -324,20 +333,19 @@ long CaptureAndStore_Image()
     	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
-    //
     // Close the created file
-    //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
-/*
+    /*
     SlFsFileInfo_t fileInfo;
     sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
-*/
+     */
 
     //
-    // Open the file for Write Operation
+	// JPEG Header - create and write to Flash
     //
+    // Open the file for Write Operation
     lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
                         FS_MODE_OPEN_WRITE,
                         &ulToken,
@@ -347,21 +355,16 @@ long CaptureAndStore_Image()
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
-
-    //
-    // Create JPEG Header
-    //
+    // Create Header
     memset(g_header, '\0', sizeof(g_header));
     g_header_length = CreateJpegHeader((char *)&g_header[0],
     									PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
     									0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
-    InitializeTimer();
-    StartTimer();
-    //
-    // Write the Header 
-    //
+    //InitializeTimer();
+    //StartTimer();
+    // Write Header to Flash
     lRetVal = sl_FsWrite(lFileHandle, 0, g_header, g_header_length - 1);
-    StopTimer();
+    //StopTimer();
     if(lRetVal < 0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -369,17 +372,21 @@ long CaptureAndStore_Image()
     }
     uiImageFile_Offset += lRetVal;
 	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
-
-	float_t fHeaderWriteDuration;
-	GetTimeDuration(&fHeaderWriteDuration);
-	UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
-
+	//float_t fHeaderWriteDuration;
+	//GetTimeDuration(&fHeaderWriteDuration);
+	//UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
 
 
+	//
+	// Initialize camera controller
+	//
+	CamControllerInit();
 
-	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
-	g_readHeader = 0;
-	g_flag_DataBlockFilled = 0;
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
 
 	//
     // Perform Image Capture
@@ -387,19 +394,62 @@ long CaptureAndStore_Image()
     UART_PRINT("sB");
     InitializeTimer();
     StartTimer();
-
-	//
-	// Initialize camera controller
-	//
-	CamControllerInit();
-	//
-	// Configure DMA in ping-pong mode
-	//
-	DMAConfig();
-
     MAP_CameraCaptureStart(CAMERA_BASE);
    // HWREG(0x4402609C) |= 1 << 8;
+    while(1)
+    {
+    	if(g_flag_blockFull[0])
+    	{
+    		if((0x00 == g_image_buffer[0])&&(0x00 == g_image_buffer[10])&&(0x00 == g_image_buffer[20]))	//Checking three random positions in the buffer
+    		{
+				UART_PRINT("INVALID First Block\n\r ");
+    			UART_PRINT("s%d ", g_readHeader);
 
+				// Write a Block of Image from RAM to Flash
+				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
+									  (unsigned char *)(g_image_buffer + CAM_DMA_BLOCK_SIZE_IN_BYTES/4),
+									  (BLOCK_SIZE_IN_BYTES-CAM_DMA_BLOCK_SIZE_IN_BYTES));
+				if (lRetVal < 0)
+				{
+					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+				}
+
+				// Update Num of bytes written into flash
+				uiImageFile_Offset += lRetVal;
+
+				// Indicate that Block is not full
+				g_flag_blockFull[g_readHeader] = 0;
+
+				// Change Block# to be read next
+				g_readHeader++;
+			}
+    		else	//For Debug only. To be removed
+    		{
+    			UART_PRINT("s%d ", g_readHeader);
+
+				// Write a Block of Image from RAM to Flash
+				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
+									  (unsigned char *)(g_image_buffer),
+									  BLOCK_SIZE_IN_BYTES);
+				if (lRetVal < 0)
+				{
+					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+				}
+
+				// Update Num of bytes written into flash
+				uiImageFile_Offset += lRetVal;
+
+				// Indicate that Block is not full
+				g_flag_blockFull[g_readHeader] = 0;
+
+				// Change Block# to be read nexr
+				g_readHeader++;
+			}
+    		break;
+    	}
+    }
     while((g_frame_end == 0))
     {
     	//UART_PRINT("B");
@@ -529,7 +579,9 @@ static void DMAConfig()
     //
     DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32,
-                     UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, UDMA_SRC_INC_32,
+                     UDMA_ARB_8,(void *)CAM_BUFFER_ADDR,
+                     //UDMA_SRC_INC_32,
+                     UDMA_SRC_INC_NONE,
                      (void *)p_buffer, UDMA_DST_INC_32);
     //
     //  Pong Buffer
@@ -538,7 +590,9 @@ static void DMAConfig()
     DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,UDMA_MODE_PINGPONG,
                      TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32, UDMA_ARB_8,(void *)CAM_BUFFER_ADDR,
-                     UDMA_SRC_INC_32, (void *)p_buffer, UDMA_DST_INC_32);
+                     //UDMA_SRC_INC_32,
+                     UDMA_SRC_INC_NONE,
+                     (void *)p_buffer, UDMA_DST_INC_32);
     //
     //  Ping Buffer
     // 
@@ -548,10 +602,6 @@ static void DMAConfig()
     g_frame_size_in_bytes = 0;
     g_frame_end = 0;
     g_total_dma_intrpts = 0;
-
-    g_block_lastFilled = -1;
-
-    g_position_in_block = 0;
 
     //
     // Clear any pending interrupt
@@ -603,7 +653,7 @@ void CamControllerInit()
 #else
     //MAP_CameraXClkConfig(CAMERA_BASE, 120000000,24000000);
     MAP_CameraXClkConfig(CAMERA_BASE, 120000000, 8000000);
-//    MAP_CameraXClkConfig(CAMERA_BASE, 120000000, 6000000);
+    //MAP_CameraXClkConfig(CAMERA_BASE, 120000000, 6000000);
 #endif
 
     MAP_CameraThresholdSet(CAMERA_BASE, 8);
@@ -623,6 +673,8 @@ void CamControllerInit()
 static void CameraIntHandler()
 {
 	//UART_PRINT("!");
+
+	//RegStatusRead();
 
     if(g_total_dma_intrpts > 1 && MAP_CameraIntStatus(CAMERA_BASE) & CAM_INT_FE)
     {
@@ -650,7 +702,8 @@ static void CameraIntHandler()
             	DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,
                                  TOTAL_DMA_ELEMENTS,UDMA_SIZE_32,
                                  UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, 
-                                 UDMA_SRC_INC_32,
+                                 //UDMA_SRC_INC_32,
+                                 UDMA_SRC_INC_NONE,
                                  (void *)p_buffer, UDMA_DST_INC_32);
             	p_buffer += TOTAL_DMA_ELEMENTS;
             	g_dma_txn_done = 1;
@@ -662,7 +715,9 @@ static void CameraIntHandler()
                                  UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                                  UDMA_SIZE_32, UDMA_ARB_8,
                                  (void *)CAM_BUFFER_ADDR,
-                                 UDMA_SRC_INC_32, (void *)p_buffer,
+                                 //UDMA_SRC_INC_32,
+                                 UDMA_SRC_INC_NONE,
+                                 (void *)p_buffer,
                                  UDMA_DST_INC_32);
                 p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 0;

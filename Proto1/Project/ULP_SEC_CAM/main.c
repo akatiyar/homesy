@@ -456,12 +456,12 @@ void Main_Task(void *pvParameters)
 */
 
 		//CollectTxit_ImgTempRH();
-
+/*
 		disableAE();
 		disableAWB();
 
 		WriteAllAEnAWBRegs();
-
+*/
 		//
 		// Collect and transmit Image and sensor data
 		//
@@ -471,6 +471,7 @@ void Main_Task(void *pvParameters)
 									// since image sensor needs XCLK for
 									//its I2C module to work
 			CollectTxit_ImgTempRH();
+			RegStatusRead();
 		}
 
 		//ReadAllAEnAWBRegs();

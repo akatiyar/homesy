@@ -233,6 +233,7 @@ static  const s_RegList init_cmds_list[]= {
     {1, 0x08, 0x01FC    }, // COLOR_PIPELINE_CONTROL
     {1, 0x08, 0x01EC    }, // COLOR_PIPELINE_CONTROL
     {1, 0x08, 0x01FC    }, // COLOR_PIPELINE_CONTROL
+    //{1, 0x08, 0x01BC    }, // Invert the pixel clock
     {1, 0x36, 0x0F08    }, // APERTURE_PARAMETERS
     {1, 0xC6, 0xA103    }, // SEQ_CMD
     {1, 0xC8, 0x0005    }, // SEQ_CMD
@@ -243,10 +244,12 @@ static  const s_RegList capture_cmds_list[]= {
     {0, 0x65, 0xA000    },  // Disable PLL
     {0, 0x65, 0xE000    },  // Power DOWN PLL
     {100, 0x00, 0x01F4  },  // Delay =500ms
-    //{0,  0x66,  0x1E03  },
-    //{0,  0x67,  0x0501  },
-    {0,  0x66,  0x1E01  },	//N = 1, M = 30
-    {0,  0x67,  0x0506  },	//P = 9		// Changed to 9 -Uthra
+//    {0,  0x66,  0x1E03  },
+//    {0,  0x67,  0x0501  },
+    {0,  0x66,  0x1E01  },
+	{0,  0x67,  0x0503  },
+    //{0,  0x66,  0x1E01  },	//N = 1, M = 30
+    //{0,  0x67,  0x0507  },	//P = 7		// Changed to 9 -Uthra
     {0, 0x65,   0xA000  },  // Disable PLL
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
@@ -279,8 +282,8 @@ static  const s_RegList capture_cmds_list[]= {
     {1,  0xC6, 0x2908   },  // Set the restartInt
     {1,  0xC8, 0x0006   },
 	{0x02, 0x0D, 0x0027 },	// Disable adaptive clocking
-	{0x02, 0x0E, 0x0405 },	// Set Pclk divisor
-//	{0x02, 0x0D, 0x0067 },
+	{0x02, 0x0E, 0x0305 },	// Set Pclk divisor
+    //{0x02, 0x0D, 0x0067 },
 
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
@@ -513,6 +516,11 @@ long RegStatusRead()
 	s_RegList StatusRegLst = {0x02, 0x02, 0xBADD};
 
 	lRetVal = Register_Read(&StatusRegLst, &usRegVal);
+
+	/*if(usRegVal != 0x30)
+	{
+		UART_PRINT("Note Reg val\n\r");
+	}*/
 
 	return lRetVal;
 }
