@@ -301,6 +301,33 @@ long CaptureAndStore_Image()
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
 
+	//
+	// Initialize camera controller
+	//
+	CamControllerInit();
+
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
+
+	//
+    // Perform Image Capture
+    //
+    UART_PRINT("sB");
+    InitializeTimer();
+    StartTimer();
+    MAP_CameraCaptureStart(CAMERA_BASE);
+   // HWREG(0x4402609C) |= 1 << 8;
+
+    while((g_frame_end == 0));
+
+    MAP_CameraCaptureStop(CAMERA_BASE, true);
+    StopTimer();
+    UART_PRINT("pA");
+
+
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
@@ -376,33 +403,6 @@ long CaptureAndStore_Image()
 	//GetTimeDuration(&fHeaderWriteDuration);
 	//UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
 
-
-	//
-	// Initialize camera controller
-	//
-	CamControllerInit();
-
-	//
-	// Configure DMA in ping-pong mode
-	//
-	DMAConfig();
-
-
-	//
-    // Perform Image Capture
-    //
-    UART_PRINT("sB");
-    InitializeTimer();
-    StartTimer();
-    MAP_CameraCaptureStart(CAMERA_BASE);
-   // HWREG(0x4402609C) |= 1 << 8;
-
-    /*while((g_frame_end == 0));
-
-    MAP_CameraCaptureStop(CAMERA_BASE, true);
-    StopTimer();
-    UART_PRINT("pA");*/
-
     while(1)
     {
     	if(g_flag_blockFull[0])
@@ -457,8 +457,8 @@ long CaptureAndStore_Image()
     		break;
     	}
     }
-    while((g_frame_end == 0))
-    {
+    //while((g_frame_end == 0))
+    //{
     	//UART_PRINT("B");
     	while( g_flag_DataBlockFilled )
     	{
@@ -493,11 +493,11 @@ long CaptureAndStore_Image()
     		}
     	}
 		//UART_PRINT("F");
-    }
+    //}
 
-    MAP_CameraCaptureStop(CAMERA_BASE, true);
+    /*MAP_CameraCaptureStop(CAMERA_BASE, true);
     StopTimer();
-    UART_PRINT("pA");
+    UART_PRINT("pA");*/
 
     float_t fPicCaptureDuration;
     GetTimeDuration(&fPicCaptureDuration);

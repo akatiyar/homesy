@@ -490,6 +490,8 @@ void Main_Task(void *pvParameters)
 			uint16_t usJPEGCofigRegVal;
 			Variable_Read(0xA907, &usJPEGCofigRegVal);
 
+			ReadAllAEnAWBRegs();
+
 			sl_Stop(0xFFFF);
 		}
 
