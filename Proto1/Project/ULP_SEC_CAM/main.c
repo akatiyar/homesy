@@ -304,15 +304,24 @@ void Main_Task(void *pvParameters)
 
 		CameraSensorInit();
 
-//		PCLK_Rate_read();
+		PCLK_Rate_read();
 
 		// Configure Sensor in Capture Mode
 		lRetVal = StartSensorInJpegMode();
 		STOPHERE_ON_ERROR(lRetVal);
 
-//		PCLK_Rate_read();
+		PCLK_Rate_read();
+		uint16_t usJPEGCofigRegVal;
+		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+		Variable_Read(0xA907, &usJPEGCofigRegVal);
+
 
 		UART_PRINT("I2C Camera config done\n\r");
+
+		UtilsDelay(80000000);
+		PCLK_Rate_read();
+		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+		Variable_Read(0xA907, &usJPEGCofigRegVal);
 
 		//ReadAllAEnAWBRegs();
 
@@ -456,22 +465,32 @@ void Main_Task(void *pvParameters)
 */
 
 		//CollectTxit_ImgTempRH();
-/*
 		disableAE();
 		disableAWB();
 
 		WriteAllAEnAWBRegs();
-*/
+
 		//
 		// Collect and transmit Image and sensor data
 		//
 		while(1)
 		{
-			CamControllerInit();	// Init parallel camera interface of cc3200
+			//CamControllerInit();	// Init parallel camera interface of cc3200
 									// since image sensor needs XCLK for
 									//its I2C module to work
 			CollectTxit_ImgTempRH();
-			RegStatusRead();
+
+			uint16_t usJPEGStatusRegVal;
+			RegStatusRead(&usJPEGStatusRegVal);
+
+			//if ()
+
+			PCLK_Rate_read();
+			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+			uint16_t usJPEGCofigRegVal;
+			Variable_Read(0xA907, &usJPEGCofigRegVal);
+
+			sl_Stop(0xFFFF);
 		}
 
 		//ReadAllAEnAWBRegs();

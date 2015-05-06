@@ -128,7 +128,7 @@ short socketRead(short socketHandle, char *receiveBuffer, unsigned int receiveBu
     do {
     	//DEBUG_PRINT("=");
         status = socketWait(socketHandle, readBlock ? READ_SMALL_TIMEOUT_MICROSECONDS : timeoutMilliseconds * 1000, WAIT_READ);
-        DEBUG_PRINT("Select_fn RetVal: %d\n\r", status);
+        //DEBUG_PRINT("Select_fn RetVal: %d\n\r", status);
         if (status <= 0) {
             break;
         }

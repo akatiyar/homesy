@@ -71,6 +71,8 @@ extern "C"
     #ifdef	HD_FRAME
 		#define PIXELS_IN_X_AXIS        (1280)
         #define PIXELS_IN_Y_AXIS        (720)
+		//#define PIXELS_IN_X_AXIS        (640)	//DEBUG
+        //#define PIXELS_IN_Y_AXIS        (480)	//
 
 		//#define NUM_OF_1KB_BUFFERS      150
 		//#define NUM_OF_1KB_BUFFERS      120

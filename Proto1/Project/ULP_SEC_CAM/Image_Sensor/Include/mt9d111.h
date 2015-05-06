@@ -36,9 +36,11 @@ long CameraSensorInit();
     \note
     \warning
 */
+#include <stdint.h>
+
 long StartSensorInJpegMode();
 
-long RegStatusRead();
+long RegStatusRead(uint16_t* pusRegVal);
 
 long ResetImageSensorMCU();
 long ReadMCUBootModeReg();
@@ -61,6 +63,10 @@ long enableAE();
 long disableAE();
 
 long Verify_ImageSensor();
+
+long JPEGDataLength_read();
+
+long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal);
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

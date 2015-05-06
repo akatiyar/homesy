@@ -371,7 +371,7 @@ long CaptureAndStore_Image()
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
     uiImageFile_Offset += lRetVal;
-	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
+	UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
 	//float_t fHeaderWriteDuration;
 	//GetTimeDuration(&fHeaderWriteDuration);
 	//UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
@@ -396,6 +396,13 @@ long CaptureAndStore_Image()
     StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
    // HWREG(0x4402609C) |= 1 << 8;
+
+    /*while((g_frame_end == 0));
+
+    MAP_CameraCaptureStop(CAMERA_BASE, true);
+    StopTimer();
+    UART_PRINT("pA");*/
+
     while(1)
     {
     	if(g_flag_blockFull[0])
@@ -424,7 +431,7 @@ long CaptureAndStore_Image()
 				// Change Block# to be read next
 				g_readHeader++;
 			}
-    		else	//For Debug only. To be removed
+    		/*else	//For Debug only. To be removed
     		{
     			UART_PRINT("s%d ", g_readHeader);
 
@@ -446,7 +453,7 @@ long CaptureAndStore_Image()
 
 				// Change Block# to be read nexr
 				g_readHeader++;
-			}
+			}*/
     		break;
     	}
     }
@@ -511,7 +518,9 @@ long CaptureAndStore_Image()
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
     uiImageFile_Offset += lRetVal;
-    UART_PRINT("Image Write No of bytes: %ld\n", uiImageFile_Offset);
+    UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
+
+    JPEGDataLength_read();
 
     // Close the file post writing the image
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -657,6 +666,7 @@ void CamControllerInit()
 #endif
 
     MAP_CameraThresholdSet(CAMERA_BASE, 8);
+    //MAP_CameraThresholdSet(CAMERA_BASE, 64);
     MAP_CameraIntEnable(CAMERA_BASE, CAM_INT_FE | CAM_INT_DMA);
     MAP_CameraDMAEnable(CAMERA_BASE);
 }
@@ -682,6 +692,7 @@ static void CameraIntHandler()
         g_frame_end = 1;
         MAP_CameraCaptureStop(CAMERA_BASE, true);
         //UART_PRINT("++++++");
+        //JPEGDataLength_read();
     }
     else if(HWREG(0x440260A0) & (1<<8))
     {

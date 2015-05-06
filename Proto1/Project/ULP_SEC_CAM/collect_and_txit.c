@@ -76,7 +76,7 @@ void CollectTxit_ImgTempRH()
 									(unsigned char*) USER_FILE_NAME,
 									ucParseImageUrl);
 	ASSERT_ON_ERROR(lRetVal);
-	UART_PRINT("\n%s\n", ucParseImageUrl);
+	//UART_PRINT("\n%s\n", ucParseImageUrl);
 
 	//
 	//	Collect Temperature and RH values from Si7020 IC
@@ -100,7 +100,7 @@ void CollectTxit_ImgTempRH()
 	//
 	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
 
-	sl_Stop(0xFFFF);
+	//sl_Stop(0xFFFF);
 
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);

@@ -27,6 +27,7 @@
 #define OSI_STACK_SIZE          3000
 
 #define IMAGE_QUANTIZ_SCALE		(0x0020)
+//#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
 
 #define FN_SUCCESS	0
 #define FN_FAILED	1 //Funtion return values are uint16_t

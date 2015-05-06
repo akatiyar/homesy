@@ -195,7 +195,7 @@ int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 	strncat(pucSensorDataTxt, ".", 1);
 	strncat(pucSensorDataTxt, ucCharConv+2, 2);
 	strncat(pucSensorDataTxt, "}", sizeof("}"));
-	UART_PRINT("\n%s\n", pucSensorDataTxt);
+	//UART_PRINT("\n%s\n", pucSensorDataTxt);
 
 	return 0;
 }

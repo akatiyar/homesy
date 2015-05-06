@@ -54,6 +54,10 @@ extern "C"
  *  \brief The length of object id
  */
 #define OBJECT_ID_MAX_LEN 16
+#define SIZE_OF_OBJECTID 10
+
+#define IMAGE_NAME_MAX_LEN 80
+#define SIZE_OF_IMAGENAME 53
 
 /*! \def INSTALLATION_ID_MAX_LEN
  *  \brief The length of installation id

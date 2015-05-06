@@ -270,7 +270,8 @@ int headerSend(ParseClientInternal *parseClient,
 
 	status = buildRequestHeaders(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType);
 
-	(status >= 0)?DEBUG_PRINT("Header:\n\r%s", dataBuffer):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
+	//(status >= 0)?DEBUG_PRINT("Header:\n\r%s", dataBuffer):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
+	(status >= 0)?DEBUG_PRINT("Header Built\n\r%s"):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
 
 	if (status >= 0)
 	{
@@ -400,6 +401,8 @@ int payloadSend( const char *httpRequestBody,
 
 int sendRequest(ParseClientInternal *parseClient, const char *host, const char *httpVerb, const char *httpRequestBody, int addInstallationHeader, Payload_Type payloadType) {
     short socketHandle = -1;
+    char responseObjectID[OBJECT_ID_MAX_LEN];
+    char imageName[IMAGE_NAME_MAX_LEN];
 
     long status = socketSslConnect(parseServer, sshPort);
 
@@ -428,7 +431,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
 //		}
 
 #ifdef REQUEST_DEBUG
-        DEBUG_PRINT("[Parse] --------Request--------- End -\r\n");
+        //DEBUG_PRINT("[Parse] --------Request--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
     }
 
@@ -454,12 +457,22 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
 #ifdef REQUEST_DEBUG
         if (status >= 0)
         {
-            DEBUG_PRINT("%s\r\n", dataBuffer);
+            //DEBUG_PRINT("%s\r\n", dataBuffer);
+        	if (payloadType == jsonObject)
+        	{
+        		simpleJsonProcessor(dataBuffer, "objectId", responseObjectID, OBJECT_ID_MAX_LEN);
+        		DEBUG_PRINT("objectID : %s\r\n", responseObjectID);
+        	}
+        	else if (payloadType = image)
+        	{
+        		simpleJsonProcessor(dataBuffer, "name", imageName, IMAGE_NAME_MAX_LEN);
+        		DEBUG_PRINT("Image Name : %s\r\n", imageName);
+        	}
         } else
         {
             DEBUG_PRINT("[Parse] Response read error: %d\r\n", status);
         }
-        DEBUG_PRINT("[Parse] --------Response--------- End -\r\n");
+        //DEBUG_PRINT("[Parse] --------Response--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
 
         UtilsDelay(80000000);

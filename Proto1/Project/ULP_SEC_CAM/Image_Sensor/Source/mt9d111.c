@@ -160,8 +160,8 @@ static  const s_RegList init_cmds_list[]= {
     {1, 0xC6, 0xA115    }, // SEQ_LLMODE
     {1, 0xC8, 0x0020    }, // SEQ_LLMODE
     {0, 0x38, 0x0866    }, // RESERVED_CORE_38
-    //{1, 0x98, 0x0002	},	//	added Y suppression
-    //{1, 0x98, 0x0007	},	//	added Y, Cr, Cb suppression
+    //{1, 0x98, 0x0002	},	//	added Y suppression -CS
+    //{1, 0x98, 0x0007	},	//	added Y, Cr, Cb suppression -CS
     {2, 0x80, 0x0168    }, // LENS_CORRECTION_CONTROL
     {2, 0x81, 0x6432    }, // ZONE_BOUNDS_X1_X2
     {2, 0x82, 0x3296    }, // ZONE_BOUNDS_X0_X3
@@ -249,7 +249,7 @@ static  const s_RegList capture_cmds_list[]= {
     {0,  0x66,  0x1E01  },
 	{0,  0x67,  0x0503  },
     //{0,  0x66,  0x1E01  },	//N = 1, M = 30
-    //{0,  0x67,  0x0507  },	//P = 7		// Changed to 9 -Uthra
+    //{0,  0x67,  0x0506  },	//P = 7		// Changed to 9 -Uthra
     {0, 0x65,   0xA000  },  // Disable PLL
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
@@ -264,13 +264,30 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC8, 0x0005    },  // SEQ_MODE
     {1,  0xC6, 0xA120   },  // Enable Capture video
     {1,  0xC8, 0x0002   },
+
+  /*  //Added by Uthra
+    {1, 0xC6, 0x276B }, // Enable Capture video
+    {1, 0xC8, 0x0067 },
+    {1, 0xC6, 0x276D }, // Enable Capture video
+    {1, 0xC8, 0x0408 },
+
+    {1, 0xC6, 0x2772 }, // Enable Capture video
+    {1, 0xC8, 0x0067 },
+    {1, 0xC6, 0x2774 }, // Enable Capture video
+    {1, 0xC8, 0x0408 },
+    // {1, 0xC6, 0xA776 }, // Enable Capture video
+    // {1, 0xC8, 0x0003 },*/
+
     {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass
     {1,  0xC8, 0x0000   },
     {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
     {1,  0xC8, 0x001E   },
     {1,  0xC6, 0xA907   },  // JPEG mode config, video
     //{1,  0xC8, 0x0035   },
-    {1,  0xC8, 0x0015   },	// Auto QScale selection disabled
+    //{1,  0xC8, 0x0015   },	// Auto QScale selection disabled - CS
+    //{1,  0xC8, 0x0013   },	// Enable handshake with CC3200, disable retry after failure - CS
+    {1,  0xC8, 0x0012   },	// Enable handshake with CC3200, disable retry after failure, snapshot - CS
+
     {1,  0xC6, 0xA906   },  // Format YCbCr422
     {1,  0xC8, 0x0000   },
     {1,  0xC6, 0xA90A   },  // Set the qscale1
@@ -281,14 +298,15 @@ static  const s_RegList capture_cmds_list[]= {
     //{1,  0xC8, 0x00A0   },	// 32
     {1,  0xC6, 0x2908   },  // Set the restartInt
     {1,  0xC8, 0x0006   },
-	{0x02, 0x0D, 0x0027 },	// Disable adaptive clocking
-	{0x02, 0x0E, 0x0305 },	// Set Pclk divisor
+	//{0x02, 0x0D, 0x0027 },	// Disable adaptive clocking
+	//{0x02, 0x0E, 0x0305 },	// Set Pclk divisor
     //{0x02, 0x0D, 0x0067 },
 
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
 #ifdef HD_FRAME
     {1, 0xC8, 1280      },
+    //{1, 0xC8, 640       },	//Debug
 #elif XGA_FRAME
     {1, 0xC8, 1024      },
 #elif VGA_FRAME
@@ -299,6 +317,7 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0x2709    },  // MODE_OUTPUT_HEIGHT_B
 #ifdef HD_FRAME
     {1, 0xC8, 720       },
+    //{1, 0xC8, 480       },	//Debug
 #elif XGA_FRAME
     {1, 0xC8, 768       },
 #elif VGA_FRAME
@@ -320,6 +339,7 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC8, 0x0002    },
     {100, 0x00, 0x01F4  },  // Delay =500ms
 };
+
 #endif
 //*****************************************************************************
 // Static Function Declarations
@@ -508,14 +528,15 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
     return RET_OK;
 }
 
-long RegStatusRead()
+long RegStatusRead(uint16_t* pusRegVal)
 {
 	long lRetVal;
-	uint16_t usRegVal;
 
 	s_RegList StatusRegLst = {0x02, 0x02, 0xBADD};
 
-	lRetVal = Register_Read(&StatusRegLst, &usRegVal);
+	UART_PRINT("Status Reg:\n\r");
+
+	lRetVal = Register_Read(&StatusRegLst, pusRegVal);
 
 	/*if(usRegVal != 0x30)
 	{
@@ -696,6 +717,18 @@ long disableAE()
 
 	return lRetVal;
 }
+long JpegConfigReg_Read()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = {{1,  0xC6, 0xA907   },
+			    				{1, 0xC8, 0x0001    }  };
+	UART_PRINT("JPEG Config Reg (0xA907):\n\r");
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+	lRetVal = Register_Read(&StatusRegLst[1], &(StatusRegLst[1].usValue));
+
+	return lRetVal;
+}
 
 long CCMRegs_Read()
 {
@@ -775,7 +808,7 @@ long AnalogGainReg_Read()
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
 		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
-		UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+		//UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
 	}
 
 	return lRetVal;
@@ -796,9 +829,32 @@ long PCLK_Rate_read()
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
 		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
-		UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+		//UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
 	}
 
+	return lRetVal;
+}
+
+long JPEGDataLength_read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	uint32_t uiLength;
+	int i;
+
+	UART_PRINT("JPEG Data Length Reg:\n\r");
+	s_RegList RegLst[] = {	{0x02, 0x02, 0xBADD},
+							{0x02, 0x03, 0xBADD}};
+
+	for(i=0; i<(sizeof(RegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = Register_Read(&RegLst[i], &usRegVal);
+		//UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+	}
+
+	uiLength = (RegLst[1].usValue) + ( ((int)(RegLst[0].usValue & 0xFF00)) << 8);
+
+	UART_PRINT("Image Length: %d\n\r", uiLength);
 	return lRetVal;
 }
 
@@ -869,6 +925,31 @@ long Verify_ImageSensor()
 }
 
 //******************************************************************************
+//	Variable_Read(): Reads value of one register in MT9D111
+//
+//	param[in]	usVariableName:	16-bit variable name that contains driverID,
+//									offset, etc.
+//	param[out]	pusRegVal	Pointer to Value of Register
+//
+//	return SUCCESS or failure value
+//
+//******************************************************************************
+long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{1, 0xC6, 0xBADD},
+			    			{1, 0xC8, 0xBADD}	};
+	RegLst[0].usValue = usVariableName;
+
+	lRetVal = RegLstWrite(RegLst, 1);
+	lRetVal = Register_Read(&RegLst[1], &(RegLst[1].usValue));
+
+	*pusRegVal = RegLst[1].usValue;
+
+	return lRetVal;
+}
+//******************************************************************************
 //	Register_Read(): Reads value of one register in MT9D111
 //
 //	param[in]	pRegLst(struct ptr):[in]ucPageAddr - Page of reg to be read
@@ -878,8 +959,9 @@ long Verify_ImageSensor()
 //
 //	return SUCCESS or failure value
 //
-//	NOTE: Simple Register Read is implemented. Firmware Variable Read has to be
-//	implemented by calling function using 0xC6 and 0xC8 registers
+//	NOTE: Simple Register Read is implemented. Firmware Variable Read has been
+//	implemented in Variable_Read(), or it has to be	implemented by calling
+//	function using 0xC6 and 0xC8 registers.
 //******************************************************************************
 static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 {
