@@ -77,7 +77,7 @@ extern "C"
 		//#define NUM_OF_1KB_BUFFERS      150
 		//#define NUM_OF_1KB_BUFFERS      120
 		#define MAX_IMAGE_SIZE_BYTES	(150*ONE_KB)		//Expected Val
-
+		#define IMAGE_BUF_SIZE			MAX_IMAGE_SIZE_BYTES	//DGB
 #elif XGA_FRAME
         #define PIXELS_IN_X_AXIS        (1024)
         #define PIXELS_IN_Y_AXIS        (768)

@@ -111,7 +111,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Parse_Library/common/tests/simplejson_tests.cc|main1.c|network_if.c|demo1_collectAndTxitSensorData.c|customer_demo1_collectAndTxitSensorData.c|Sensors/Source/fxos8700-112.c|get_weather.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Image_Sensor/Source/mt9d111.c|Image_Sensor/Source/camera_app_oldV.c|Parse_Library/common/tests/simplejson_tests.cc|main1.c|network_if.c|demo1_collectAndTxitSensorData.c|customer_demo1_collectAndTxitSensorData.c|Sensors/Source/fxos8700-112.c|get_weather.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

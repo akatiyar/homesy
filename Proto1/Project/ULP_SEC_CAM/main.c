@@ -300,28 +300,28 @@ void Main_Task(void *pvParameters)
 		UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
 								// 10 is margin
 
-		SoftReset_ImageSensor();
+//		SoftReset_ImageSensor();
 
 		CameraSensorInit();
 
-		PCLK_Rate_read();
+//		PCLK_Rate_read();
 
 		// Configure Sensor in Capture Mode
 		lRetVal = StartSensorInJpegMode();
 		STOPHERE_ON_ERROR(lRetVal);
 
-		PCLK_Rate_read();
-		uint16_t usJPEGCofigRegVal;
-		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-		Variable_Read(0xA907, &usJPEGCofigRegVal);
-
-
-		UART_PRINT("I2C Camera config done\n\r");
-
-		UtilsDelay(80000000);
-		PCLK_Rate_read();
-		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-		Variable_Read(0xA907, &usJPEGCofigRegVal);
+//		PCLK_Rate_read();
+//		uint16_t usJPEGCofigRegVal;
+//		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//		Variable_Read(0xA907, &usJPEGCofigRegVal);
+//
+//
+//		UART_PRINT("I2C Camera config done\n\r");
+//
+//		UtilsDelay(80000000);
+//		PCLK_Rate_read();
+//		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//		Variable_Read(0xA907, &usJPEGCofigRegVal);
 
 		//ReadAllAEnAWBRegs();
 
@@ -465,10 +465,10 @@ void Main_Task(void *pvParameters)
 */
 
 		//CollectTxit_ImgTempRH();
-		disableAE();
-		disableAWB();
-
-		WriteAllAEnAWBRegs();
+//		disableAE();
+//		disableAWB();
+//
+//		WriteAllAEnAWBRegs();
 
 		//
 		// Collect and transmit Image and sensor data
@@ -479,18 +479,18 @@ void Main_Task(void *pvParameters)
 									// since image sensor needs XCLK for
 									//its I2C module to work
 			CollectTxit_ImgTempRH();
-
-			uint16_t usJPEGStatusRegVal;
-			RegStatusRead(&usJPEGStatusRegVal);
-
-			//if ()
-
-			PCLK_Rate_read();
-			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-			uint16_t usJPEGCofigRegVal;
-			Variable_Read(0xA907, &usJPEGCofigRegVal);
-
-			ReadAllAEnAWBRegs();
+//
+//			uint16_t usJPEGStatusRegVal;
+//			RegStatusRead(&usJPEGStatusRegVal);
+//
+//			//if ()
+//
+//			PCLK_Rate_read();
+//			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//			uint16_t usJPEGCofigRegVal;
+//			Variable_Read(0xA907, &usJPEGCofigRegVal);
+//
+//			ReadAllAEnAWBRegs();
 
 			sl_Stop(0xFFFF);
 		}
