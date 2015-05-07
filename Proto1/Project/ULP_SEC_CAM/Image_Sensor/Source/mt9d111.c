@@ -257,11 +257,11 @@ static  const s_RegList capture_cmds_list[]= {
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0xA102    },  // SEQ_MODE
-    {1, 0xC8, 0x0001    },  // SEQ_MODE
-    //{1, 0xC8, 0x0000    },  // SEQ_MODE Will turn off AE, AWB
+    //{1, 0xC8, 0x0001    },  // SEQ_MODE
+    {1, 0xC8, 0x0000    },  // SEQ_MODE Will turn off AE, AWB
     // Commenting off to not turn on auto white balance
-    {1, 0xC6, 0xA102    },  // SEQ_MODE
-    {1, 0xC8, 0x0005    },  // SEQ_MODE
+    //{1, 0xC6, 0xA102    },  // SEQ_MODE
+    //{1, 0xC8, 0x0005    },  // SEQ_MODE
     {1,  0xC6, 0xA120   },  // Enable Capture video
     {1,  0xC8, 0x0002   },
 
@@ -283,10 +283,10 @@ static  const s_RegList capture_cmds_list[]= {
     {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
     {1,  0xC8, 0x001E   },
     {1,  0xC6, 0xA907   },  // JPEG mode config, video
-    //{1,  0xC8, 0x0035   },
+    {1,  0xC8, 0x0035   },
     //{1,  0xC8, 0x0015   },	// Auto QScale selection disabled - CS
     //{1,  0xC8, 0x0013   },	// Enable handshake with CC3200, disable retry after failure - CS
-    {1,  0xC8, 0x0012   },	// Enable handshake with CC3200, disable retry after failure, snapshot - CS
+    //{1,  0xC8, 0x0012   },	// Enable handshake with CC3200, disable retry after failure, snapshot - CS
 
     {1,  0xC6, 0xA906   },  // Format YCbCr422
     {1,  0xC8, 0x0000   },
@@ -331,7 +331,7 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC8, 1600  },
     //{1, 0xC8, 1280  },
     {1, 0xC6, 0x2739    },  // MODE_CROP_Y0_B
-    {1, 0xC8, 0x0064    },
+    {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x273B    },  // MODE_CROP_Y1_B
     {1, 0xC8, 1200      },
     //{1, 0xC8, 820      },

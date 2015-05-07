@@ -314,7 +314,9 @@ void Main_Task(void *pvParameters)
 		uint16_t usJPEGCofigRegVal;
 		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
 		Variable_Read(0xA907, &usJPEGCofigRegVal);
-
+		uint16_t usSeqModeRegVal;
+		UART_PRINT("SEQ_MODE(0xA102):\n\r");
+		Variable_Read(0xA102, &usSeqModeRegVal);
 
 		UART_PRINT("I2C Camera config done\n\r");
 
@@ -322,6 +324,8 @@ void Main_Task(void *pvParameters)
 		PCLK_Rate_read();
 		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
 		Variable_Read(0xA907, &usJPEGCofigRegVal);
+		UART_PRINT("SEQ_MODE(0xA102):\n\r");
+		Variable_Read(0xA102, &usSeqModeRegVal);
 
 		//ReadAllAEnAWBRegs();
 
@@ -489,6 +493,10 @@ void Main_Task(void *pvParameters)
 			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
 			uint16_t usJPEGCofigRegVal;
 			Variable_Read(0xA907, &usJPEGCofigRegVal);
+
+			uint16_t usSeqModeRegVal;
+			UART_PRINT("SEQ_MODE(0xA102):\n\r");
+			Variable_Read(0xA102, &usSeqModeRegVal);
 
 			sl_Stop(0xFFFF);
 		}
