@@ -88,6 +88,10 @@ short socketSslConnect(const char *host, unsigned short port) {
         DEBUG_PRINT("[Parse] Server root certificate is missing.\r\n");
     } else if (status < 0) {
         DEBUG_PRINT("[Parse] SSL connect error: %d.\r\n", status);
+        if (SL_ESECHANDSHAKETIMEDOUT == status)
+        {
+        	DEBUG_PRINT("[Parse] Status is SL_ESECHANDSHAKETIMEDOUT	(connection timed out due to handshake time)\r\n");
+        }
     }
 #endif /* SSL_DEBUG */
 

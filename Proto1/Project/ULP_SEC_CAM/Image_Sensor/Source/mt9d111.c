@@ -162,6 +162,7 @@ static  const s_RegList init_cmds_list[]= {
     {0, 0x38, 0x0866    }, // RESERVED_CORE_38
     //{1, 0x98, 0x0002	},	//	added Y suppression -CS
     //{1, 0x98, 0x0007	},	//	added Y, Cr, Cb suppression -CS
+    //{0x02, 0x0D, 0x0267 },	//Enable status byte insertion - CS
     {2, 0x80, 0x0168    }, // LENS_CORRECTION_CONTROL
     {2, 0x81, 0x6432    }, // ZONE_BOUNDS_X1_X2
     {2, 0x82, 0x3296    }, // ZONE_BOUNDS_X0_X3
@@ -278,6 +279,14 @@ static  const s_RegList capture_cmds_list[]= {
     // {1, 0xC6, 0xA776 }, // Enable Capture video
     // {1, 0xC8, 0x0003 },*/
 
+    {1, 0xC6, 0x2772 },	//Enable status byte insertion, Enable adaptive clocking
+	//{1, 0xC8, 0x0267 },
+	{1, 0xC8, 0x0227 },	//Disable adaptive clocking
+	{1, 0xC6, 0x2774 }, // Enable Capture video
+	{1, 0xC8, 0x02FF },
+	{1, 0xC6, 0x2776 }, // Enable Capture video
+	{1, 0xC8, 0x0001 },
+
     {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass
     {1,  0xC8, 0x0000   },
     {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
@@ -301,6 +310,7 @@ static  const s_RegList capture_cmds_list[]= {
 	//{0x02, 0x0D, 0x0027 },	// Disable adaptive clocking
 	//{0x02, 0x0E, 0x0305 },	// Set Pclk divisor
     //{0x02, 0x0D, 0x0067 },
+    //{0x02, 0x0D, 0x0267 },		//Enable status byte insertion
 
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B

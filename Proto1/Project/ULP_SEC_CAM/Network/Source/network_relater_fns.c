@@ -492,6 +492,22 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
                            g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
                            g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
                            g_ucConnectionBSSID[5]);
+                UART_PRINT("Reason Code: %x\n\r", pEventData->reason_code);
+
+                if(SL_INVALID_INFORMATION_ELEMENT == pEventData->reason_code)
+                {
+                	UART_PRINT("Reason: SL_INVALID_INFORMATION_ELEMENT\n\r");
+                }
+                else if(SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE == pEventData->reason_code)
+                {
+					UART_PRINT("Reason: SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE\n\r");
+				}
+                else if(SL_FOUR_WAY_HANDSHAKE_TIMEOUT == pEventData->reason_code)
+				{
+					UART_PRINT("Reason: SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE\n\r");
+				}
+
+
             }
             memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
             memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));

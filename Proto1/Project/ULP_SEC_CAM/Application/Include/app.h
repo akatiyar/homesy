@@ -20,6 +20,14 @@
 #define APP_SSID_PASSWORD		"37203922bb"
 #define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
+//#define APP_SSID_NAME 		"CAMERA"
+//#define APP_SSID_PASSWORD		"37203922bb"
+//#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
+
+//#define APP_SSID_NAME 		"Chrysolin-test"
+//#define APP_SSID_PASSWORD		"chrysolin"
+//#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
+
 #define VCOGNITION_DEVICE_ID	"fd1234cam3"
 
 #define SLEEP_TIME              8000000
