@@ -292,7 +292,7 @@ void Main_Task(void *pvParameters)
 		//
 
 #ifndef NO_CAMERA
-		UART_PRINT("\n\rCAMERA MODULE:\n\r");
+/*		UART_PRINT("\n\rCAMERA MODULE:\n\r");
 		CamControllerInit();	// Init parallel camera interface of cc3200
 								// since image sensor needs XCLK for
 								//its I2C module to work
@@ -301,26 +301,30 @@ void Main_Task(void *pvParameters)
 								// 10 is margin
 
 		SoftReset_ImageSensor();
-
 		CameraSensorInit();
 
+		uint16_t usJPEGCofigRegVal, usSeqModeRegVal;
+
 		PCLK_Rate_read();
+		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+		Variable_Read(0xA907, &usJPEGCofigRegVal);
+		UART_PRINT("SEQ_MODE(0xA102):\n\r");
+		Variable_Read(0xA102, &usSeqModeRegVal);
 
 		// Configure Sensor in Capture Mode
 		lRetVal = StartSensorInJpegMode();
 		STOPHERE_ON_ERROR(lRetVal);
 
+		UART_PRINT("I2C Camera config done\n\r");
+
 		PCLK_Rate_read();
-		uint16_t usJPEGCofigRegVal;
 		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
 		Variable_Read(0xA907, &usJPEGCofigRegVal);
-		uint16_t usSeqModeRegVal;
 		UART_PRINT("SEQ_MODE(0xA102):\n\r");
 		Variable_Read(0xA102, &usSeqModeRegVal);
 
-		UART_PRINT("I2C Camera config done\n\r");
-
 		UtilsDelay(80000000);
+
 		PCLK_Rate_read();
 		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
 		Variable_Read(0xA907, &usJPEGCofigRegVal);
@@ -330,7 +334,7 @@ void Main_Task(void *pvParameters)
 		//ReadAllAEnAWBRegs();
 
 	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
-	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);*/
 #endif
 
 
@@ -468,35 +472,76 @@ void Main_Task(void *pvParameters)
 		}
 */
 
+/*
 		//CollectTxit_ImgTempRH();
 		disableAE();
 		disableAWB();
-
 		WriteAllAEnAWBRegs();
-
+*/
 		//
 		// Collect and transmit Image and sensor data
 		//
+		CamControllerInit();	// Init parallel camera interface of cc3200
+											// since image sensor needs XCLK for
+											//its I2C module to work
+
 		while(1)
 		{
+			UART_PRINT("\n\rCAMERA MODULE:\n\r");
+
+			UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+									// 10 is margin
+
+			SoftReset_ImageSensor();
+			CameraSensorInit();
+
+			uint16_t usJPEGCofigRegVal, usSeqModeRegVal;
+
+//			PCLK_Rate_read();
+//			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//			Variable_Read(0xA907, &usJPEGCofigRegVal);
+//			UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//			Variable_Read(0xA102, &usSeqModeRegVal);
+
+			// Configure Sensor in Capture Mode
+			lRetVal = StartSensorInJpegMode();
+			STOPHERE_ON_ERROR(lRetVal);
+
+			UART_PRINT("I2C Camera config done\n\r");
+
+//			PCLK_Rate_read();
+//			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//			Variable_Read(0xA907, &usJPEGCofigRegVal);
+//			UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//			Variable_Read(0xA102, &usSeqModeRegVal);
+
+			UtilsDelay(80000000);
+
+			//PCLK_Rate_read();
+			//UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+			//Variable_Read(0xA907, &usJPEGCofigRegVal);
+//			UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//			Variable_Read(0xA102, &usSeqModeRegVal);
+
 			//CamControllerInit();	// Init parallel camera interface of cc3200
 									// since image sensor needs XCLK for
 									//its I2C module to work
 			CollectTxit_ImgTempRH();
 
-			uint16_t usJPEGStatusRegVal;
-			RegStatusRead(&usJPEGStatusRegVal);
+//			uint16_t usJPEGStatusRegVal;
+//			RegStatusRead(&usJPEGStatusRegVal);
 
 			//if ()
 
-			PCLK_Rate_read();
-			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-			uint16_t usJPEGCofigRegVal;
-			Variable_Read(0xA907, &usJPEGCofigRegVal);
+//			PCLK_Rate_read();
+//			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//			Variable_Read(0xA907, &usJPEGCofigRegVal);
+//
+//			UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//			Variable_Read(0xA102, &usSeqModeRegVal);
 
-			uint16_t usSeqModeRegVal;
-			UART_PRINT("SEQ_MODE(0xA102):\n\r");
-			Variable_Read(0xA102, &usSeqModeRegVal);
+//		    MAP_PRCMPeripheralReset(PRCM_CAMERA);
+//		    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 
 			sl_Stop(0xFFFF);
 		}
@@ -654,6 +699,7 @@ void main()
 	//
 	UDMAInit();
 
+/*
 	//
 	// Initialize timer and test working
 	//
@@ -664,6 +710,7 @@ void main()
     float_t fTestDuration;
     GetTimeDuration(&fTestDuration);
     UART_PRINT("\n\rUtilsDelay Duration: %f\n\r", fTestDuration);
+*/
 
 	//
     // Start the SimpleLink Host
