@@ -504,7 +504,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 				}
                 else if(SL_FOUR_WAY_HANDSHAKE_TIMEOUT == pEventData->reason_code)
 				{
-					UART_PRINT("Reason: SL_FOUR_WAY_HANDSHAKE_TIMEOUT\n\r");
+					UART_PRINT("Reason: SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE\n\r");
 				}
 
 
@@ -623,7 +623,6 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
     				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
     				pSock->EventData.socketAsyncEvent.val,
     				pSock->EventData.socketAsyncEvent.type);
-    //if(SL_SOCKET_ASYNC_EVENT_TYPE_SSL_ACCEPT == pSock->EventData.socketAsyncEvent.type)
 }
 
 //*****************************************************************************

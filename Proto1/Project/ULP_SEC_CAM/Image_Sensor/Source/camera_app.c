@@ -306,7 +306,7 @@ long CaptureAndStore_Image()
 	//
 	// Initialize camera controller
 	//
-	//CamControllerInit();
+	CamControllerInit();
 
 	//
 	// Configure DMA in ping-pong mode
@@ -934,7 +934,7 @@ static void CameraIntHandler()
             		g_block_lastFilled = -1;
             	}
             }
-        }
+      }
         else
         {
             // Disable DMA 
