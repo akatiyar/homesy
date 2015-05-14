@@ -236,6 +236,7 @@ static  const s_RegList init_cmds_list[]= {
     {1, 0x08, 0x01FC    }, // COLOR_PIPELINE_CONTROL
     //{1, 0x08, 0x01BC    }, // Invert the pixel clock
     {1, 0x36, 0x0F08    }, // APERTURE_PARAMETERS
+    {1, 0x48, 0x0003	},	//Test pattern -CS
     {1, 0xC6, 0xA103    }, // SEQ_CMD
     {1, 0xC8, 0x0005    }, // SEQ_CMD
 };

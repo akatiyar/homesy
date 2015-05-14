@@ -504,9 +504,12 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 				}
                 else if(SL_FOUR_WAY_HANDSHAKE_TIMEOUT == pEventData->reason_code)
 				{
-					UART_PRINT("Reason: SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE\n\r");
+					UART_PRINT("Reason: SL_FOUR_WAY_HANDSHAKE_TIMEOUT\n\r");
 				}
-
+                else if (SL_ROAMING_TRIGGER_BSS_LOSS == pEventData->reason_code)
+				{
+					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
+				}
 
             }
             memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
@@ -611,6 +614,11 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
                     UART_PRINT("[SOCK ERROR] - TX FAILED : socket %d , reason"
                         "(%d) \n\n",
                            pSock->EventData.sd, pSock->EventData.status);
+                    if(SL_ENOTCONN == pSock->EventData.status)
+                    {
+                    	UART_PRINT("-107 = SL_ENOTCONN = "
+                    			"Transport endpoint is not connected\n\r");
+                    }
             }
             break;
 
@@ -619,7 +627,7 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             			"- Unexpected Event [%x0x]\n\n",pSock->Event);
     }
     UART_PRINT("[SOCK EVENT/ERROR]:\n Event: %x\n Socket: %x\n EventStatus: "
-    				"%x\n AsynchEventValue: %x\n AsynchEventType: %x\n\r",
+    				"%d\n AsynchEventValue: %x\n AsynchEventType: %x\n\r",
     				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
     				pSock->EventData.socketAsyncEvent.val,
     				pSock->EventData.socketAsyncEvent.type);

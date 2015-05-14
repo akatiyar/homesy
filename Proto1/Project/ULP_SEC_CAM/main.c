@@ -304,28 +304,28 @@ void Main_Task(void *pvParameters)
 
 		CameraSensorInit();
 
-		PCLK_Rate_read();
+//		PCLK_Rate_read();
 
 		// Configure Sensor in Capture Mode
 		lRetVal = StartSensorInJpegMode();
 		STOPHERE_ON_ERROR(lRetVal);
 
-		PCLK_Rate_read();
-		uint16_t usJPEGCofigRegVal;
-		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-		Variable_Read(0xA907, &usJPEGCofigRegVal);
-		uint16_t usSeqModeRegVal;
-		UART_PRINT("SEQ_MODE(0xA102):\n\r");
-		Variable_Read(0xA102, &usSeqModeRegVal);
+//		PCLK_Rate_read();
+//		uint16_t usJPEGCofigRegVal;
+//		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//		Variable_Read(0xA907, &usJPEGCofigRegVal);
+//		uint16_t usSeqModeRegVal;
+//		UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//		Variable_Read(0xA102, &usSeqModeRegVal);
 
 		UART_PRINT("I2C Camera config done\n\r");
 
-		UtilsDelay(80000000);
-		PCLK_Rate_read();
-		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-		Variable_Read(0xA907, &usJPEGCofigRegVal);
-		UART_PRINT("SEQ_MODE(0xA102):\n\r");
-		Variable_Read(0xA102, &usSeqModeRegVal);
+//		UtilsDelay(80000000);
+//		PCLK_Rate_read();
+//		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//		Variable_Read(0xA907, &usJPEGCofigRegVal);
+//		UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//		Variable_Read(0xA102, &usSeqModeRegVal);
 
 		//ReadAllAEnAWBRegs();
 
@@ -484,19 +484,19 @@ void Main_Task(void *pvParameters)
 									//its I2C module to work
 			CollectTxit_ImgTempRH();
 
-			uint16_t usJPEGStatusRegVal;
-			RegStatusRead(&usJPEGStatusRegVal);
-
-			//if ()
-
-			PCLK_Rate_read();
-			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-			uint16_t usJPEGCofigRegVal;
-			Variable_Read(0xA907, &usJPEGCofigRegVal);
-
-			uint16_t usSeqModeRegVal;
-			UART_PRINT("SEQ_MODE(0xA102):\n\r");
-			Variable_Read(0xA102, &usSeqModeRegVal);
+//			uint16_t usJPEGStatusRegVal;
+//			RegStatusRead(&usJPEGStatusRegVal);
+//
+//			//if ()
+//
+//			PCLK_Rate_read();
+//			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
+//			uint16_t usJPEGCofigRegVal;
+//			Variable_Read(0xA907, &usJPEGCofigRegVal);
+//
+//			uint16_t usSeqModeRegVal;
+//			UART_PRINT("SEQ_MODE(0xA102):\n\r");
+//			Variable_Read(0xA102, &usSeqModeRegVal);
 
 			sl_Stop(0xFFFF);
 		}

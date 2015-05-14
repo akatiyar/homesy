@@ -322,7 +322,7 @@ long CaptureAndStore_Image()
 
     while((g_frame_end == 0));
 
-    //MAP_CameraCaptureStop(CAMERA_BASE, true);
+    MAP_CameraCaptureStop(CAMERA_BASE, true);
     UART_PRINT("pA");
 
 
