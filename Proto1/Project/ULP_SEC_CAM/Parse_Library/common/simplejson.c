@@ -101,7 +101,8 @@ int simpleJsonProcessor(const char *data, const char *key, char* value, int size
     }
 
     if (!*found)
-        return 0;
+        //return 0;
+    	return -1;
 
     if (!value)
         return 1;
@@ -131,7 +132,8 @@ int simpleJsonProcessor(const char *data, const char *key, char* value, int size
                             --jsonLevel;
                             if (jsonLevel < 0) {
                               // Quit on malformed json
-                              return 0;
+                              //return 0;
+                            	return -1;
                             }
                         }
                         if (!jsonLevel) {
@@ -164,7 +166,8 @@ int simpleJsonProcessor(const char *data, const char *key, char* value, int size
 RETURN_VALUE:
     *value = 0;
     if (!*found) // malformed JSON
-      return 0;
+      //return 0;
+    	return 0;
     return 1;
 }
 

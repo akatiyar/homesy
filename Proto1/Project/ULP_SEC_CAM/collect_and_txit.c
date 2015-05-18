@@ -13,6 +13,7 @@
 #include "string.h"
 #include "mt9d111.h"
 
+#include "flash_files.h"
 extern void CollectTxit_ImgTempRH();
 //*****************************************************************************
 //
@@ -59,6 +60,7 @@ void CollectTxit_ImgTempRH()
 	//
 	ConfigureSimpleLinkToDefaultState();
 	UtilsDelay(8000000);
+	lRetVal = sl_Start(0, 0, 0);
 	ConnectToNetwork_STA();
 
 	//
@@ -94,6 +96,8 @@ void CollectTxit_ImgTempRH()
 	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
 	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucSensorDataTxt);
+
+	//lRetVal = CreateFile_Flash(FILENAME_, MAX_FILESIZE_USERWIFI);
 
 	//
 	//	Upload sensor data to Parse

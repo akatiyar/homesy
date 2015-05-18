@@ -61,6 +61,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
 	int32_t lRetVal;
 	int32_t lFileHandle;
 	uint32_t ulToken = NULL;
+	uint32_t uiNumBytesWritten;
 
 	//
 	// Open the file for Write Operation
@@ -91,13 +92,17 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(lRetVal);
     }
+    else
+    {
+    	uiNumBytesWritten = lRetVal;
+    }
     //
     // Close the file post writing the image
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
-    return lRetVal;
+    return uiNumBytesWritten;
 }
 
 //******************************************************************************
@@ -120,6 +125,7 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 	int32_t lRetVal;
 	int32_t lFileHandle;
 	uint32_t ulToken = NULL;
+	uint32_t uiNumBytesRead;
 
 	lRetVal = sl_FsOpen(pucFileName,
 						FS_MODE_OPEN_READ,
@@ -132,16 +138,20 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 		ASSERT_ON_ERROR(lRetVal);
 	 }
 
-	 lRetVal = sl_FsRead(lFileHandle, uiOffsetInFile, pucData , uiDataSize);
+	 lRetVal = sl_FsRead(lFileHandle, uiOffsetInFile, pucData, uiDataSize);
 	 if (lRetVal < 0)
 	 {
 		ASSERT_ON_ERROR(lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(lRetVal);
 	 }
+	 else
+	 {
+		 uiNumBytesRead = lRetVal;
+	 }
 
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	ASSERT_ON_ERROR(lRetVal);
 
-	return lRetVal;
+	return uiNumBytesRead;
 }

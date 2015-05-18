@@ -1,23 +1,12 @@
 
 // Simplelink includes
-#include "simplelink.h"
-
 #include "app.h"
 #include "network_related_fns.h"
-
 #include "camera_app.h"
-
-unsigned long  g_ulStatus = 0;//SimpleLink Status
-unsigned long  g_ulGatewayIP = 0; //Network Gateway IP address
-unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
-unsigned char  g_ucConnectionBSSID[BSSID_LEN_MAX]; //Connection BSSID
-extern int g_uiSimplelinkRole = ROLE_INVALID;
-
+#include "flash_files.h"
 extern volatile unsigned char g_CaptureImage;
 
 void initNetwork(signed char *ssid, SlSecParams_t *keyParams);
-
-
 //****************************************************************************
 //
 //!    \brief This function initializes the application variables
@@ -33,6 +22,10 @@ void InitializeAppVariables()
     g_ulGatewayIP = 0;
     memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
     memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
+
+    g_ucProfileAdded = 1;
+    g_ucConnectedToConfAP = 0;
+	g_ucProvisioningDone = 0;
 }
 
 //*****************************************************************************
@@ -116,8 +109,10 @@ long ConfigureSimpleLinkToDefaultState()
 
     // Set connection policy to Auto + SmartConfig
     //      (Device's default connection policy)
+    //lRetVal = sl_WlanPolicySet(SL_POLICY_CONNECTION,
+    //                            SL_CONNECTION_POLICY(1, 0, 0, 0, 1), NULL, 0);
     lRetVal = sl_WlanPolicySet(SL_POLICY_CONNECTION,
-                                SL_CONNECTION_POLICY(1, 0, 0, 0, 1), NULL, 0);
+                                    SL_CONNECTION_POLICY(1, 0, 0, 0, 0), NULL, 0);
     ASSERT_ON_ERROR(lRetVal);
 
     // Remove all profiles
@@ -325,13 +320,28 @@ void ConnectToNetwork_STA_2()
 
 void ConnectToNetwork_STA()
 {
-	// TODO: Change to your SSID and password
-	signed char ssid[] = APP_SSID_NAME;
-	signed char key[] = APP_SSID_PASSWORD;
+	int32_t lRetVal;
+
+	uint8_t ucWifiConfigFileData[FILESIZE_USERWIFI];
+	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
+									(uint8_t*)FILENAME_USERWIFI,
+									FILESIZE_USERWIFI, 0);
+
+	uint8_t ssid[AP_SSID_LEN_MAX];
+	uint8_t ucWifiPassword[AP_PASSWORD_LEN_MAX];
+	uint8_t ucWifiSecType[AP_SECTYPE_LEN_MAX];
+	uint8_t* pucWifiConfigFileData = &ucWifiConfigFileData[0];
 	SlSecParams_t keyParams;
-	keyParams.Type = APP_SSID_SEC_TYPE;
-	keyParams.Key = key;
-	keyParams.KeyLen = strlen((char *)key);
+
+	strcpy(ssid, ucWifiConfigFileData);
+	pucWifiConfigFileData += strlen(pucWifiConfigFileData)+1;
+	strcpy(ucWifiSecType, pucWifiConfigFileData);
+	pucWifiConfigFileData += strlen(pucWifiConfigFileData)+1;
+	strcpy(ucWifiPassword, pucWifiConfigFileData);
+
+	keyParams.Type = ucWifiSecType[0];
+	keyParams.Key = ucWifiPassword;
+	keyParams.KeyLen = strlen((char *)ucWifiPassword);
 
 	initNetwork(ssid, &keyParams);
 
@@ -347,9 +357,10 @@ void ConnectToNetwork_STA()
 
 void initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 {
-	short status = sl_Start(0, 0, 0);
-	if (status >= 0)
-	{
+	short status;
+	//short status = sl_Start(0, 0, 0);
+	//if (status >= 0)
+	//{
 		// disable scan
 		unsigned char configOpt = SL_SCAN_POLICY(0);
 		sl_WlanPolicySet(SL_POLICY_SCAN, configOpt, NULL, 0);
@@ -367,7 +378,7 @@ void initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 		sl_WlanRxFilterSet(SL_REMOVE_RX_FILTER, (unsigned char *)&rxFilterIdMask, sizeof(_WlanRxFilterOperationCommandBuff_t));
 
 		status = sl_WlanPolicySet(SL_POLICY_CONNECTION, SL_CONNECTION_POLICY(1, 0, 0, 0, 0), NULL, 0);
-	}
+	//}
 
 	if (status < 0) {
 		sl_Stop(SL_STOP_TIMEOUT);
@@ -597,10 +608,8 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
         UART_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
-    //
-    // This application doesn't work w/ socket - Events are not expected
-    //
-       switch( pSock->Event )
+
+    switch( pSock->Event )
     {
         case SL_SOCKET_TX_FAILED_EVENT:
             switch( pSock->EventData.status )
@@ -645,36 +654,171 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
 //!
 //*****************************************************************************
 void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
-                               SlHttpServerResponse_t *pSlHttpServerResponse)
+        SlHttpServerResponse_t *pSlHttpServerResponse)
 {
-    if((pSlHttpServerEvent == NULL) || (pSlHttpServerResponse == NULL))
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
 
     switch (pSlHttpServerEvent->Event)
     {
-       case SL_NETAPP_HTTPPOSTTOKENVALUE_EVENT:
-       	   {
-              if (0 == memcmp (pSlHttpServerEvent->
-                       EventData.httpPostData.token_name.data, "__SL_P_U.C",
-                    pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-              {
-            	  if(0 == memcmp (pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-            	                                    "start", \
-            	                     pSlHttpServerEvent->EventData.httpPostData.token_value.len))
-            	  {
-            		  g_CaptureImage = 1;
-            	  }
-            	  else
-            	  {
-            		  g_CaptureImage = 0;
-            	  }
-              }
-       	   }
-        	break;
-       default:
-    	   break;
+        case SL_NETAPP_HTTPGETTOKENVALUE_EVENT:
+        {
+
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
+                            g_token_get [0], \
+                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+                if(g_ucConnectedToConfAP == 1)
+                {
+                    // Important - Connection Status
+                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                            "TRUE",strlen("TRUE"));
+                    pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                                strlen("TRUE");
+                }
+                else
+                {
+                    // Important - Connection Status
+                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                            "FALSE",strlen("FALSE"));
+                    pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                                strlen("FALSE");
+                }
+            }
+
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
+                            g_token_get [1], \
+                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                        g_NetEntries[0].ssid,g_NetEntries[0].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                      g_NetEntries[0].ssid_len;
+            }
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
+                            g_token_get [2], \
+                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                        g_NetEntries[1].ssid,g_NetEntries[1].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                       g_NetEntries[1].ssid_len;
+            }
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
+                            g_token_get [3], \
+                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                        g_NetEntries[2].ssid,g_NetEntries[2].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                       g_NetEntries[2].ssid_len;
+            }
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
+                            g_token_get [4], \
+                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                        g_NetEntries[3].ssid,g_NetEntries[3].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                       g_NetEntries[3].ssid_len;
+            }
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
+                            g_token_get [5], \
+                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
+                        g_NetEntries[4].ssid,g_NetEntries[4].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = \
+                                                      g_NetEntries[4].ssid_len;
+            }
+
+            else
+                break;
+
+        }
+        break;
+
+        case SL_NETAPP_HTTPPOSTTOKENVALUE_EVENT:
+        {
+            if((0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+                          "__SL_P_USC", \
+                 pSlHttpServerEvent->EventData.httpPostData.token_name.len)) && \
+            (0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+                     "Add", \
+                     pSlHttpServerEvent->EventData.httpPostData.token_value.len)))
+            {
+                g_ucProfileAdded = 0;
+
+            }
+            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+                     "__SL_P_USD", \
+                     pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+            {
+                memcpy(g_cWlanSSID,  \
+                pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+                pSlHttpServerEvent->EventData.httpPostData.token_value.len);
+                g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
+            }
+
+            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+                         "__SL_P_USE", \
+                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+            {
+
+                if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
+                                                                        == '0')
+                {
+                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
+
+                }
+                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
+                                                                        == '1')
+                {
+                    g_SecParams.Type =  SL_SEC_TYPE_WEP;//SL_SEC_TYPE_WEP
+
+                }
+                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] == '2')
+                {
+                    g_SecParams.Type =  SL_SEC_TYPE_WPA;//SL_SEC_TYPE_WPA
+
+                }
+                else
+                {
+                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
+                }
+                g_cWlanSecurityType[0] = g_SecParams.Type;
+                g_cWlanSecurityType[1] = 0;
+            }
+            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+                         "__SL_P_USF", \
+                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+            {
+                memcpy(g_cWlanSecurityKey, \
+                    pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+                    pSlHttpServerEvent->EventData.httpPostData.token_value.len);
+                g_cWlanSecurityKey[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
+                g_SecParams.Key = g_cWlanSecurityKey;
+                g_SecParams.KeyLen = pSlHttpServerEvent->EventData.httpPostData.token_value.len;
+            }
+            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+                        "__SL_P_USG", \
+                        pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+            {
+                g_ucPriority = pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] - 48;
+            }
+            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+                         "__SL_P_US0", \
+                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+            {
+                g_ucProvisioningDone = 1;
+            }
+        }
+        break;
+
+      default:
+          break;
     }
 }

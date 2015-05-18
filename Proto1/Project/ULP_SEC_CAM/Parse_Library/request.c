@@ -463,7 +463,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         		simpleJsonProcessor(dataBuffer, "objectId", responseObjectID, OBJECT_ID_MAX_LEN);
         		DEBUG_PRINT("objectID : %s\r\n", responseObjectID);
         	}
-        	else if (payloadType = image)
+        	else if (payloadType == image)
         	{
         		simpleJsonProcessor(dataBuffer, "name", imageName, IMAGE_NAME_MAX_LEN);
         		DEBUG_PRINT("Image Name : %s\r\n", imageName);

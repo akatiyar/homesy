@@ -76,6 +76,9 @@ typedef enum
 	//
 	MT9D111_NOT_FOUND = FILE_WRITE_FAILED - 1,
 
+	// WiFi Provisioning through AP Mode
+	USER_WIFI_PROFILE_FAILED_TO_CONNECT = MT9D111_NOT_FOUND - 1,
+
     STATUS_CODE_MAX = -0xBB8
 }e_AppStatusCodes;
 
