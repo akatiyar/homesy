@@ -105,6 +105,7 @@
 #include "flash_files.h"
 #include "app_common.h"
 #include "timer_fns.h"
+#include "wifi_provisioing_thruAPmode.h"
 
 
 #include "test_fns.h"
@@ -126,6 +127,24 @@ SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 
 //unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
 unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))]; //Appropriate name change to be done
+
+unsigned long  g_ulStatus = 0;//SimpleLink Status
+unsigned long  g_ulGatewayIP = 0; //Network Gateway IP address
+unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
+unsigned char  g_ucConnectionBSSID[BSSID_LEN_MAX]; //Connection BSSID
+signed char g_cWlanSSID[AP_SSID_LEN_MAX];
+int g_uiSimplelinkRole = ROLE_INVALID;
+signed char g_cWlanSecurityType[2];
+signed char g_cWlanSecurityKey[50];
+SlSecParams_t g_SecParams;
+unsigned char g_ucProfileAdded = 1;
+unsigned char g_ucConnectedToConfAP = 0, g_ucProvisioningDone = 0;
+unsigned char g_ucPriority = 0;
+
+Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
+char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
+                                        "__SL_G_US1", "__SL_G_US2","__SL_G_US3",
+                                                    "__SL_G_US4", "__SL_G_US5"};
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -239,6 +258,22 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 void Main_Task(void *pvParameters)
 {
 	long lRetVal = -1;
+
+	ProvisioningAP();
+
+	//Testing WiFi Configs in Flash - DBG
+	ConfigureSimpleLinkToDefaultState();
+	UtilsDelay(8000000);
+	//	Start NWP for flash read
+	lRetVal = sl_Start(0, 0, 0);
+	if (lRetVal < 0)
+	{
+	   UART_PRINT("Failed to start the device \n\r");
+	   LOOP_FOREVER();
+	}
+	ConnectToNetwork_STA();
+
+	while(1);
 
     if(MAP_PRCMSysResetCauseGet() == 0)
 	{
