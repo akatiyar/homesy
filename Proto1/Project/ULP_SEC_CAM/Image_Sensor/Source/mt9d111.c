@@ -64,6 +64,8 @@
 #define MARGIN_NUMCLKS			10
 #define CHIP_VERSION			(0x1519)
 
+#define MT9D111_CLKIN_MIN		6000000
+
 typedef struct MT9D111RegLst
 {
     unsigned char ucPageAddr;
@@ -243,7 +245,7 @@ static  const s_RegList init_cmds_list[]= {
 
 #ifdef ENABLE_JPEG
 static  const s_RegList capture_cmds_list[]= {
-    {0, 0x65, 0xA000    },  // Disable PLL
+    {0, 0x65, 0xA000    },  // Bypass PLL
     {0, 0x65, 0xE000    },  // Power DOWN PLL
     {100, 0x00, 0x01F4  },  // Delay =500ms
 //    {0,  0x66,  0x1E03  },
@@ -252,7 +254,7 @@ static  const s_RegList capture_cmds_list[]= {
 	{0,  0x67,  0x0503  },
     //{0,  0x66,  0x1E01  },	//N = 1, M = 30
     //{0,  0x67,  0x0506  },	//P = 7		// Changed to 9 -Uthra
-    {0, 0x65,   0xA000  },  // Disable PLL
+    {0, 0x65,   0xA000  },  // Power up PLL
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
     {100, 0x00, 0x01F4  },  // Delay =500ms
@@ -1015,7 +1017,89 @@ static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 
 	return lRetVal;
 }
-//*****************************************************************************
+
+//******************************************************************************
+//	This function puts MT9D111 in standby
+//
+//	param none
+//	return SUCCESS or failure value
+//
+//	Sequence followed as per MT9D111 developer's guide
+//******************************************************************************
+int32_t EnterStandby_mt9d111()
+{
+	int32_t lRetVal;
+
+	s_RegList stndby_cmds_list[] = {
+			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+			{1, 0xC8, 0x0001},
+			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+			{111, 0xC8, 0x0003},
+
+			{1, 0xC6, 0xA103},	//Stanby firmware; seq.cmd = 3(standby cmd)
+			{1, 0xC8, 0x0003},
+			{1, 0xC6, 0xA104},	//Wait till stanby; seq.state = 9(standby state)
+			{111, 0xC8, 0x0009},
+			{0, 0x65, 0xA000},  //Bypass PLL
+
+			{1, 0x0A, 0x0488},	//I/O pad input clamp during standby
+			{0, 0x0D, 0x0040},	//high-impedance outputs when in standby state
+
+			{1, 0xC6, 0x9078},
+			{1, 0xC8, 0x0000},
+			{1, 0xC6, 0x9079},
+			{1, 0xC8, 0x0000},
+			{1, 0xC6, 0x9070},
+			{1, 0xC8, 0x0000},
+			{1, 0xC6, 0x9071},
+			{1, 0xC8, 0x0000},
+
+			{0, 0x0D, 0x0044},	//Sensor standby - use for soft standby
+				};
+
+	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+
+	//MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, GPIO_PIN_7);	//Sensor standby - use for hard standby
+
+	MT9D111Delay(SYSTEM_CLOCK/MT9D111_CLKIN_MIN * 10 + 100);
+									//Wait before turning off Clock to Cam (XCLK)
+									//Calcs in doc
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	This function takes MT9D111 out of standby
+//
+//	param none
+//	return SUCCESS or failure value
+//
+//	Sequence followed as per MT9D111 developer's guide
+//******************************************************************************
+int32_t ExitStandby_mt9d111()
+{
+	int32_t lRetVal;
+
+	MT9D111Delay(SYSTEM_CLOCK/MT9D111_CLKIN_MIN * 24 + 100);
+									//Wait after turning ON Clock to Cam (XCLK)
+									//Calcs in doc
+	//MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, 0);
+
+	s_RegList stndby_cmds_list[] = {
+			{0, 0x0D, 0x0040},	//Sensor wake - soft
+
+			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+			{1, 0xC8, 0x0001},
+			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+			{111, 0xC8, 0x0003}
+									};
+
+	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+
+	return lRetVal;
+}
+
+//******************************************************************************
 //
 // Close the Doxygen group.
 //! @}

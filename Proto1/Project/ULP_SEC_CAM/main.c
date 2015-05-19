@@ -107,7 +107,7 @@
 #include "timer_fns.h"
 #include "wifi_provisioing_thruAPmode.h"
 
-
+#include "test_modules.h"
 #include "test_fns.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
@@ -164,7 +164,7 @@ static void BoardInit();
 static void DisplayBanner(char * AppName);
 
 
-void CollectTxit_ImgTempRH();
+int32_t CollectTxit_ImgTempRH();
 void Main_Task(void *pvParameters);
 
 #ifdef USE_FREERTOS
@@ -259,22 +259,6 @@ void Main_Task(void *pvParameters)
 {
 	long lRetVal = -1;
 
-	ProvisioningAP();
-
-	//Testing WiFi Configs in Flash - DBG
-	ConfigureSimpleLinkToDefaultState();
-	UtilsDelay(8000000);
-	//	Start NWP for flash read
-	lRetVal = sl_Start(0, 0, 0);
-	if (lRetVal < 0)
-	{
-	   UART_PRINT("Failed to start the device \n\r");
-	   LOOP_FOREVER();
-	}
-	ConnectToNetwork_STA();
-
-	while(1);
-
     if(MAP_PRCMSysResetCauseGet() == 0)
 	{
 #ifndef USB_DEBUG
@@ -328,7 +312,7 @@ void Main_Task(void *pvParameters)
 
 #ifndef NO_CAMERA
 		UART_PRINT("\n\rCAMERA MODULE:\n\r");
-		CamControllerInit();	// Init parallel camera interface of cc3200
+ 		CamControllerInit();	// Init parallel camera interface of cc3200
 								// since image sensor needs XCLK for
 								//its I2C module to work
 
@@ -337,11 +321,11 @@ void Main_Task(void *pvParameters)
 
 		SoftReset_ImageSensor();
 
+		UART_PRINT("Cam Sensor Init \n\r");
 		CameraSensorInit();
 
-//		PCLK_Rate_read();
-
 		// Configure Sensor in Capture Mode
+		UART_PRINT("Start Sensor\n\r");
 		lRetVal = StartSensorInJpegMode();
 		STOPHERE_ON_ERROR(lRetVal);
 
@@ -364,8 +348,8 @@ void Main_Task(void *pvParameters)
 
 		//ReadAllAEnAWBRegs();
 
-	    MAP_PRCMPeripheralReset(PRCM_CAMERA);
-	    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+		MAP_PRCMPeripheralReset(PRCM_CAMERA);
+		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 #endif
 
 
@@ -536,26 +520,6 @@ void Main_Task(void *pvParameters)
 			sl_Stop(0xFFFF);
 		}
 
-		//ReadAllAEnAWBRegs();
-
-		/*disableAE();
-		disableAWB();
-
-		WriteAllAEnAWBRegs();
-		ReadAllAEnAWBRegs();
-
-		CollectTxit_ImgTempRH();
-
-		ReadAllAEnAWBRegs();
-
-		MAP_PRCMPeripheralReset(PRCM_CAMERA);
-		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-
-		MAP_PRCMPeripheralReset(PRCM_UDMA);
-		MAP_PRCMPeripheralClkDisable(PRCM_UDMA,P
-
-		RCM_RUN_MODE_CLK);*/
-
 
 #ifndef USB_DEBUG
 //	uint16_t temp = getLightsensor_data();
@@ -665,7 +629,6 @@ void main()
     // Pinmux for UART
     //
     PinMuxConfig();
-
 
 #ifndef NOTERM
     //

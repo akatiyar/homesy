@@ -275,7 +275,32 @@ static int FrameHeaderMarker(char *pbuf, int width, int height, int format);
 static int JfifApp0Marker(char *pbuf);
 #endif 
 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
+int32_t Standby_ImageSensor()
+{
+	int32_t lRetVal;
 
+	EnterStandby_mt9d111();
+
+	MAP_PRCMPeripheralReset(PRCM_CAMERA);
+	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+
+	return lRetVal;
+}
+
+int32_t Wakeup_ImageSensor()
+{
+	int32_t lRetVal;
+
+	CamControllerInit();
+
+	ExitStandby_mt9d111();
+
+	return lRetVal;
+}
 //*****************************************************************************
 //
 //!     CaptureAndStore_Image
@@ -320,7 +345,7 @@ long CaptureAndStore_Image()
 	MAP_CameraCaptureStart(CAMERA_BASE);
 	// HWREG(0x4402609C) |= 1 << 8;
 
-    while((g_frame_end == 0));
+    while(g_frame_end == 0);
 
     MAP_CameraCaptureStop(CAMERA_BASE, true);
     UART_PRINT("pA");

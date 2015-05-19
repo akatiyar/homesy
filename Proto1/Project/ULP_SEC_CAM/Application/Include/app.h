@@ -40,6 +40,8 @@
 #define FN_SUCCESS	0
 #define FN_FAILED	1 //Funtion return values are uint16_t
 
+#define SYSTEM_CLOCK	80000000
+
 #define TEST_MODULES_INCLUDE
 #define USB_DEBUG
 #define DEBUG_ENABLE

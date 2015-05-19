@@ -131,7 +131,8 @@ int32_t ProvisioningAP()
 
 			//Write to Flash file
 			lRetVal = CreateFile_Flash(FILENAME_USERWIFI, MAX_FILESIZE_USERWIFI);
-			uint8_t ucConfigFileData[FILESIZE_USERWIFI];
+			ASSERT_ON_ERROR(lRetVal);
+			uint8_t ucConfigFileData[CONTENTSIZE_FILE_USERWIFI];
 			uint8_t* pucConfigFileData = &ucConfigFileData[0];
 
 			strcpy(pucConfigFileData, g_cWlanSSID);
@@ -144,12 +145,14 @@ int32_t ProvisioningAP()
 
 			lRetVal = WriteFile_ToFlash((uint8_t*)&ucConfigFileData[0],
 										(uint8_t*)FILENAME_USERWIFI,
-										FILESIZE_USERWIFI, 0);
+										CONTENTSIZE_FILE_USERWIFI, 0);
+			ASSERT_ON_ERROR(lRetVal);
 
 			// For verification - DBG
 			lRetVal = ReadFile_FromFlash((ucConfigFileData+3),
 											(uint8_t*)FILENAME_USERWIFI,
-											FILESIZE_USERWIFI-3, 0);
+											CONTENTSIZE_FILE_USERWIFI-3, 0);
+			ASSERT_ON_ERROR(lRetVal);
 
 			/*lRetVal = WriteFile_ToFlash((uint8_t*)&g_cWlanSSID[0], (uint8_t*)FILENAME_USERWIFI,
 										AP_SSID_LEN_MAX, 0);

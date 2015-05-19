@@ -40,7 +40,7 @@ long ConfigureSimpleLinkToDefaultState();
 long ConnectToNetwork();
 int ConfigureMode(int iMode);
 
-void ConnectToNetwork_STA();
+int32_t ConnectToNetwork_STA();
 
 void ConnectToNetwork_STA_2();
 

@@ -11,16 +11,20 @@
 #include <stdint.h>
 
 #define FILENAME_USERWIFI			"user_wifi_profile_file"
-#define MAX_FILESIZE_USERWIFI			1024		//File created for this size
-													//Can be used when more fields
-													//are needed in the file
-#define FILESIZE_USERWIFI			(33 + 2 + 50)	//Find way to employ the Macros
+#define MAX_FILESIZE_USERWIFI		1024	//Bytes
+											//File created for this size
+											//Can be used when more fields
+											//are needed in the file
+#define CONTENTSIZE_FILE_USERWIFI	(33+2+50)	//Bytes
+											//Find way to employ the Macros
 
 #define FILENAME_SENSORDATA			"sensor_data_file"
-#define MAX_FILESIZE_SENSORDATA			1024		//File created for this size
-													//Can be used when more fields
-													//are needed in the file
-#define FILESIZE_SENSORDATA			(500)	//Find way to employ the Macro
+#define MAX_FILESIZE_SENSORDATA		1024	//Bytes
+											//File created for this size
+											//Can be used when more fields
+											//are needed in the file
+#define CONTENTSIZE_FILE_SENSORDATA	(500)	//Bytes
+											//Find way to employ the Macro
 
 
 #define MAGN_INIT_VALS_FILE_NAME		"Magnetometer_Initial_Vals"

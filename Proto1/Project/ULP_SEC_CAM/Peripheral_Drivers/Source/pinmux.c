@@ -60,7 +60,7 @@ PinMuxConfig(void)
     //
     MAP_PRCMPeripheralClkEnable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
     MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
-    MAP_PRCMPeripheralClkEnable(PRCM_GPIOA0, PRCM_RUN_MODE_CLK);//Wake-src
+    MAP_PRCMPeripheralClkEnable(PRCM_GPIOA0, PRCM_RUN_MODE_CLK);//Wake-src, Cam Standby
 
 	MAP_PRCMPeripheralClkEnable(PRCM_UARTA1, PRCM_RUN_MODE_CLK); //For debug msgs
 	//
@@ -146,5 +146,12 @@ PinMuxConfig(void)
 	// Configure PIN_57 for GPIOIn - Wake-Src
 	//
 	MAP_PinTypeGPIO(PIN_57, PIN_MODE_0, false);
-	MAP_GPIODirModeSet(GPIOA0_BASE, 0x02, GPIO_DIR_MODE_IN);
+	//MAP_GPIODirModeSet(GPIOA0_BASE, 0x02, GPIO_DIR_MODE_IN);
+	MAP_GPIODirModeSet(GPIOA0_BASE, 0x04, GPIO_DIR_MODE_IN);
+
+	//
+	// Configure PIN_62 for GPIOOut - CameraModule Standby
+	//
+	MAP_PinTypeGPIO(PIN_62, PIN_MODE_0, false);
+	MAP_GPIODirModeSet(GPIOA0_BASE, 0x80, GPIO_DIR_MODE_OUT);
 }

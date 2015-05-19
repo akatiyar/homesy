@@ -14,7 +14,7 @@
 #include "mt9d111.h"
 
 #include "flash_files.h"
-extern void CollectTxit_ImgTempRH();
+extern int32_t CollectTxit_ImgTempRH();
 //*****************************************************************************
 //
 //	The function captures image and sensor data and uploads to Parse
@@ -24,7 +24,7 @@ extern void CollectTxit_ImgTempRH();
 //	return none
 //
 //*****************************************************************************
-void CollectTxit_ImgTempRH()
+int32_t CollectTxit_ImgTempRH()
 {
 	int32_t lRetVal;
 
@@ -97,7 +97,21 @@ void CollectTxit_ImgTempRH()
 	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
 	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucSensorDataTxt);
 
-	//lRetVal = CreateFile_Flash(FILENAME_, MAX_FILESIZE_USERWIFI);
+	lRetVal = CreateFile_Flash(FILENAME_SENSORDATA, MAX_FILESIZE_SENSORDATA);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = WriteFile_ToFlash((uint8_t*)&ucSensorDataTxt[0],
+								(uint8_t*)FILENAME_SENSORDATA,
+								CONTENTSIZE_FILE_SENSORDATA, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	// For verification - DBG
+	lRetVal = ReadFile_FromFlash((ucSensorDataTxt+3),
+									(uint8_t*)FILENAME_SENSORDATA,
+									CONTENTSIZE_FILE_SENSORDATA-3, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+
 
 	//
 	//	Upload sensor data to Parse
@@ -108,4 +122,6 @@ void CollectTxit_ImgTempRH()
 
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);
+
+	return lRetVal;
 }

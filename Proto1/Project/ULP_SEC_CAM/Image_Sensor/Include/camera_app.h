@@ -50,6 +50,8 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+#include "app.h"
+
 #define USER_FILE_NAME          "www/images/cc3200_camera_capture.jpg"
 
 #define UART_COMMAND_IMG_CAPTURE		('x')
@@ -155,6 +157,8 @@ extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))
 long CaptureAndStore_Image();
 void CamControllerInit();
 void StartCamera();
+int32_t Standby_ImageSensor();
+int32_t Wakeup_ImageSensor();
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

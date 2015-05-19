@@ -318,14 +318,15 @@ void ConnectToNetwork_STA_2()
 	}
 }
 
-void ConnectToNetwork_STA()
+int32_t ConnectToNetwork_STA()
 {
 	int32_t lRetVal;
 
-	uint8_t ucWifiConfigFileData[FILESIZE_USERWIFI];
+	uint8_t ucWifiConfigFileData[CONTENTSIZE_FILE_USERWIFI];
 	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
 									(uint8_t*)FILENAME_USERWIFI,
-									FILESIZE_USERWIFI, 0);
+									CONTENTSIZE_FILE_USERWIFI, 0);
+	ASSERT_ON_ERROR(lRetVal);
 
 	uint8_t ssid[AP_SSID_LEN_MAX];
 	uint8_t ucWifiPassword[AP_PASSWORD_LEN_MAX];
@@ -352,7 +353,11 @@ void ConnectToNetwork_STA()
 	dateTime.sl_tm_mon = 4;
 	dateTime.sl_tm_day = 30;
 	dateTime.sl_tm_hour = 19;
-	sl_DevSet(SL_DEVICE_GENERAL_CONFIGURATION, SL_DEVICE_GENERAL_CONFIGURATION_DATE_TIME, sizeof(SlDateTime_t), (unsigned char *)&dateTime);
+	sl_DevSet(SL_DEVICE_GENERAL_CONFIGURATION,
+				SL_DEVICE_GENERAL_CONFIGURATION_DATE_TIME,
+				sizeof(SlDateTime_t), (unsigned char *)&dateTime);
+
+	return lRetVal;
 }
 
 void initNetwork(signed char *ssid, SlSecParams_t *keyParams)
