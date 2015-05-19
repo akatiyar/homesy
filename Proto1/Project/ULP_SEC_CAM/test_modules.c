@@ -19,6 +19,8 @@
 
 #include "prcm.h"
 
+#include "test_modules.h"
+
 void Test_Provisioning_thruAP()
 {
 	int32_t lRetVal;
@@ -84,8 +86,36 @@ void TestOrProfile_CameraModuleStandby()
 		UtilsDelay(3*80000000/3);
 	}
 
+}
+
+
+void Test_ImageSensConfigFromFlash()
+{
+	sl_Start(0,0,0);
+
+	WriteConfigRegFile_toFlash();
+
+	CamControllerInit();	// Init parallel camera interface of cc3200
+									// since image sensor needs XCLK for
+									//its I2C module to work
+
+	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+									// 10 is margin
+
+	SoftReset_ImageSensor();
+
+	CameraSensorInit_SettingsFromFlash();
+
+	StartCapture_SettingsFromFlash();
+
 	MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 
-	while(1);
+	while(1)
+	{
+		CollectTxit_ImgTempRH();
+		sl_Stop(0xFFFF);
+	}
+
+
 }

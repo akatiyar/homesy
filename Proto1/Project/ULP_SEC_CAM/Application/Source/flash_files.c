@@ -49,36 +49,52 @@ int32_t CreateFile_Flash(uint8_t* pucFileName, uint32_t uiMaxFileSize)
 //	param[in]	pucFileName - pointer to the File Name character array
 //	param[in]	uiDataSize - size of data to be written, in bytes
 //	param[in]	uiOffsetInFile - offset as to where to write within the file
+//	param[in]	ucWriteType - Whether the file has to be opened or is already open,
+//							and whether to close the file. Use one of the Macros
+//	param[in/out] plFileHandle - in for middle and last file writes and out for
+//									first and single file writes
 //
-//	return SUCCESS or failure code
+//	return SUCCESS or number of bytes written
 //
 //******************************************************************************
 int32_t WriteFile_ToFlash(uint8_t* pucData,
 			uint8_t* pucFileName,
 			uint32_t uiDataSize,
-			uint32_t uiOffsetInFile)
+			uint32_t uiOffsetInFile,
+			uint8_t ucWriteType,
+			int32_t* plFileHandle)
 {
 	int32_t lRetVal;
 	int32_t lFileHandle;
 	uint32_t ulToken = NULL;
 	uint32_t uiNumBytesWritten;
 
-	//
-	// Open the file for Write Operation
-	//
-	lRetVal = sl_FsOpen(pucFileName,
-						FS_MODE_OPEN_WRITE,
-						&ulToken,
-						&lFileHandle);
-	//
-	// Error handling if File Operation fails
-	//
-	if(lRetVal < 0)
+	if((MULTIPLE_WRITE_FIRST == ucWriteType)||(SINGLE_WRITE == ucWriteType))
 	{
-		ASSERT_ON_ERROR(lRetVal);
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
+		//
+		// Open the file for Write Operation
+		//
+		lRetVal = sl_FsOpen(pucFileName,
+							FS_MODE_OPEN_WRITE,
+							&ulToken,
+							&lFileHandle);
+		//
+		// Error handling if File Operation fails
+		//
+		if(lRetVal < 0)
+		{
+			ASSERT_ON_ERROR(lRetVal);
+			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+			ASSERT_ON_ERROR(lRetVal);
+		}
+
+		*plFileHandle = lFileHandle;
 	}
+	else
+	{
+		lFileHandle = *plFileHandle;
+	}
+
     //
     // Write the Image Buffer
     //
@@ -96,11 +112,15 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
     {
     	uiNumBytesWritten = lRetVal;
     }
-    //
-    // Close the file post writing the image
-    //
-    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-    ASSERT_ON_ERROR(lRetVal);
+
+    if((MULTIPLE_WRITE_LAST == ucWriteType)||(SINGLE_WRITE == ucWriteType))
+    {
+		//
+		// Close the file post writing the image
+		//
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(lRetVal);
+    }
 
     return uiNumBytesWritten;
 }

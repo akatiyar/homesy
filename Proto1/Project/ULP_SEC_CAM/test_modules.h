@@ -10,5 +10,6 @@
 
 void Test_Provisioning_thruAP();
 void TestOrProfile_CameraModuleStandby();
+void Test_ImageSensConfigFromFlash();
 
 #endif /* TEST_MODULES_H_ */

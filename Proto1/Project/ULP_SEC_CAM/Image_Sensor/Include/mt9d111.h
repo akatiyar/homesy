@@ -24,7 +24,9 @@ extern "C"
     \warning
 */
 long CameraSensorInit();
-
+long CameraSensorInit_SettingsFromFlash();
+long StartCapture_SettingsFromFlash();
+long WriteConfigRegFile_toFlash();
 /*!
     \brief                      Configures sensor in JPEG mode
 

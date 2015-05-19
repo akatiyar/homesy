@@ -10,6 +10,11 @@
 
 #include <stdint.h>
 
+#define	SINGLE_WRITE				1
+#define MULTIPLE_WRITE_FIRST		2
+#define MULTIPLE_WRITE_LAST			3
+#define MULTIPLE_WRITE_MIDDLE		4
+
 #define FILENAME_USERWIFI			"user_wifi_profile_file"
 #define MAX_FILESIZE_USERWIFI		1024	//Bytes
 											//File created for this size
@@ -26,6 +31,13 @@
 #define CONTENTSIZE_FILE_SENSORDATA	(500)	//Bytes
 											//Find way to employ the Macro
 
+#define FILENAME_IMAGESENS_CONFIG	"imagesensor_configs_file"
+#define MAX_FILESIZE_IMAGESENS_CONFIG					1024	//Bytes
+											//File created for this size
+											//Can be used when more fields
+											//are needed in the file
+#define CONTENTSIZE_FILE_IMAGESENS_CONFIG	1024	//Bytes
+
 
 #define MAGN_INIT_VALS_FILE_NAME		"Magnetometer_Initial_Vals"
 #define MAGN_INIT_VALS_FILE_MAXSIZE		20
@@ -37,9 +49,11 @@
 
 int32_t CreateFile_Flash(uint8_t* pucFileName, uint32_t uiMaxFileSize);
 int32_t WriteFile_ToFlash(uint8_t* pucData,
-							uint8_t* pucFileName,
-							uint32_t uiDataSize,
-							uint32_t uiOffsetInFile);
+			uint8_t* pucFileName,
+			uint32_t uiDataSize,
+			uint32_t uiOffsetInFile,
+			uint8_t ucWriteType,
+			int32_t* plFileHandle);
 int32_t ReadFile_FromFlash(uint8_t* pucData,
 							uint8_t* pucFileName,
 							uint32_t uiDataSize,

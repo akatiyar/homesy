@@ -55,6 +55,7 @@
 
 #include "app.h"
 
+#include "flash_files.h"
 
 #define RET_OK                  0
 #define RET_ERROR               -1
@@ -72,6 +73,11 @@ typedef struct MT9D111RegLst
     unsigned char ucRegAddr;
     unsigned short usValue;
 } s_RegList;
+
+#define SIZE_REGLIST		sizeof(struct MT9D111RegLst)
+#define OFFSET_PAGE_ADDR	0
+#define OFFSET_REG_ADDR		sizeof(s_RegList.ucPageAddr)
+#define OFFSET_VALUE		(sizeof(s_RegList.ucPageAddr) + sizeof(s_RegList.ucRegAddr))
 
 #ifndef ENABLE_JPEG
 static const s_RegList preview_on_cmd_list[]= {
@@ -358,6 +364,7 @@ static  const s_RegList capture_cmds_list[]= {
 // Static Function Declarations
 //*****************************************************************************
 static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems);
+//static long RegLstWrite_fromFlash(s_RegList *pRegLst, unsigned long ulNofItems);
 extern void MT9D111Delay(unsigned long ucDelay);
 static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal);
 
@@ -372,7 +379,6 @@ static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal);
 //!                             -1 - Error
 //
 //*****************************************************************************
-
 long CameraSensorInit()
 {
     long lRetVal = -1;
@@ -405,6 +411,105 @@ long CameraSensorInit()
     ASSERT_ON_ERROR(lRetVal);
 #endif 
     return lRetVal;
+}
+
+//Read ImageSensorConfig File from SFlash and initialise the camera
+long CameraSensorInit_SettingsFromFlash()
+{
+	long lRetVal = -1;
+	uint8_t ucFileContent[CONTENTSIZE_FILE_IMAGESENS_CONFIG];
+	uint8_t* puc;
+
+	lRetVal = ReadFile_FromFlash(ucFileContent,
+									FILENAME_IMAGESENS_CONFIG,
+									CONTENTSIZE_FILE_IMAGESENS_CONFIG,
+									0);
+
+	puc = ucFileContent + 2;
+	lRetVal = RegLstWrite((s_RegList*)puc, ucFileContent[0]);
+
+	return lRetVal;
+}
+
+//Read ImageSensorConfig File from SFlash and start jpeg capture
+long StartCapture_SettingsFromFlash()
+{
+	long lRetVal = -1;
+	uint8_t ucFileContent[CONTENTSIZE_FILE_IMAGESENS_CONFIG];
+	uint8_t* puc;
+
+	lRetVal = ReadFile_FromFlash(ucFileContent,
+									FILENAME_IMAGESENS_CONFIG,
+									CONTENTSIZE_FILE_IMAGESENS_CONFIG,
+									0);
+
+	puc = ucFileContent + 2 + (ucFileContent[0] * sizeof(s_RegList));
+	lRetVal = RegLstWrite((s_RegList*)puc, ucFileContent[1]);
+
+	return lRetVal;
+}
+
+//DBG. Write the hardcoded Image Sensor settings into Flash.
+//Not likely to be used otherwise
+long WriteConfigRegFile_toFlash()
+{
+	long lRetVal = -1;
+	int32_t lFileHandle;
+	uint8_t ucHeader[2];
+	uint16_t offset = 0;
+
+	ucHeader[0] = sizeof(init_cmds_list)/sizeof(s_RegList);
+	ucHeader[1] = sizeof(capture_cmds_list)/sizeof(s_RegList);
+
+	lRetVal = CreateFile_Flash(FILENAME_IMAGESENS_CONFIG, MAX_FILESIZE_IMAGESENS_CONFIG);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = WriteFile_ToFlash(ucHeader,
+								FILENAME_IMAGESENS_CONFIG,
+								sizeof(ucHeader),
+								offset,
+								MULTIPLE_WRITE_FIRST,
+								&lFileHandle);
+	ASSERT_ON_ERROR(lRetVal);
+	offset += lRetVal;
+
+	lRetVal = WriteFile_ToFlash((uint8_t*)&init_cmds_list[0],
+									FILENAME_IMAGESENS_CONFIG,
+									sizeof(init_cmds_list),
+									offset,
+									MULTIPLE_WRITE_MIDDLE,
+									&lFileHandle);
+	ASSERT_ON_ERROR(lRetVal);
+	offset += lRetVal;
+
+	lRetVal = WriteFile_ToFlash((uint8_t*)&capture_cmds_list[0],
+										FILENAME_IMAGESENS_CONFIG,
+										sizeof(capture_cmds_list),
+										offset,
+										MULTIPLE_WRITE_LAST,
+										&lFileHandle);
+	ASSERT_ON_ERROR(lRetVal);
+	offset += lRetVal;
+
+	return offset;
+}
+
+//Use this fn to write ImageSensConfig file sent by user OTA into Flash
+long WriteConfigRegFilefromUser_toFlash(uint8_t* pFileContent,
+										uint32_t uiDataSize)
+{
+	long lRetVal = -1;
+	int32_t lFileHandle;
+
+	lRetVal = WriteFile_ToFlash(pFileContent,
+								FILENAME_IMAGESENS_CONFIG,
+								uiDataSize,
+								0,
+								SINGLE_WRITE,
+								&lFileHandle);
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
 }
 
 //*****************************************************************************
@@ -540,6 +645,7 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
 
     return RET_OK;
 }
+
 
 long RegStatusRead(uint16_t* pusRegVal)
 {

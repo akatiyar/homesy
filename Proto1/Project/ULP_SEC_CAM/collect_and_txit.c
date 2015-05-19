@@ -100,9 +100,12 @@ int32_t CollectTxit_ImgTempRH()
 	lRetVal = CreateFile_Flash(FILENAME_SENSORDATA, MAX_FILESIZE_SENSORDATA);
 	ASSERT_ON_ERROR(lRetVal);
 
+	int32_t lFileHandle;
 	lRetVal = WriteFile_ToFlash((uint8_t*)&ucSensorDataTxt[0],
 								(uint8_t*)FILENAME_SENSORDATA,
-								CONTENTSIZE_FILE_SENSORDATA, 0);
+								CONTENTSIZE_FILE_SENSORDATA,
+								0, SINGLE_WRITE,
+								&lFileHandle);
 	ASSERT_ON_ERROR(lRetVal);
 
 	// For verification - DBG
@@ -111,6 +114,10 @@ int32_t CollectTxit_ImgTempRH()
 									CONTENTSIZE_FILE_SENSORDATA-3, 0);
 	ASSERT_ON_ERROR(lRetVal);
 
+	lRetVal = ReadFile_FromFlash(ucSensorDataTxt,
+									(uint8_t*)FILENAME_SENSORDATA,
+									CONTENTSIZE_FILE_SENSORDATA, 0);
+	ASSERT_ON_ERROR(lRetVal);
 
 
 	//

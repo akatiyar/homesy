@@ -259,6 +259,8 @@ void Main_Task(void *pvParameters)
 {
 	long lRetVal = -1;
 
+	Test_ImageSensConfigFromFlash();
+
     if(MAP_PRCMSysResetCauseGet() == 0)
 	{
 #ifndef USB_DEBUG
