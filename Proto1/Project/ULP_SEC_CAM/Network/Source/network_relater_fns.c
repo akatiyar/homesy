@@ -328,17 +328,17 @@ int32_t ConnectToNetwork_STA()
 									CONTENTSIZE_FILE_USERWIFI, 0);
 	ASSERT_ON_ERROR(lRetVal);
 
-	uint8_t ssid[AP_SSID_LEN_MAX];
-	uint8_t ucWifiPassword[AP_PASSWORD_LEN_MAX];
+	int8_t ssid[AP_SSID_LEN_MAX];
+	int8_t ucWifiPassword[AP_PASSWORD_LEN_MAX];
 	uint8_t ucWifiSecType[AP_SECTYPE_LEN_MAX];
 	uint8_t* pucWifiConfigFileData = &ucWifiConfigFileData[0];
 	SlSecParams_t keyParams;
 
-	strcpy(ssid, ucWifiConfigFileData);
-	pucWifiConfigFileData += strlen(pucWifiConfigFileData)+1;
-	strcpy(ucWifiSecType, pucWifiConfigFileData);
-	pucWifiConfigFileData += strlen(pucWifiConfigFileData)+1;
-	strcpy(ucWifiPassword, pucWifiConfigFileData);
+	strcpy((char*)ssid, (const char*)ucWifiConfigFileData);
+	pucWifiConfigFileData += strlen((const char*)pucWifiConfigFileData)+1;
+	strcpy((char*)ucWifiSecType, (const char*)pucWifiConfigFileData);
+	pucWifiConfigFileData += strlen((const char*)pucWifiConfigFileData)+1;
+	strcpy((char*)ucWifiPassword, (const char*)pucWifiConfigFileData);
 
 	keyParams.Type = ucWifiSecType[0];
 	keyParams.Key = ucWifiPassword;

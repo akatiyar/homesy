@@ -19,7 +19,7 @@
 #define POINTER_ADDR_ALERTSTATUS_REG			0X01
 #define POINTER_ADDR_CONFIG_REG					0X02
 #define POINTER_ADDR_LOWERLIMIT_REG				0X03
-#define POINTER_ADDR_HIGHERlIMIT_REG			0X04
+#define POINTER_ADDR_HIGHERLIMIT_REG			0X04
 #define POINTER_ADDR_HISTERISIS_REG				0X05
 #define POINTER_ADDR_LOWESTDATA_REG				0X06
 #define POINTER_ADDR_HIGHESTDATA_REG			0X07
@@ -41,9 +41,9 @@
 
 
 
-int32_t PutInAlertMode_ADC081021(float_t fAlertVoltageLimit);
+int32_t PutInAlertMode_ADC081C021(float_t fAlertVoltageLimit);
 
-int32_t Get_BatteryVoltageLevel_ADC081021(float_t* pfBatteryVoltage);
+int32_t Get_BatteryVoltageLevel_ADC081C021(float_t* pfBatteryVoltage);
 
 
 

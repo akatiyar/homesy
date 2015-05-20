@@ -11,7 +11,10 @@
  */
  ///////////////////////////////////////////////////////////////////////////////
 #include "lightSens_isl29035.h"
+#include "flash_files.h"
 
+#define DEVICE_ID						0x28 //xx101xxx
+#define FLASH_CONFIGS					0
 //******************************************************************************
 //
 //  This function does configures ISL29035 registers as needed by the
@@ -32,8 +35,21 @@ void configureISL29035(uint8_t ucAppMode)
 								INT_LT_MSB_REG, 0x00,
 								INT_HT_LSB_REG, 0XFF,
 								INT_HT_MSB_REG, 0x01};
+	uint8_t ucHeader;
 
-	for (i = 0; i < (sizeof(ucConfigArray))/2; i++)
+	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
+
+	if(FLASH_CONFIGS)
+	{
+		//Read from flash
+		ReadFile_FromFlash(&ucHeader, FILENAME_SENSORCONFIGS,
+							1, OFFSET_ISL29035);
+		ReadFile_FromFlash(ucConfigArray, FILENAME_SENSORCONFIGS,
+							ucHeader, OFFSET_ISL29035 + 1);
+		ucNoOfConfgs = ucHeader/2;
+	}
+
+	for (i = 0; i < ucNoOfConfgs; i++)
 	{
 		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
 							ucConfigArray[i*2],
@@ -93,7 +109,7 @@ uint16_t getLightsensor_data(void)
 {
 	uint8_t databyte[2];
 	uint16_t data = 0;
-	uint16_t lux_reading=0;
+	uint16_t lux_reading = 0;
 
 	i2cReadRegisters(ISL29035_I2C_ADDRESS, DATA_LSB_REG,2, databyte);
 	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];

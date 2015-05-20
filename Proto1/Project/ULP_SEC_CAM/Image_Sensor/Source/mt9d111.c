@@ -1085,7 +1085,7 @@ long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal)
 static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 {
 	unsigned char ucBuffer[20];
-	unsigned short usTemp;
+	//unsigned short usTemp;
 	long lRetVal = -1;
 
 	// Set the page

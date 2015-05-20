@@ -22,8 +22,8 @@ int32_t CreateFile_Flash(uint8_t* pucFileName, uint32_t uiMaxFileSize)
 
 	lRetVal = sl_FsOpen(pucFileName,
 	    					FS_MODE_OPEN_CREATE(uiMaxFileSize,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-	                        &ulToken,
-	                        &lFileHandle);
+	    					(_u32*)&ulToken,
+	                        (_i32*)&lFileHandle);
 	//
 	// Error handling if File Operation fails
 	//
@@ -76,8 +76,8 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
 		//
 		lRetVal = sl_FsOpen(pucFileName,
 							FS_MODE_OPEN_WRITE,
-							&ulToken,
-							&lFileHandle);
+							(_u32*)&ulToken,
+							(_i32*)&lFileHandle);
 		//
 		// Error handling if File Operation fails
 		//
@@ -149,8 +149,8 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 
 	lRetVal = sl_FsOpen(pucFileName,
 						FS_MODE_OPEN_READ,
-						&ulToken,
-						&lFileHandle);
+						(_u32*)&ulToken,
+						(_i32*)&lFileHandle);
 	 if(lRetVal < 0)
 	 {
 		ASSERT_ON_ERROR(lRetVal);

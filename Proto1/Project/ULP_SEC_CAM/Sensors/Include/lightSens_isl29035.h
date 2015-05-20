@@ -19,7 +19,7 @@
 //*****************************************************************************
 //                      MACRO DEFINITIONS
 //*****************************************************************************
-#define ISL29035_I2C_ADDRESS 		0x44
+#define ISL29035_I2C_ADDRESS 			0x44
 
 // device register map
 #define CMD_1_REG						0x00
@@ -27,7 +27,7 @@
 // data to read
 #define DATA_LSB_REG					0x02
 #define DATA_MSB_REG					0x03
-//Threshold lowe and upper
+//Threshold lower and upper
 #define INT_LT_LSB_REG					0x04
 #define INT_LT_MSB_REG					0x05
 #define INT_HT_LSB_REG					0x06
@@ -35,7 +35,6 @@
 
 #define DEVICE_ID_REG 					0x0F
 #define DEVICE_ID_MASK					0x38 //xx_ _ _xxx
-#define DEVICE_ID						0x28 //xx101xxx
 //****************************************************
 //Command register functions
 //*****************************************************

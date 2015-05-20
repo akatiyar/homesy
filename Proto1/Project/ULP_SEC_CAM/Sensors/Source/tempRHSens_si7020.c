@@ -9,7 +9,12 @@
  */
  ///////////////////////////////////////////////////////////////////////////////
 #include "tempRHSens_si7020.h"
+#include "flash_files.h"
 
+#define DEVICE_ID						0x14
+#define FLASH_CONFIGS					0
+
+#define HEADER_SIZE						1
 //******************************************************************************
 //
 //  This function checks I2C communication with Si7020 by reading the Device
@@ -60,7 +65,7 @@ void configureTempRHSensor()
 {
 	uint8_t ucResolution = RH8BIT_TEMP12BIT;	// Conversion time - resolution
 												// trade-off
-	uint8_t ucHeaterEnable = 0;	// Use HEATER_ENABLE to switch ON heater
+	uint8_t ucHeaterEnable = 0;	// Use HEATER_ENABLE to ON heater - Not used
 
 	uint8_t ucConfigRegVal;
 	uint8_t ucBitMask = RESOLUTION_MASK|HEATER_ENABLE_MASK;
@@ -70,11 +75,19 @@ void configureTempRHSensor()
 						LENGTH_IS_ONE,
 						&ucConfigRegVal);
 
+	if(FLASH_CONFIGS)
+	{
+		//Read from flash
+		ReadFile_FromFlash(&ucConfigRegVal, FILENAME_SENSORCONFIGS,
+							1, OFFSET_SI7020 + HEADER_SIZE);
+	}
+
 	//
 	// Update only masked bits in configuration register
 	//
 	ucConfigRegVal &= ~ ucBitMask;
 	ucConfigRegVal |= (ucResolution | ucHeaterEnable);
+
 
 	i2cWriteRegisters(SI7020_I2C_ADDRESS,
 						WRITE_CONFIGREG_CMD, //Write Command instead of RegAddr

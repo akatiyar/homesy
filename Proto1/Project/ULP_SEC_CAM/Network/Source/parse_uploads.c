@@ -50,7 +50,7 @@ int32_t UploadImageToParse(ParseClient client,
 	lRetVal = parseSendRequest(client,
 									"POST",
 									"/1/files/myPic1.jpg",
-									pucImageFileName,
+									(const char*)pucImageFileName,
 									NULL,
 									image);
 
@@ -80,7 +80,7 @@ int32_t UploadSensorDataToParse(ParseClient client,
 	lRetVal = parseSendRequest(client,
 						"POST",
 						"/1/classes/DeviceState", //DeviceState is object name
-						sensorDataFileName,
+						(const char*)sensorDataFileName,
 						NULL,
 						jsonObject);
 //	parseSendRequestInternal(client,
@@ -122,13 +122,13 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	//	Initialize pointers to the end of http response message
 	//
 	ucResponseLen = strlen(dataBuffer);
-	pucImageIDStart = dataBuffer + ucResponseLen - 1;
+	pucImageIDStart = (uint8_t)dataBuffer + ucResponseLen - 1;
 	pucImageIDEnd = pucImageIDStart - 3; // -3 : ",} and CR characters
 
 	//
 	//	Traverse backward till '/' is found
 	//
-	while( strncmp((const uint8_t*)pucImageIDStart, "/", 1) )
+	while( strncmp((const char*)pucImageIDStart, "/", 1) )
 	{
 		pucImageIDStart--;
 	}
@@ -139,8 +139,8 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	//
 	ucLength = pucImageIDEnd - pucImageIDStart + 1;
 
-	strncpy( (uint8_t *)pucParseImageUrl,
-			 (const uint8_t *)pucImageIDStart,
+	strncpy( (char *)pucParseImageUrl,
+			 (const char *)pucImageIDStart,
 			 ucLength);
 
 	return 0;
@@ -173,28 +173,30 @@ int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 
 	uint8_t ucCharConv[20];
 	memset(ucCharConv, '0', 20);
-	strncat(pucSensorDataTxt, "{\"deviceId\":\"", sizeof("{\"deviceId\":\""));
-	strncat(pucSensorDataTxt,
+	strncat((char*)pucSensorDataTxt, "{\"deviceId\":\"",
+					sizeof("{\"deviceId\":\""));
+	strncat((char*)pucSensorDataTxt,
 					VCOGNITION_DEVICE_ID,
 					sizeof("VCOGNITION_DEVICE_ID"));
-	strncat(pucSensorDataTxt,
+	strncat((char*)pucSensorDataTxt,
 					"\",\"photo\":{\"name\":\"",
 					sizeof("\",\"photo\":{\"name\":\""));
-	strncat(pucSensorDataTxt, pucParseImageUrl, strlen(pucParseImageUrl));
-	strncat(pucSensorDataTxt,
+	strncat((char*)pucSensorDataTxt, (const char*)pucParseImageUrl,
+					strlen((char*)pucParseImageUrl));
+	strncat((char*)pucSensorDataTxt,
 					"\",\"__type\":\"File",
 					sizeof("\",\"__type\":\"File"));
-	strncat(pucSensorDataTxt, "\"},\"temp\":", sizeof("\"},\"temp\":"));
-	intToASCII((uint16_t)(fTemp*100), ucCharConv);
-	strncat(pucSensorDataTxt, ucCharConv, 2);
-	strncat(pucSensorDataTxt, ".", 1);
-	strncat(pucSensorDataTxt, ucCharConv + 2, 2);
-	strncat(pucSensorDataTxt, ",\"humidity\":", sizeof(",\"humidity\":"));
-	intToASCII((uint16_t)(fRH*100), ucCharConv);
-	strncat(pucSensorDataTxt, ucCharConv, 2);
-	strncat(pucSensorDataTxt, ".", 1);
-	strncat(pucSensorDataTxt, ucCharConv+2, 2);
-	strncat(pucSensorDataTxt, "}", sizeof("}"));
+	strncat((char*)pucSensorDataTxt, "\"},\"temp\":", sizeof("\"},\"temp\":"));
+	intToASCII((uint16_t)(fTemp*100), (char*)ucCharConv);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, 2);
+	strncat((char*)pucSensorDataTxt, ".", 1);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv + 2, 2);
+	strncat((char*)pucSensorDataTxt, ",\"humidity\":", sizeof(",\"humidity\":"));
+	intToASCII((uint16_t)(fRH*100), (char*)ucCharConv);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, 2);
+	strncat((char*)pucSensorDataTxt, ".", 1);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv+2, 2);
+	strncat((char*)pucSensorDataTxt, "}", sizeof("}"));
 	//UART_PRINT("\n%s\n", pucSensorDataTxt);
 
 	return 0;

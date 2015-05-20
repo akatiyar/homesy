@@ -30,6 +30,27 @@
 											//are needed in the file
 #define CONTENTSIZE_FILE_SENSORDATA	(500)	//Bytes
 											//Find way to employ the Macro
+#define FILESZ_ADC081C021				0
+#define FILESZ_FXOS8700					32
+#define FILESZ_ISL29035					160
+#define FILESZ_SI7020					192
+#define FILESZ_TCA6408A					224
+
+#define OFFSET_ADC081C021				0
+#define OFFSET_FXOS8700					(OFFSET_ADC081C021 + FILESZ_ADC081C021)
+#define OFFSET_ISL29035					(OFFSET_FXOS8700 + FILESZ_FXOS8700)
+#define OFFSET_SI7020					(OFFSET_ISL29035 + FILESZ_ISL29035)
+#define OFFSET_TCA6408A					(OFFSET_SI7020 + FILESZ_SI7020)
+
+
+#define FILENAME_SENSORCONFIGS			"sensor_configs_file"
+#define MAX_FILESIZE_SENSORCONFIGS		1024	//Bytes
+											//File created for this size
+											//Can be used when more fields
+											//are needed in the file
+#define CONTENTSIZE_FILE_SENSORCONFIGS	(500)	//Bytes
+											//Find way to employ the Macro
+
 
 #define FILENAME_IMAGESENS_CONFIG	"imagesensor_configs_file"
 #define MAX_FILESIZE_IMAGESENS_CONFIG					1024	//Bytes

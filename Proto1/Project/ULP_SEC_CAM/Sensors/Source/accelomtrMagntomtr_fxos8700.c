@@ -9,6 +9,14 @@
  */
  ///////////////////////////////////////////////////////////////////////////////
 #include "accelomtrMagntomtr_fxos8700.h"
+#include "flash_files.h"
+
+#define HEADER_SIZE						3
+
+#define DEVICE_ID_REG 					0x0D
+#define DEVICE_ID 						0xC7
+
+#define FLASH_CONFIGS					0
 
 //******************************************************************************
 //
@@ -126,12 +134,26 @@ void verifyAccelMagnSensor()
 void configureFXOS8700(uint8_t ucAccelMagnMode)
 {
 	uint8_t i = 0;
-	uint8_t ucConfigArray[40];
+	uint8_t ucConfigArray[100];
 	uint8_t ucNoofCfgs;
-
+	uint8_t ucHeader[HEADER_SIZE];
 	switch(ucAccelMagnMode)
 	{
 		case MODE_READ_ACCEL_MAGN_DATA:
+			if(FLASH_CONFIGS)
+			{
+				//Read file from flash into ucConfig
+				ReadFile_FromFlash(ucHeader,
+									FILENAME_SENSORCONFIGS,
+									HEADER_SIZE,
+									OFFSET_FXOS8700);
+				ReadFile_FromFlash(ucConfigArray,
+									FILENAME_SENSORCONFIGS,
+									(uint8_t)ucHeader[1],
+									OFFSET_FXOS8700+HEADER_SIZE);
+				ucNoofCfgs = ucHeader[1]/2;
+				break;
+			}
 			// Software reset
 			ucConfigArray[i++] = CTRL_REG2;
 			ucConfigArray[i++] = 0x40;
@@ -194,6 +216,20 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 			break;
 
 		case MODE_ACCEL_INTERRUPT: //For motion detection: Configs from AN4070
+			if(FLASH_CONFIGS)
+			{
+				//Read file from flash into ucConfig
+				ReadFile_FromFlash(ucHeader,
+									FILENAME_SENSORCONFIGS,
+									HEADER_SIZE,
+									OFFSET_FXOS8700);
+				ReadFile_FromFlash(ucConfigArray,
+									FILENAME_SENSORCONFIGS,
+									(uint8_t)ucHeader[2],
+									OFFSET_FXOS8700+HEADER_SIZE+ucHeader[1]);
+				ucNoofCfgs = ucHeader[2]/2;
+				break;
+			}
 			// Software reset
 			ucConfigArray[i++] = CTRL_REG2;
 			ucConfigArray[i++] = 0x40;

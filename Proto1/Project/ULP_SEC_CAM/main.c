@@ -145,7 +145,6 @@ Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
                                         "__SL_G_US1", "__SL_G_US2","__SL_G_US3",
                                                     "__SL_G_US4", "__SL_G_US5"};
-
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
 #endif

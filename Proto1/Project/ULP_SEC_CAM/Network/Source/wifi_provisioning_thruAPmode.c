@@ -21,7 +21,6 @@ static long WlanConnect();
 //****************************************************************************
 int32_t ProvisioningAP()
 {
-   long lCountSSID;
    long lRetVal = -1;
 
     InitializeAppVariables();
@@ -135,13 +134,13 @@ int32_t ProvisioningAP()
 			uint8_t ucConfigFileData[CONTENTSIZE_FILE_USERWIFI];
 			uint8_t* pucConfigFileData = &ucConfigFileData[0];
 
-			strcpy(pucConfigFileData, g_cWlanSSID);
-			pucConfigFileData += strlen(pucConfigFileData)+1;
+			strcpy((char*)pucConfigFileData, (const char*)g_cWlanSSID);
+			pucConfigFileData += strlen((const char*)pucConfigFileData)+1;
 
-			strcpy(pucConfigFileData, g_cWlanSecurityType);
-			pucConfigFileData += strlen(pucConfigFileData)+1;
+			strcpy((char*)pucConfigFileData, (const char*)g_cWlanSecurityType);
+			pucConfigFileData += strlen((const char*)pucConfigFileData)+1;
 
-			strcpy(pucConfigFileData, g_cWlanSecurityKey);
+			strcpy((char*)pucConfigFileData, (const char*)g_cWlanSecurityKey);
 
 			int32_t lFileHandle;
 			lRetVal = WriteFile_ToFlash((uint8_t*)&ucConfigFileData[0],

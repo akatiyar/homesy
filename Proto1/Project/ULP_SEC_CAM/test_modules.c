@@ -117,5 +117,4 @@ void Test_ImageSensConfigFromFlash()
 		sl_Stop(0xFFFF);
 	}
 
-
 }

@@ -199,7 +199,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 */
 			 SlFsFileInfo_t fileInfo;
 //			 sl_FsGetInfo(myFile, ulToken, &fileInfo);
-			 lRetVal = sl_FsGetInfo(httpRequestBody, ulToken, &fileInfo);
+			 lRetVal = sl_FsGetInfo((_u8*)httpRequestBody, ulToken, &fileInfo);
 			 if (lRetVal < 0)
 			 {
 				 for( ;; );
@@ -306,9 +306,10 @@ int payloadSend( const char *httpRequestBody,
 		unsigned long ulToken = 0;
 		SlFsFileInfo_t fileInfo;
 
-		sl_FsGetInfo(httpRequestBody, ulToken, &fileInfo);
+		sl_FsGetInfo((_u8*)httpRequestBody, ulToken, &fileInfo);
 
-		status = sl_FsOpen(httpRequestBody, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
+		status = sl_FsOpen((_u8*)httpRequestBody, FS_MODE_OPEN_READ,
+							&ulToken, &lFileHandle);
 		if(status < 0)
 		{
 			DEBUG_PRINT("\nFile open\n%l\n\n",status);

@@ -36,7 +36,7 @@
 
 #define ACCEL_OUTPUT_DATA_REG 			0x01
 #define MAGNT_OUTPUT_DATA_REG 			0x33
-#define DEVICE_ID_REG 					0x0D
+
 #define STATUS_REG 						0x00
 #define ACCEL_THRSLD_REG				0X17
 #define DEBOUNCE_THRSLD_REG				0X18
@@ -61,8 +61,6 @@
 #define A_FFMT_THRS_REG					0x17
 #define A_FFMT_DEBOUNCE_CNT_REG			0x18
 #define A_FFMT_SRC_REG					0x16
-
-#define DEVICE_ID 						0xC7
 
 #define FS								2 		// Valid values:2,4,8
 #define SENSITIVITY_1FS_FACTOR			(0.000122)
