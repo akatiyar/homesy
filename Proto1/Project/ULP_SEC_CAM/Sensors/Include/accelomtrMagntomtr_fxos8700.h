@@ -17,7 +17,8 @@
 #include "app.h"
 
 
-#define MOVING_AVG_FLTR_L				10
+//#define MOVING_AVG_FLTR_L				10
+#define MOVING_AVG_FLTR_L				4
 //#define NO_OF_PAST_VALS					100 // Set this such that:
 //											// angle(n) = 40
 #define DOOR_ANGLE_TO_DETECT			40	// In degrees

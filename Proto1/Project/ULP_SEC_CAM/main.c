@@ -145,6 +145,9 @@ Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
                                         "__SL_G_US1", "__SL_G_US2","__SL_G_US3",
                                                     "__SL_G_US4", "__SL_G_US5"};
+extern int32_t Collect_InitMangReadings();
+extern int32_t WaitFor40Degrees();
+
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
 #endif
@@ -258,7 +261,7 @@ void Main_Task(void *pvParameters)
 {
 	long lRetVal = -1;
 
-	Test_ImageSensConfigFromFlash();
+	//Test_ImageSensConfigFromFlash();
 
     if(MAP_PRCMSysResetCauseGet() == 0)
 	{
@@ -268,49 +271,12 @@ void Main_Task(void *pvParameters)
 		UART_PRINT("HIB: Wake up on Power ON\n\r");
 		UART_PRINT("***PLEASE KEEP THE DOOR CLOSED***\n\r");
 
-/*		//
-		// Collect the Initial Magnetometr Readings(door closed)
-		//
-		UART_PRINT("\n\rMAGNETOMETER:\n\r");
-		verifyAccelMagnSensor();
-		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
-		//DBG
-		float_t fInitDoorDirectionAngle;
-		getDoorDirection( &fInitDoorDirectionAngle );
-		DBG_PRINT("DBG: Testing Magnetometer working:\n"\
-					" Angle: %f\n\r", fInitDoorDirectionAngle);
-
-		float_t fMagnFlx_Init[3];
-		float_t fMFluxMagnitudeInit = 0;
-		uint8_t j;
-		for (j = 0; j < MOVING_AVG_FLTR_L; j++)
-		{
-			getMagnFlux_3axis(fMagnFlx_Init);
-
-			fMFluxMagnitudeInit += sqrtf( (fMagnFlx_Init[0]*fMagnFlx_Init[0]) +
-												(fMagnFlx_Init[1]*fMagnFlx_Init[1]) +
-												(fMagnFlx_Init[2]*fMagnFlx_Init[2]) );
-		}
-		fMFluxMagnitudeInit /= MOVING_AVG_FLTR_L;
-
-		//
-		// Save initial magnetometer readings in flash
-		//
-		lRetVal = sl_Start(0, 0, 0);
-		//ASSERT_ON_ERROR(lRetVal);
-
-		lRetVal = CreateFile_Flash((uint8_t*)MAGN_INIT_VALS_FILE_NAME, MAGN_INIT_VALS_FILE_MAXSIZE);
-		lRetVal = WriteFile_ToFlash((uint8_t*)fMagnFlx_Init, (uint8_t*)MAGN_INIT_VALS_FILE_NAME, 12, 0 );
-
-	    lRetVal = sl_Stop(0xFFFF);
-	    //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-		//ASSERT_ON_ERROR(lRetVal);
-*/
+		Collect_InitMangReadings();
 
 		//
 		// Set up the camera module through I2C
 		//
-
+#define NO_CAMERA
 #ifndef NO_CAMERA
 		UART_PRINT("\n\rCAMERA MODULE:\n\r");
  		CamControllerInit();	// Init parallel camera interface of cc3200
@@ -376,117 +342,8 @@ void Main_Task(void *pvParameters)
 #endif
 		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
 
-/*		float_t fMagnFluxInit3Axis_Read[3];
+		WaitFor40Degrees();
 
-		//
-		// Read initial magnetometer readings from flash
-		//
-		lRetVal = sl_Start(0, 0, 0);
-		//ASSERT_ON_ERROR(lRetVal);
-
-		lRetVal = ReadFile_FromFlash((uint8_t*)fMagnFluxInit3Axis_Read, (uint8_t*)MAGN_INIT_VALS_FILE_NAME, 12, 0 );
-
-		lRetVal = sl_Stop(0xFFFF);
-		//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-		//ASSERT_ON_ERROR(lRetVal);
-
-		//
-		// Calculate magnitude corresponding to 40 and 45 degrees
-		//
-		float_t fMFluxMagnitudeInit;
-		fMFluxMagnitudeInit = sqrtf( (fMagnFluxInit3Axis_Read[0]*fMagnFluxInit3Axis_Read[0]) +
-									(fMagnFluxInit3Axis_Read[1]*fMagnFluxInit3Axis_Read[1]) +
-									(fMagnFluxInit3Axis_Read[2]*fMagnFluxInit3Axis_Read[2]) );
-		UART_PRINT("DBG: Initial Magnitude: %f\n\r", fMFluxMagnitudeInit);
-		float_t fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff;
-		fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_TO_DETECT/2) * PI / 180 );
-//		fThreshold_magnitudeOfDiff *= fThreshold_magnitudeOfDiff;
-		fThreshold_higher_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_HIGHER/2) * PI / 180);
-//		fThreshold_higher_magnitudeOfDiff *= fThreshold_higher_magnitudeOfDiff;
-		UART_PRINT("DBG: Threshold Magnitude: %f   %f\n\r", fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff);
-
-		//
-		// Configure sensor for reading accelerometer/magnetometer
-		//
-		configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
-
-		//
-		// Wait for '40 degrees while closing condition'
-		//
-		float_t fMagnFlx_Now[3];
-		float_t fMagnFlx_Dif[3];
-		float_t fMFluxMagnitudeArray[MOVING_AVG_FLTR_L];
-		float_t fMFluxMagnitude, fMFluxMagnitudePrev = 0;
-		memset(fMFluxMagnitudeArray, '0', MOVING_AVG_FLTR_L * sizeof(float_t));
-		uint8_t i = 0, j;
-		uint8_t ucOpenFlag = 0;
-		uint8_t ucFirstTimeFlag = 1;
-		while(1)
-		{
-			getMagnFlux_3axis(fMagnFlx_Now);
-
-			fMagnFlx_Dif[0] = fMagnFluxInit3Axis_Read[0] - fMagnFlx_Now[0];
-			fMagnFlx_Dif[1] = fMagnFluxInit3Axis_Read[1] - fMagnFlx_Now[1];
-			fMagnFlx_Dif[2] = fMagnFluxInit3Axis_Read[2] - fMagnFlx_Now[2];
-			fMFluxMagnitudeArray[i++] = sqrtf( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
-										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
-										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
-//			fMFluxMagnitudeArray[i++] = ( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
-//										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
-//										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
-			i = i % MOVING_AVG_FLTR_L;
-//			UART_PRINT("%f\n\r", fMFluxMagnitudeInit);
-
-			float_t fDoorDirectionAngle;
-			getDoorDirection( &fDoorDirectionAngle );
-
-			fMFluxMagnitude = 0;
-			for (j = 0; j < MOVING_AVG_FLTR_L; j++)
-			{
-				fMFluxMagnitude += fMFluxMagnitudeArray[j];
-			}
-			if( ucFirstTimeFlag == 0 )
-			{
-				fMFluxMagnitude /= (i);
-				if (i == 0)
-				{
-					ucFirstTimeFlag = 1;
-				}
-			}
-			else
-			{
-				fMFluxMagnitude /= MOVING_AVG_FLTR_L;
-			}
-
-			float_t fAngle;
-			fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
-//			UART_PRINT("%f, ", fMFluxMagnitude);
-//			UART_PRINT("%f\n", fAngle);
-
-			if( ucOpenFlag == 0 )
-			{
-				UART_PRINT("0");
-				if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
-				{
-					ucOpenFlag = 1;
-					UART_PRINT("Open Detected");
-				}
-			}
-			else
-			{
-				UART_PRINT("@");
-				if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
-				{
-					UART_PRINT("Door at 40 degres while closing");
-					UART_PRINT("\n Angle =  %f\nMagnitude = %f\n",fAngle,fMFluxMagnitude);
-//					ucOpenFlag = 0; //To repeat DGB
-					break;
-
-				}
-			}
-			UtilsDelay(30000);
-		}
-*/
 
 		//CollectTxit_ImgTempRH();
 		disableAE();

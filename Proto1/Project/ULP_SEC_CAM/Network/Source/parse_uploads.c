@@ -122,7 +122,7 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	//	Initialize pointers to the end of http response message
 	//
 	ucResponseLen = strlen(dataBuffer);
-	pucImageIDStart = (uint8_t)dataBuffer + ucResponseLen - 1;
+	pucImageIDStart = (uint8_t*)dataBuffer + ucResponseLen - 1;
 	pucImageIDEnd = pucImageIDStart - 3; // -3 : ",} and CR characters
 
 	//
