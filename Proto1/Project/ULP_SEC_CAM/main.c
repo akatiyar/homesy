@@ -261,6 +261,17 @@ void Main_Task(void *pvParameters)
 {
 	long lRetVal = -1;
 
+	//ProvisioningAP();
+
+//	while(1)
+//	{
+//		//verifyTempRHSensor();
+//		verifyISL29035();
+//		verifyAccelMagnSensor();
+//		Verify_ImageSensor();
+//	}
+
+
 	//Test_ImageSensConfigFromFlash();
 
     if(MAP_PRCMSysResetCauseGet() == 0)
@@ -487,6 +498,10 @@ void main()
     // Pinmux for UART
     //
     PinMuxConfig();
+
+    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 
 #ifndef NOTERM
     //

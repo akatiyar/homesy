@@ -136,6 +136,7 @@ I2CTransact(unsigned long ulCmd)
             break;
         }
         return FAILURE;
+        //return MAP_I2CMasterErr(I2C_BASE);
     }
 
     return SUCCESS;

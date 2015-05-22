@@ -157,6 +157,7 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 	iRetVal = I2C_IF_Write(ucDevI2CAddr,
 							pucRegAddr,
 							LENGTH_IS_TWO,
+							//LENGTH_IS_ONE,
 							ZERO_STOP_BIT);
 	if(iRetVal == SUCCESS)
 	{
