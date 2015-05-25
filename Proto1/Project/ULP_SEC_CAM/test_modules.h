@@ -11,5 +11,6 @@
 void Test_Provisioning_thruAP();
 void TestOrProfile_CameraModuleStandby();
 void Test_ImageSensConfigFromFlash();
+void Test_HibernateSlwClkCtrWakeup();
 
 #endif /* TEST_MODULES_H_ */

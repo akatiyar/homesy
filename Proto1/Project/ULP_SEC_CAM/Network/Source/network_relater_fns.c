@@ -56,8 +56,10 @@ long ConfigureSimpleLinkToDefaultState()
     long lRetVal = -1;
     long lMode = -1;
 
+    UART_PRINT("b sl_start()\n\r");
     lMode = sl_Start(0, 0, 0);
     ASSERT_ON_ERROR(lMode);
+    UART_PRINT("a sl_start()\n\r");
 
     // If the device is not in station-mode, try configuring it in station-mode
     if (ROLE_STA != lMode)

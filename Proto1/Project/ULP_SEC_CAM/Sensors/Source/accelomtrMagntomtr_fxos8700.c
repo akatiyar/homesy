@@ -107,7 +107,7 @@ void verifyAccelMagnSensor()
 						LENGTH_IS_ONE,
 						&ucDeviceID);
 
-	UART_PRINT("Read Device ID: %x\n\r", ucDeviceID);
+	UART_PRINT("A+M Read Device ID: %x\n\r", ucDeviceID);
 
 	if(DEVICE_ID == ucDeviceID)
 	{

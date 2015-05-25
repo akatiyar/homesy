@@ -261,16 +261,15 @@ void Main_Task(void *pvParameters)
 {
 	long lRetVal = -1;
 
-	//ProvisioningAP();
+	ProvisioningAP();
 
 //	while(1)
 //	{
-//		//verifyTempRHSensor();
+//		verifyTempRHSensor();
 //		verifyISL29035();
 //		verifyAccelMagnSensor();
-//		Verify_ImageSensor();
+//		//Verify_ImageSensor();
 //	}
-
 
 	//Test_ImageSensConfigFromFlash();
 
@@ -282,12 +281,12 @@ void Main_Task(void *pvParameters)
 		UART_PRINT("HIB: Wake up on Power ON\n\r");
 		UART_PRINT("***PLEASE KEEP THE DOOR CLOSED***\n\r");
 
-		Collect_InitMangReadings();
+		//Collect_InitMangReadings();
 
 		//
 		// Set up the camera module through I2C
 		//
-#define NO_CAMERA
+//#define NO_CAMERA
 #ifndef NO_CAMERA
 		UART_PRINT("\n\rCAMERA MODULE:\n\r");
  		CamControllerInit();	// Init parallel camera interface of cc3200
@@ -353,7 +352,7 @@ void Main_Task(void *pvParameters)
 #endif
 		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
 
-		WaitFor40Degrees();
+		//WaitFor40Degrees();
 
 
 		//CollectTxit_ImgTempRH();
@@ -420,7 +419,13 @@ void Main_Task(void *pvParameters)
 #endif
 	}
 }
-
+//void Main_Task(void *pvParameters)
+//{
+//	if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
+//	{
+//
+//	}
+//}
 //*****************************************************************************
 //
 //! Application startup display on UART
@@ -494,21 +499,21 @@ void main()
     // Initialize Board configurations
     //
     BoardInit();
+
     //
     // Pinmux for UART
     //
     PinMuxConfig();
-
-    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
-    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
-    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 
 #ifndef NOTERM
     //
     // Configuring UART
     //
     InitTerm();
+    UART_PRINT("Test");
 #endif
+
+    Test_HibernateSlwClkCtrWakeup();
 
     //
 	//Display Application Banner
@@ -524,17 +529,6 @@ void main()
 	// Initilalize DMA
 	//
 	UDMAInit();
-
-	//
-	// Initialize timer and test working
-	//
-	InitializeTimer();
-	StartTimer();
-	UtilsDelay(80000000/3); //2 sec delay
-	StopTimer();
-    float_t fTestDuration;
-    GetTimeDuration(&fTestDuration);
-    UART_PRINT("\n\rUtilsDelay Duration: %f\n\r", fTestDuration);
 
 	//
     // Start the SimpleLink Host

@@ -51,3 +51,19 @@ unsigned short intToASCII(short cNum, char *cString)
 
     return length;
 }
+
+//******************************************************************************
+//	This function blinks the LED
+//******************************************************************************
+void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle)
+{
+	    uint8_t i;
+	    for(i=0;i<5;i++)
+	    {
+	    	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	    	UtilsDelay(.5*80000000/6);
+	    	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+	    	UtilsDelay(.5*80000000/6);
+	    }
+	    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+}

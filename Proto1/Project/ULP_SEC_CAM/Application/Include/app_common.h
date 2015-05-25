@@ -9,7 +9,7 @@
 #define APP_COMMON_H_
 
 unsigned short intToASCII(short cNum, char *cString);
-
+void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle)
 
 
 #endif /* APP_COMMON_H_ */
