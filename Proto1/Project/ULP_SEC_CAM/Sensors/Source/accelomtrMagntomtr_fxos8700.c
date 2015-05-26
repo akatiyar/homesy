@@ -122,6 +122,20 @@ void verifyAccelMagnSensor()
 }
 
 //******************************************************************************
+// This function puts FXOS8700 in standby. Most register values are retained.
+//	Some register vals are lost. I2C communications can happen during standby.
+//	Typical Standby current = 2uA
+//******************************************************************************
+int32_t standby_accelMagn_fxos8700()
+{
+	uint8_t data = 0x00;
+	uint32_t lRetVal;
+
+	lRetVal = setConfigReg(CTRL_REG1, data);
+
+	return lRetVal;
+}
+//******************************************************************************
 //
 //  This function configures FXOS8700 registers as needed by the applicaiton
 //	blueprint/mode

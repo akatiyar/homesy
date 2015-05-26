@@ -1,5 +1,5 @@
 #include "app.h"
-
+#include "math.h"
 const char pcDigits[] = "0123456789"; /* variable used by itoa function */
 
 //*****************************************************************************
@@ -58,12 +58,11 @@ unsigned short intToASCII(short cNum, char *cString)
 void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle)
 {
 	    uint8_t i;
-	    for(i=0;i<5;i++)
+	    for(i=0;i<ucHowManyTimes;i++)
 	    {
 	    	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
-	    	UtilsDelay(.5*80000000/6);
+	    	UtilsDelay((fSecsForEachCycle/2.0)*80000000/6);
 	    	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
-	    	UtilsDelay(.5*80000000/6);
+	    	UtilsDelay((fSecsForEachCycle/2.0)*80000000/6);
 	    }
-	    MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 }

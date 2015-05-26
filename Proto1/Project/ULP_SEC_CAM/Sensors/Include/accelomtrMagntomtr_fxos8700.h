@@ -19,6 +19,7 @@
 
 //#define MOVING_AVG_FLTR_L				10
 #define MOVING_AVG_FLTR_L				4
+#define L_AVG_INIT_MAGN					50
 //#define NO_OF_PAST_VALS					100 // Set this such that:
 //											// angle(n) = 40
 #define DOOR_ANGLE_TO_DETECT			40	// In degrees
@@ -120,4 +121,6 @@ void FXOS8700CQ_Mag_Calibration (void);
 void writeMagntCalibrationValue(int16_t* psCalibOffsetVals);
 
 void clearAccelMotionIntrpt();
+
+int32_t standby_accelMagn_fxos8700();
 #endif /* FXOS8700_H_ */

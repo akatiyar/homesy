@@ -47,3 +47,25 @@ uint32_t ulResetCause;
     {
     	UART_PRINT("Device is exiting hibernate\n\r");
     }
+
+
+
+
+
+    //	PCLK_Rate_read();
+
+    //	ReadAllAEnAWBRegs();
+
+    	/*while(1)
+    	{
+    		//AnalogGainReg_Read();
+    		ReadAllAEnAWBRegs();
+
+    		disableAE();
+    		disableAWB();
+
+    		ReadAllAEnAWBRegs();
+
+    		enableAE();
+    		enableAWB();
+    	}*/

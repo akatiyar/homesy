@@ -147,6 +147,7 @@ char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
                                                     "__SL_G_US4", "__SL_G_US5"};
 extern int32_t Collect_InitMangReadings();
 extern int32_t WaitFor40Degrees();
+int32_t Config_And_Start_CameraCapture();
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -252,180 +253,67 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //	Initialize and hibernate. Wake on trigger and wait for 40degree closing
 //	door condition and capture image and sensor data and upload to cloud
 //
-//	The logic used to detect '40 degrees while door is closing':
-//		Opening of door beyond 45 degrees is detected. After that, we check
-//	when the door angle becomes less than 40 degrees
-//
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
-	long lRetVal = -1;
-
-	ProvisioningAP();
-
-//	while(1)
-//	{
-//		verifyTempRHSensor();
-//		verifyISL29035();
-//		verifyAccelMagnSensor();
-//		//Verify_ImageSensor();
-//	}
-
-	//Test_ImageSensConfigFromFlash();
-
-    if(MAP_PRCMSysResetCauseGet() == 0)
+	if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
-#ifndef USB_DEBUG
-		UtilsDelay(8000000*10);//Time to open UART port and close the
-#endif
-		UART_PRINT("HIB: Wake up on Power ON\n\r");
-		UART_PRINT("***PLEASE KEEP THE DOOR CLOSED***\n\r");
+		LED_Blink(30, 1);
 
-		//Collect_InitMangReadings();
+		ProvisioningAP();	//Testing battery powering
 
-		//
-		// Set up the camera module through I2C
-		//
-//#define NO_CAMERA
-#ifndef NO_CAMERA
-		UART_PRINT("\n\rCAMERA MODULE:\n\r");
- 		CamControllerInit();	// Init parallel camera interface of cc3200
-								// since image sensor needs XCLK for
-								//its I2C module to work
+		Collect_InitMangReadings();
+		Config_And_Start_CameraCapture();
 
-		UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
-								// 10 is margin
-
-		SoftReset_ImageSensor();
-
-		UART_PRINT("Cam Sensor Init \n\r");
-		CameraSensorInit();
-
-		// Configure Sensor in Capture Mode
-		UART_PRINT("Start Sensor\n\r");
-		lRetVal = StartSensorInJpegMode();
-		STOPHERE_ON_ERROR(lRetVal);
-
-//		PCLK_Rate_read();
-//		uint16_t usJPEGCofigRegVal;
-//		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-//		Variable_Read(0xA907, &usJPEGCofigRegVal);
-//		uint16_t usSeqModeRegVal;
-//		UART_PRINT("SEQ_MODE(0xA102):\n\r");
-//		Variable_Read(0xA102, &usSeqModeRegVal);
-
-		UART_PRINT("I2C Camera config done\n\r");
-
-//		UtilsDelay(80000000);
-//		PCLK_Rate_read();
-//		UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-//		Variable_Read(0xA907, &usJPEGCofigRegVal);
-//		UART_PRINT("SEQ_MODE(0xA102):\n\r");
-//		Variable_Read(0xA102, &usSeqModeRegVal);
-
-		//ReadAllAEnAWBRegs();
-
-		MAP_PRCMPeripheralReset(PRCM_CAMERA);
-		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-#endif
-
-
-#ifndef USB_DEBUG
-		//
-		// Set up the trigger source and enter hibernate
-		//
-		HIBernate();
-#endif
+		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
-#ifdef USB_DEBUG
-/*    sensorsTriggerSetup();
-	while(GPIOPinRead(GPIOA0_BASE, 0x04))
+	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-	}
-*/
-#else
-    else if(MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
-#endif
-	{
-#ifndef USB_DEBUG
-		long lRetVal;
-#endif
-		DBG_PRINT("\n\r\n\rHIB: Woken up from Hibernate\n\r");
+		LED_Blink(4, .3);
+		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+		WaitFor40Degrees();
+		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
 
-		//WaitFor40Degrees();
+		CollectTxit_ImgTempRH();
+		sl_Stop(0xFFFF);
 
-
-		//CollectTxit_ImgTempRH();
-		disableAE();
-		disableAWB();
-
-		WriteAllAEnAWBRegs();
-
-		//
-		// Collect and transmit Image and sensor data
-		//
-		while(1)
-		{
-			//CamControllerInit();	// Init parallel camera interface of cc3200
-									// since image sensor needs XCLK for
-									//its I2C module to work
-			CollectTxit_ImgTempRH();
-
-//			uint16_t usJPEGStatusRegVal;
-//			RegStatusRead(&usJPEGStatusRegVal);
-//
-//			//if ()
-//
-//			PCLK_Rate_read();
-//			UART_PRINT("JPEG Config Reg(0xA907):\n\r");
-//			uint16_t usJPEGCofigRegVal;
-//			Variable_Read(0xA907, &usJPEGCofigRegVal);
-//
-//			uint16_t usSeqModeRegVal;
-//			UART_PRINT("SEQ_MODE(0xA102):\n\r");
-//			Variable_Read(0xA102, &usSeqModeRegVal);
-
-			sl_Stop(0xFFFF);
-		}
-
-
-#ifndef USB_DEBUG
-//	uint16_t temp = getLightsensor_data();
-//
-//	while(temp > 0x01FF)
-//	{
-//		temp = getLightsensor_data();
-//		UtilsDelay(80000000/3);
-//	}
-
-	//
-	// Stop simplelink
-	//
-	UtilsDelay(80000000);
-	int16_t temp;
-	temp = sl_Stop(0xFFFF);
-	if( temp < 0)
-		UART_PRINT("\nConnection close error");
-
-	//
-	// Setup wake sources and hibernate
-	//
-	HIBernate();
-#else
-	clearAccelMotionIntrpt();
-	configureFXOS8700(MODE_ACCEL_INTERRUPT);
-	UART_PRINT("Configured Accelerometer for wake up\n\r");
-	while(1);
-#endif
+		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
 }
-//void Main_Task(void *pvParameters)
-//{
-//	if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
-//	{
-//
-//	}
-//}
+
+int32_t Config_And_Start_CameraCapture()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("\n\rCAMERA MODULE:\n\r");
+	CamControllerInit();	// Init parallel camera interface of cc3200
+							// since image sensor needs XCLK for
+							//its I2C module to work
+
+	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+							// 10 is margin
+
+	SoftReset_ImageSensor();
+
+	UART_PRINT("Cam Sensor Init \n\r");
+	CameraSensorInit();
+
+	// Configure Sensor in Capture Mode
+	UART_PRINT("Start Sensor\n\r");
+	lRetVal = StartSensorInJpegMode();
+	STOPHERE_ON_ERROR(lRetVal);
+
+	disableAE();
+	disableAWB();
+	WriteAllAEnAWBRegs();
+
+	UART_PRINT("I2C Camera config done\n\r");
+
+	MAP_PRCMPeripheralReset(PRCM_CAMERA);
+	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+
+	return lRetVal;
+}
 //*****************************************************************************
 //
 //! Application startup display on UART
@@ -510,20 +398,24 @@ void main()
     // Configuring UART
     //
     InitTerm();
-    UART_PRINT("Test");
+    //UART_PRINT("Test");
 #endif
 
-    Test_HibernateSlwClkCtrWakeup();
-
-    //
 	//Display Application Banner
 	//
-	DisplayBanner(APP_NAME);
+	//DisplayBanner(APP_NAME);
 
     //
     // I2C Init
     //
     I2C_IF_Open(I2C_APP_MODE);
+
+    /*verifyISL29035();
+    configureISL29035(0);
+    while(1)
+    {
+    	getLightsensor_intrptStatus(); //To clear the interrupt
+    }*/
 
     //
 	// Initilalize DMA

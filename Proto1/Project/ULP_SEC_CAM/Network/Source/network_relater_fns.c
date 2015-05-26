@@ -6,7 +6,7 @@
 #include "flash_files.h"
 extern volatile unsigned char g_CaptureImage;
 
-void initNetwork(signed char *ssid, SlSecParams_t *keyParams);
+int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 //****************************************************************************
 //
 //!    \brief This function initializes the application variables
@@ -346,7 +346,8 @@ int32_t ConnectToNetwork_STA()
 	keyParams.Key = ucWifiPassword;
 	keyParams.KeyLen = strlen((char *)ucWifiPassword);
 
-	initNetwork(ssid, &keyParams);
+	lRetVal = initNetwork(ssid, &keyParams);
+	ASSERT_ON_ERROR(lRetVal);
 
 	// TODO: Set to current date/time (within an hour precision)
 	SlDateTime_t dateTime;
@@ -362,7 +363,7 @@ int32_t ConnectToNetwork_STA()
 	return lRetVal;
 }
 
-void initNetwork(signed char *ssid, SlSecParams_t *keyParams)
+int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 {
 	short status;
 	//short status = sl_Start(0, 0, 0);
@@ -427,6 +428,8 @@ void initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 	}
 
 	sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
+
+	return ((int32_t)status);
 }
 
 
@@ -535,6 +538,10 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
         }
         break;
 
+        case SL_WLAN_STA_CONNECTED_EVENT:
+        {
+        	UART_PRINT("[WLAN EVENT] Mobile Station connected to CC3200-AP");
+        }
         default:
         {
             UART_PRINT("[WLAN EVENT] Unexpected event [0x%x]\n\r",
@@ -588,7 +595,11 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.gateway,0));
         }
         break;
-
+        case SL_NETAPP_IP_LEASED_EVENT:
+        {
+        	UART_PRINT("[NETAPP EVENT] IP leased by CC3200-AP to Station\n\r");
+        }
+        break;
         default:
         {
             UART_PRINT("[NETAPP EVENT] Unexpected event [0x%x] \n\r",

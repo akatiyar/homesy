@@ -34,7 +34,8 @@ void configureISL29035(uint8_t ucAppMode)
 								INT_LT_LSB_REG, 0x00,
 								INT_LT_MSB_REG, 0x00,
 								INT_HT_LSB_REG, 0XFF,
-								INT_HT_MSB_REG, 0x01};
+								//INT_HT_MSB_REG, 0x01};
+								INT_HT_MSB_REG, 0x3f};
 	uint8_t ucHeader;
 
 	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;

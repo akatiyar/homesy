@@ -43,7 +43,7 @@ int32_t Collect_InitMangReadings()
 	float_t fMagnFlx_InitAvg[3] = {0,0,0};
 	//float_t fMFluxMagnitudeInit = 0;
 	uint8_t j;
-	for (j = 0; j < MOVING_AVG_FLTR_L; j++)
+	for (j = 0; j < L_AVG_INIT_MAGN; j++)
 	{
 		getMagnFlux_3axis(fMagnFlx_Init);
 
@@ -54,10 +54,11 @@ int32_t Collect_InitMangReadings()
 //											(fMagnFlx_Init[1]*fMagnFlx_Init[1]) +
 //											(fMagnFlx_Init[2]*fMagnFlx_Init[2]) );
 	}
-	//fMFluxMagnitudeInit /= MOVING_AVG_FLTR_L;
-	fMagnFlx_InitAvg[0] /= MOVING_AVG_FLTR_L;
-	fMagnFlx_InitAvg[1] /= MOVING_AVG_FLTR_L;
-	fMagnFlx_InitAvg[2] /= MOVING_AVG_FLTR_L;
+	standby_accelMagn_fxos8700();
+	//fMFluxMagnitudeInit /= L_AVG_INIT_MAGN;
+	fMagnFlx_InitAvg[0] /= L_AVG_INIT_MAGN;
+	fMagnFlx_InitAvg[1] /= L_AVG_INIT_MAGN;
+	fMagnFlx_InitAvg[2] /= L_AVG_INIT_MAGN;
 
 	//
 	// Save initial magnetometer readings in flash
@@ -81,6 +82,10 @@ int32_t Collect_InitMangReadings()
 
 //******************************************************************************
 //	This function exits when 40degrees_while_closing condition is detected
+//
+//	The logic used to detect '40 degrees while door is closing':
+//		Opening of door beyond 45 degrees is detected. After that, we check
+//	when the door angle becomes less than 40 degrees
 //
 //	Description: This function:
 //		1. Reads the door closed position magnetometer reading from Flash

@@ -17,6 +17,8 @@
 #define STRING_TOKEN_SIZE         10
 #define SCAN_TABLE_SIZE           20
 
+#define RETRIES_MAX_NETWORK			5
+
 extern unsigned long  g_ulStatus;//SimpleLink Status
 extern unsigned long  g_ulGatewayIP; //Network Gateway IP address
 extern unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID

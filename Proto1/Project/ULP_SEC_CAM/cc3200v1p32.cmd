@@ -25,8 +25,8 @@
 MEMORY
 {
     /* Application uses internal RAM for program and data */
-    SRAM_CODE (RWX) : origin = 0x20004000, length = 0x00014000
-    SRAM_DATA (RWX) : origin = 0x20018000, length = 0x00024000
+    SRAM_CODE (RWX) : origin = 0x20004000, length = 0x00015000
+    SRAM_DATA (RWX) : origin = 0x20019000, length = 0x00023000
     /* This code section is to use MCU Bootloader RAM section (16kB) */
     SRAM_BOOTLDR (RWX) : origin = 0x20000000, length = 0x0004000
 }

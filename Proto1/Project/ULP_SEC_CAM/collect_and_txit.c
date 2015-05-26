@@ -32,27 +32,8 @@ int32_t CollectTxit_ImgTempRH()
 	//
 	//	Captute image and save in flash
 	//
-//	while(1)
-		CaptureAndStore_Image();
+	CaptureAndStore_Image();
 #endif
-
-//	PCLK_Rate_read();
-
-//	ReadAllAEnAWBRegs();
-
-	/*while(1)
-	{
-		//AnalogGainReg_Read();
-		ReadAllAEnAWBRegs();
-
-		disableAE();
-		disableAWB();
-
-		ReadAllAEnAWBRegs();
-
-		enableAE();
-		enableAWB();
-	}*/
 
 	//while(1);
 	//
@@ -74,9 +55,13 @@ int32_t CollectTxit_ImgTempRH()
 	//
 	uint8_t ucParseImageUrl[100];
 	memset(ucParseImageUrl,NULL, 100);
-	lRetVal = UploadImageToParse(clientHandle,
-									(unsigned char*) USER_FILE_NAME,
-									ucParseImageUrl);
+	uint8_t ucTryNum = 0;
+	do{
+		lRetVal = UploadImageToParse(clientHandle,
+										(unsigned char*) USER_FILE_NAME,
+										ucParseImageUrl);
+		ucTryNum++;
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
 	//UART_PRINT("\n%s\n", ucParseImageUrl);
 
@@ -119,11 +104,15 @@ int32_t CollectTxit_ImgTempRH()
 									CONTENTSIZE_FILE_SENSORDATA, 0);
 	ASSERT_ON_ERROR(lRetVal);
 
-
 	//
 	//	Upload sensor data to Parse
 	//
-	UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
+	ucTryNum = 0;
+	do{
+		lRetVal = UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
+		ucTryNum++;
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
+	ASSERT_ON_ERROR(lRetVal);
 
 	//sl_Stop(0xFFFF);
 
