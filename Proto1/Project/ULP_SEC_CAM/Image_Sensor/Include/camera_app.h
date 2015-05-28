@@ -52,8 +52,6 @@ extern "C"
 
 #include "app.h"
 
-#define USER_FILE_NAME          "www/images/cc3200_camera_capture.jpg"
-
 #define UART_COMMAND_IMG_CAPTURE		('x')
 #define LOWER_TO_UPPER_CASE				(32)
 
@@ -155,10 +153,13 @@ extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))
 // APIs
 //******************************************************************************
 long CaptureAndStore_Image();
+long CaptureinRAM_StoreAfterCapture_Image();
 void CamControllerInit();
 void StartCamera();
 int32_t Standby_ImageSensor();
 int32_t Wakeup_ImageSensor();
+int32_t createAndWrite_ImageHeaderFile();
+int32_t create_JpegImageFile();
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

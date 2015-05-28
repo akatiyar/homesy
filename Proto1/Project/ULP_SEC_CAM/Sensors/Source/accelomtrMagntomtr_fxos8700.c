@@ -205,18 +205,31 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 			ucConfigArray[i++] = 0x00;
 
 			// Magnetometer Calibration values hard coded
-			ucConfigArray[i++] = MOFF_X_MSB_REG;
-			ucConfigArray[i++] = 0x05;
+//			ucConfigArray[i++] = MOFF_X_MSB_REG;
+//			ucConfigArray[i++] = 0x05;
+//			ucConfigArray[i++] = MOFF_X_LSB_REG;
+//			ucConfigArray[i++] = 0x80;
+//			ucConfigArray[i++] = MOFF_Y_MSB_REG;
+//			ucConfigArray[i++] = 0x02;
+//			ucConfigArray[i++] = MOFF_Y_LSB_REG;
+//			ucConfigArray[i++] = 0x7C;
+//			ucConfigArray[i++] = MOFF_Z_MSB_REG;
+//			ucConfigArray[i++] = 0x05;
+//			ucConfigArray[i++] = MOFF_Z_LSB_REG;
+//			ucConfigArray[i++] = 0x00;
+
+			ucConfigArray[i++] = MOFF_X_MSB_REG;	//Hand soldered on PCB
+			ucConfigArray[i++] = (0x025f >> 7);
 			ucConfigArray[i++] = MOFF_X_LSB_REG;
-			ucConfigArray[i++] = 0x80;
+			ucConfigArray[i++] = ((0x025f << 1) & 0x00ff);
 			ucConfigArray[i++] = MOFF_Y_MSB_REG;
-			ucConfigArray[i++] = 0x02;
+			ucConfigArray[i++] = (0xFE91 >> 7);
 			ucConfigArray[i++] = MOFF_Y_LSB_REG;
-			ucConfigArray[i++] = 0x7C;
+			ucConfigArray[i++] = ((0xfe91 << 1) & 0x00ff);
 			ucConfigArray[i++] = MOFF_Z_MSB_REG;
-			ucConfigArray[i++] = 0x05;
+			ucConfigArray[i++] = (0x350 >> 7);
 			ucConfigArray[i++] = MOFF_Z_LSB_REG;
-			ucConfigArray[i++] = 0x00;
+			ucConfigArray[i++] = ((0x350 << 1) & 0x00ff);
 
 			// ODR (hybridmode) = 3.125 Hz
 			//0x0D - ; 0x25 - ODR (hybridmode) = 25 Hz

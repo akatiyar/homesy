@@ -15,6 +15,10 @@
 #define MULTIPLE_WRITE_LAST			3
 #define MULTIPLE_WRITE_MIDDLE		4
 
+#define IMAGE_HEADER_FILE_NAME			"www/images/jpeg_header.jpg"
+//#define IMAGE_DATA_FILE_NAME			"www/images/jpeg_image.jpg"
+#define IMAGE_DATA_FILE_NAME			"www/images/cc3200_camera_capture.jpg"
+
 #define FILENAME_USERWIFI			"user_wifi_profile_file"
 #define MAX_FILESIZE_USERWIFI		1024	//Bytes
 											//File created for this size

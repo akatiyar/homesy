@@ -155,6 +155,8 @@ int32_t WaitFor40Degrees()
 
 		getMagnFlux_3axis(fMagnFlx_Now);
 
+		//UART_PRINT("%f,%f,%f\n\r", fMagnFlx_Now[0], fMagnFlx_Now[1], fMagnFlx_Now[2]);
+
 		fMagnFlx_Dif[0] = fMagnFluxInit3Axis_Read[0] - fMagnFlx_Now[0];
 		fMagnFlx_Dif[1] = fMagnFluxInit3Axis_Read[1] - fMagnFlx_Now[1];
 		fMagnFlx_Dif[2] = fMagnFluxInit3Axis_Read[2] - fMagnFlx_Now[2];
@@ -198,11 +200,11 @@ int32_t WaitFor40Degrees()
 		float_t fAngle;
 		fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
 		//UART_PRINT("%f, ", fMFluxMagnitude);
-		UART_PRINT("%f\n", fAngle);
+		UART_PRINT("%f,", fAngle);
 
 		if( ucOpenFlag == 0 )
 		{
-			//UART_PRINT("0");
+			UART_PRINT("0");
 			if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
 			{
 				ucOpenFlag = 1;
@@ -211,7 +213,7 @@ int32_t WaitFor40Degrees()
 		}
 		else
 		{
-			UART_PRINT("@");
+			//UART_PRINT("@");
 			if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
 			{
 				UART_PRINT("Door at 40 degrees while closing");
@@ -227,6 +229,8 @@ int32_t WaitFor40Degrees()
 
 		//Wait for 1.5ms
 		//UtilsDelay(.0025*80000000/(3*2));
+
+		UtilsDelay(80000000/(3*2));
 	}
 
 	return lRetVal;

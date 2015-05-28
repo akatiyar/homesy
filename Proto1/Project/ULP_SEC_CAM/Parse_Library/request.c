@@ -28,7 +28,7 @@
 #include "utils.h"
 #include "parse_impl.h"
 
-
+#include "flash_files.h"
 const char g_deviceClientVersion[] = "c-ti-cc3200-rtos-1.0.0";
 
 static char parseServer[] = "api.parse.com";
@@ -306,8 +306,21 @@ int payloadSend( const char *httpRequestBody,
 		unsigned long ulToken = 0;
 		SlFsFileInfo_t fileInfo;
 
-		sl_FsGetInfo((_u8*)httpRequestBody, ulToken, &fileInfo);
+		//	Header
+		sl_FsGetInfo((_u8*)IMAGE_HEADER_FILE_NAME, ulToken, &fileInfo);
+		status = ReadFile_FromFlash((uint8_t*)dataBuffer, IMAGE_HEADER_FILE_NAME, fileInfo.FileLen, 0);
+		if (status >= 0)
+		{
+			long temp = status;
+			status = socketWrite(socketHandle, dataBuffer, (status));
+			if(status != temp)
+			{
+				DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
+				while(1);
+			}
+		}
 
+		sl_FsGetInfo((_u8*)httpRequestBody, ulToken, &fileInfo);
 		status = sl_FsOpen((_u8*)httpRequestBody, FS_MODE_OPEN_READ,
 							&ulToken, &lFileHandle);
 		if(status < 0)
@@ -346,17 +359,20 @@ int payloadSend( const char *httpRequestBody,
 			}
 		}
 
-		status = sl_FsRead(lFileHandle,
-							(SIZE_SOCK_WRITE_DATA*i),
-							(unsigned char*)dataBuffer,
-							(fileInfo.FileLen%SIZE_SOCK_WRITE_DATA));
-		 if (status < 0)
-		 {
-			 DEBUG_PRINT("\nFile read failed: \n%ld\n\n",status);
-			 status = sl_FsClose(lFileHandle, 0, 0, 0);
-			 for( ;; );
-		 }
-		 size_readBytes += status;
+		if(0 != fileInfo.FileLen%SIZE_SOCK_WRITE_DATA)
+		{
+			status = sl_FsRead(lFileHandle,
+								(SIZE_SOCK_WRITE_DATA*i),
+								(unsigned char*)dataBuffer,
+								(fileInfo.FileLen%SIZE_SOCK_WRITE_DATA));
+			 if (status < 0)
+			 {
+				 DEBUG_PRINT("\nFile read failed: \n%ld\n\n",status);
+				 status = sl_FsClose(lFileHandle, 0, 0, 0);
+				 for( ;; );
+			 }
+			 size_readBytes += status;
+		}
 
 
 		status = sl_FsClose(lFileHandle, 0, 0, 0);

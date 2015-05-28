@@ -33,6 +33,7 @@ int32_t CollectTxit_ImgTempRH()
 	//	Captute image and save in flash
 	//
 	CaptureAndStore_Image();
+	//CaptureinRAM_StoreAfterCapture_Image();
 #endif
 
 	//while(1);
@@ -54,11 +55,11 @@ int32_t CollectTxit_ImgTempRH()
 	//	Upload image to Parse and retreive image's unique ID
 	//
 	uint8_t ucParseImageUrl[100];
-	memset(ucParseImageUrl,NULL, 100);
+	memset(ucParseImageUrl, NULL, 100);
 	uint8_t ucTryNum = 0;
 	do{
 		lRetVal = UploadImageToParse(clientHandle,
-										(unsigned char*) USER_FILE_NAME,
+										(unsigned char*) IMAGE_DATA_FILE_NAME,
 										ucParseImageUrl);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
@@ -75,14 +76,17 @@ int32_t CollectTxit_ImgTempRH()
 //	UtilsDelay(80000000);
 //	getTempRH(&fTemp, &fRH);
 
+	float_t fBatteryLvl = 80;
+//	Get_BatteryVoltageLevel_ADC081C021(&fBatteryLvl);
+
 	//
 	// Construct the JSON object string
 	//
 	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
-	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucSensorDataTxt);
+	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, fBatteryLvl, ucSensorDataTxt);
 
-	lRetVal = CreateFile_Flash(FILENAME_SENSORDATA, MAX_FILESIZE_SENSORDATA);
+	/*lRetVal = CreateFile_Flash(FILENAME_SENSORDATA, MAX_FILESIZE_SENSORDATA);
 	ASSERT_ON_ERROR(lRetVal);
 
 	int32_t lFileHandle;
@@ -102,7 +106,7 @@ int32_t CollectTxit_ImgTempRH()
 	lRetVal = ReadFile_FromFlash(ucSensorDataTxt,
 									(uint8_t*)FILENAME_SENSORDATA,
 									CONTENTSIZE_FILE_SENSORDATA, 0);
-	ASSERT_ON_ERROR(lRetVal);
+	ASSERT_ON_ERROR(lRetVal);*/
 
 	//
 	//	Upload sensor data to Parse

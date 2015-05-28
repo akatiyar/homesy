@@ -33,9 +33,8 @@ void configureISL29035(uint8_t ucAppMode)
 								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16),
 								INT_LT_LSB_REG, 0x00,
 								INT_LT_MSB_REG, 0x00,
-								INT_HT_LSB_REG, 0XFF,
-								//INT_HT_MSB_REG, 0x01};
-								INT_HT_MSB_REG, 0x3f};
+								//INT_HT_LSB_REG, 0XFF, INT_HT_MSB_REG, 0x3F};//Work Table
+								INT_HT_LSB_REG, 0X1F,INT_HT_MSB_REG, 0x00};//Fridge
 	uint8_t ucHeader;
 
 	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;

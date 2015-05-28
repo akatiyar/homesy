@@ -16,13 +16,13 @@
 #include "utils.h"
 #include "rom_map.h"
 
-#define APP_SSID_NAME 			"Solflr3"
-#define APP_SSID_PASSWORD		"37203922bb"
-#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
-
-//#define APP_SSID_NAME 		"CAMERA"
+//#define APP_SSID_NAME 			"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
+
+#define APP_SSID_NAME 			"Camera"
+#define APP_SSID_PASSWORD		"abcdef1234"
+#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
 //#define APP_SSID_NAME 		"Chrysolin-test"
 //#define APP_SSID_PASSWORD		"chrysolin"

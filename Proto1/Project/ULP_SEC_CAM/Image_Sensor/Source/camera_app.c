@@ -73,6 +73,9 @@
 #include "network_related_fns.h"
 #include "timer_fns.h"
 #include "math.h"
+#include "flash_files.h"
+
+extern int32_t WaitFor40Degrees();
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -318,8 +321,6 @@ long CaptureAndStore_Image()
     unsigned long ulToken = NULL;
     long lRetVal;
 
-    unsigned char *p_header;
-
     // Initial values set
     uint32_t uiImageFile_Offset = 0;
     g_block_lastFilled = -1;
@@ -327,239 +328,24 @@ long CaptureAndStore_Image()
 	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
-
-//	//
-//	// Initialize camera controller
-//	//
-//	CamControllerInit();
-//
-//	//
-//	// Configure DMA in ping-pong mode
-//	//
-//	DMAConfig();
-//
-//	//
-//	// Perform Image Capture
-//	//
-//	UART_PRINT("sB");
-//	MAP_CameraCaptureStart(CAMERA_BASE);
-//	// HWREG(0x4402609C) |= 1 << 8;
-//
-//    while(g_frame_end == 0);
-//
-//    MAP_CameraCaptureStop(CAMERA_BASE, true);
-//    UART_PRINT("pA");
-//
-//
-//    lRetVal = sl_Start(0, 0, 0);
-//    ASSERT_ON_ERROR(lRetVal);
-//
-//   /*
-//   	sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
-//       //
-//       // Error handling if File Operation fails
-//       //
-//       if(lRetVal < 0)
-//       {
-//           lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//           ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//       }
-//   */
-//
-//   //
-//   // NVMEM File Open to write to SFLASH
-//   //
-//   lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
-//					FS_MODE_OPEN_CREATE(MAX_IMAGE_SIZE_BYTES,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-//					   &ulToken,
-//					   &lFileHandle);
-//
-//   //
-//   // Error handling if File Operation fails
-//   //
-//   if(lRetVal < 0)
-//   {
-//	UART_PRINT("File Open Error: %i", lRetVal);
-//	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//   }
-//   //
-//   // Close the created file
-//   //
-//   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//   ASSERT_ON_ERROR(lRetVal);
-//
-//   /*
-//       SlFsFileInfo_t fileInfo;
-//       sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
-//   */
-//
-//       //
-//       // Open the file for Write Operation
-//       //
-//       lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
-//                           FS_MODE_OPEN_WRITE,
-//                           &ulToken,
-//                           &lFileHandle);
-//       //
-//       // Error handling if File Operation fails
-//       //
-//       if(lRetVal < 0)
-//       {
-//           lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//           ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//       }
-//       //
-//       // Create JPEG Header
-//       //
-//   #ifdef ENABLE_JPEG
-//       memset(g_header, '\0', sizeof(g_header));
-//       g_header_length = CreateJpegHeader((char *)&g_header[0], PIXELS_IN_X_AXIS,
-//                                          PIXELS_IN_Y_AXIS, 0, 0x0006,32);
-//
-//       //
-//       // Write the Header
-//       //
-//       p_header = (unsigned char *)&g_header[0];
-//       lRetVal = sl_FsWrite(lFileHandle, 0, p_header, g_header_length);
-//       //
-//       // Error handling if file operation fails
-//       //
-//       if(lRetVal < 0)
-//       {
-//           lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//           ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//       }
-//   #endif
-//       //
-//       // Write the Image Buffer
-//       //
-//   #ifdef ENABLE_JPEG
-//       lRetVal =  sl_FsWrite(lFileHandle, g_header_length,
-//                         (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
-//   #else
-//       lRetVal =  sl_FsWrite(lFileHandle, 0,
-//                             (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
-//   #endif
-//       //
-//       // Error handling if file operation fails
-//       //
-//       if (lRetVal <0)
-//       {
-//           lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//           ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//       }
-//       UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
-//
-//       //
-//       // Close the file post writing the image
-//       //
-//       lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//       ASSERT_ON_ERROR(lRetVal);
-//
-//   /*
-//       sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
-//
-//       lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
-//       					FS_MODE_OPEN_READ,
-//       					&ulToken,
-//       					&lFileHandle);
-//   	 if(lRetVal < 0)
-//   	 {
-//   		 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//   		 ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//   	 }
-//   	 lRetVal = sl_FsRead(lFileHandle, 0, (unsigned char*)g_image_buffer , 500);
-//   	 if (lRetVal < 0)
-//   	 {
-//   		 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//   		 ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-//   	 }
-//   	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//   	ASSERT_ON_ERROR(lRetVal);
-//   */
-//
-//       lRetVal = sl_Stop(0xFFFF);
-//       //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-//   	ASSERT_ON_ERROR(lRetVal);
-//
-//   	UART_PRINT("DONE: Image Write to Flash\n\r");
-
+	memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
 
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
 
-   	/*
-	sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
-    //
-    // Error handling if File Operation fails
-    //
-    if(lRetVal < 0)
-    {
-        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-    }
-   	 */
-
-    //
-    // NVMEM File Open to write to SFLASH
-    //
-    lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
-    					//FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-    					//FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-   						//FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-						FS_MODE_OPEN_CREATE((MAX_IMAGE_SIZE_BYTES+MAX_IMAGE_HEADER_SIZE_BYTES),_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-                        &ulToken,
-                        &lFileHandle);
-    if(lRetVal < 0)
-    {
-    	UART_PRINT("File Open Error: %i", lRetVal);
-    	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-    }
-    // Close the created file
-    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-    ASSERT_ON_ERROR(lRetVal);
-
-    /*
-    SlFsFileInfo_t fileInfo;
-    sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
-     */
-
-    //
-	// JPEG Header - create and write to Flash
-    //
-    // Open the file for Write Operation
-    lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
-                        FS_MODE_OPEN_WRITE,
-                        &ulToken,
-                        &lFileHandle);
-    if(lRetVal < 0)
-    {
-        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-    }
-    // Create Header
-    memset(g_header, '\0', sizeof(g_header));
-    g_header_length = CreateJpegHeader((char *)&g_header[0],
-    									PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
-    									0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
-    //InitializeTimer();
-    //StartTimer();
-    // Write Header to Flash
-    lRetVal = sl_FsWrite(lFileHandle, 0, g_header, g_header_length - 1);
-    //StopTimer();
-    if(lRetVal < 0)
-    {
-        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-    }
-    uiImageFile_Offset += lRetVal;
-	UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
-	//float_t fHeaderWriteDuration;
-	//GetTimeDuration(&fHeaderWriteDuration);
-	//UART_PRINT("\n\rHeader Flash write Duration: %f\n\r", fHeaderWriteDuration);
+	//
+	// Open the file for Write Operation
+	//
+	lRetVal = sl_FsOpen((unsigned char *)IMAGE_DATA_FILE_NAME,
+					   FS_MODE_OPEN_WRITE,
+					   &ulToken,
+					   &lFileHandle);
+	if(lRetVal < 0)
+	{
+	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
 
 	//
 	// Initialize camera controller
@@ -571,6 +357,10 @@ long CaptureAndStore_Image()
 	//
 	DMAConfig();
 
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	//WaitFor40Degrees();
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+
 	//
     // Perform Image Capture
     //
@@ -579,12 +369,6 @@ long CaptureAndStore_Image()
     //StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
    // HWREG(0x4402609C) |= 1 << 8;
-
-//    while((g_frame_end == 0));
-//
-//    MAP_CameraCaptureStop(CAMERA_BASE, true);
-//    StopTimer();
-//    UART_PRINT("pA");
 
     while(1)
     {
@@ -598,7 +382,7 @@ long CaptureAndStore_Image()
 				// Write a Block of Image from RAM to Flash
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
 									  (unsigned char *)(g_image_buffer + CAM_DMA_BLOCK_SIZE_IN_BYTES/4),
-									  (BLOCK_SIZE_IN_BYTES-CAM_DMA_BLOCK_SIZE_IN_BYTES));
+									  (BLOCK_SIZE_IN_BYTES - CAM_DMA_BLOCK_SIZE_IN_BYTES));
 				if (lRetVal < 0)
 				{
 					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -663,9 +447,6 @@ long CaptureAndStore_Image()
     //GetTimeDuration(&fPicCaptureDuration);
     //UART_PRINT("\n\rImage Capture Duration: %f\n\r", fPicCaptureDuration);
 
-    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
-    UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
-
     //
     // Write the remaining Image data from RAM to Flash
     //
@@ -678,53 +459,97 @@ long CaptureAndStore_Image()
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
     uiImageFile_Offset += lRetVal;
-    UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
-
-    //JPEGDataLength_read();
-
     // Close the file post writing the image
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
-/*
-    sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
-
-    lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,
-    					FS_MODE_OPEN_READ,
-    					&ulToken,
-    					&lFileHandle);
-	 if(lRetVal < 0)
-	 {
-		 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		 ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	 }
-	 lRetVal = sl_FsRead(lFileHandle, 0, (unsigned char*)g_image_buffer , 500);
-	 if (lRetVal < 0)
-	 {
-		 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		 ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	 }
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-*/
+    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
+    UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
+    UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
 
     lRetVal = sl_Stop(0xFFFF);
-    //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 	ASSERT_ON_ERROR(lRetVal);
 
 	UART_PRINT("DONE: Image Write to Flash\n\r");
 
-//	//RegStatusRead();
-//	//AnalogGainReg_Read();
-//
-////	MAP_PRCMPeripheralReset(PRCM_CAMERA);
-////    MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-////
-////    MAP_PRCMPeripheralReset(PRCM_UDMA);
-////    MAP_PRCMPeripheralClkDisable(PRCM_UDMA,PRCM_RUN_MODE_CLK);
-
-
     return SUCCESS;
+}
+
+long CaptureinRAM_StoreAfterCapture_Image()
+{
+    long lFileHandle;
+    unsigned long ulToken = NULL;
+    long lRetVal;
+
+
+	// Initialize camera controller
+	//
+	CamControllerInit();
+
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	//WaitFor40Degrees();
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+
+	//
+	// Perform Image Capture
+	//
+	UART_PRINT("sB");
+	MAP_CameraCaptureStart(CAMERA_BASE);
+	// HWREG(0x4402609C) |= 1 << 8;
+	while(g_frame_end == 0);
+	MAP_CameraCaptureStop(CAMERA_BASE, true);
+	UART_PRINT("pA");
+
+
+	lRetVal = sl_Start(0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	//
+	// Open the file for Write Operation
+	//
+	lRetVal = sl_FsOpen((unsigned char *)IMAGE_DATA_FILE_NAME,
+					   FS_MODE_OPEN_WRITE,
+					   &ulToken,
+					   &lFileHandle);
+	if(lRetVal < 0)
+	{
+	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
+
+	//
+	// Write the Image Buffer
+	//
+	lRetVal =  sl_FsWrite(lFileHandle, 0,
+					 (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
+	//
+	// Error handling if file operation fails
+	//
+	if (lRetVal <0)
+	{
+	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
+	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
+
+	//
+	// Close the file post writing the image
+	//
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = sl_Stop(0xFFFF);
+	//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+	ASSERT_ON_ERROR(lRetVal);
+
+	UART_PRINT("DONE: Image Write to Flash\n\r");
+
+	return lRetVal;
 }
 //*****************************************************************************
 //
@@ -1486,3 +1311,104 @@ static int CreateJpegHeader(char *header, int width, int height,
 //! @}
 //
 //*****************************************************************************
+int32_t createAndWrite_ImageHeaderFile()
+{
+	long lFileHandle;
+	unsigned long ulToken = NULL;
+	long lRetVal;
+
+	sl_Start(0,0,0);
+
+	//
+	// NVMEM File Open to write to SFLASH
+	//
+	lRetVal = sl_FsOpen((unsigned char *)IMAGE_HEADER_FILE_NAME,//0x00212001,
+						FS_MODE_OPEN_CREATE(MAX_IMAGE_HEADER_SIZE_BYTES,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						&ulToken,
+						&lFileHandle);
+	if(lRetVal < 0)
+	{
+		UART_PRINT("File Open Error: %i", lRetVal);
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
+
+	// Close the created file
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	//
+	// JPEG Header - create and write to Flash
+	//
+	// Open the file for Write Operation
+	lRetVal = sl_FsOpen((unsigned char *)IMAGE_HEADER_FILE_NAME,
+						FS_MODE_OPEN_WRITE,
+						&ulToken,
+						&lFileHandle);
+	if(lRetVal < 0)
+	{
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
+
+	// Create Header
+	memset(g_header, '\0', sizeof(g_header));
+	g_header_length = CreateJpegHeader((char *)&g_header[0],
+										PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
+										0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
+	//InitializeTimer();
+	//StartTimer();
+	// Write Header to Flash
+	lRetVal = sl_FsWrite(lFileHandle, 0, (unsigned char*)g_header, g_header_length - 1);
+	//StopTimer();
+	if(lRetVal < 0)
+	{
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
+	UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
+
+	// Close the file post writing the image
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	SlFsFileInfo_t fileInfo;
+	sl_FsGetInfo((unsigned char *)IMAGE_HEADER_FILE_NAME, ulToken, &fileInfo);
+
+	sl_Stop(0xFFFF);
+
+	return lRetVal;
+}
+
+int32_t create_JpegImageFile()
+{
+	long lFileHandle;
+	unsigned long ulToken = NULL;
+	long lRetVal;
+
+	lRetVal = sl_Start(0,0,0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	//
+	// NVMEM File Open to write to SFLASH
+	//
+	lRetVal = sl_FsOpen((unsigned char *)IMAGE_DATA_FILE_NAME,//0x00212001,
+						FS_MODE_OPEN_CREATE(MAX_IMAGE_SIZE_BYTES,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						&ulToken,
+						&lFileHandle);
+	if(lRetVal < 0)
+	{
+		UART_PRINT("File Open Error: %i", lRetVal);
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	}
+
+	// Close the created file
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = sl_Stop(0xFFFF);
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}

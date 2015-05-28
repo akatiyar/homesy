@@ -24,8 +24,8 @@
 #define POINTER_ADDR_LOWESTDATA_REG				0X06
 #define POINTER_ADDR_HIGHESTDATA_REG			0X07
 
-#define VA_VOLTAGE								(2.9)	//Supply Vcc to chip
-#define ONE_LSB_EQUALS							(VA_VOLTAGE/256)	// 2^8 = 256
+#define VA_VOLTAGE								(3.0)	//Supply Vcc to chip
+#define ONE_LSB_EQUALS							(VA_VOLTAGE/256.0)	// 2^8 = 256
 
 #define MASK_DATA_BITS							0x0ff0
 

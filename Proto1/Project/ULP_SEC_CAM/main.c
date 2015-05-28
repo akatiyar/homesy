@@ -256,26 +256,28 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
-	if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
+	//if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
 		LED_Blink(30, 1);
+		//LED_Blink(10, 1);
 
-		ProvisioningAP();	//Testing battery powering
+		//ProvisioningAP();
 
 		Collect_InitMangReadings();
+		//WaitFor40Degrees();
+
+		createAndWrite_ImageHeaderFile();
+		create_JpegImageFile();
+
 		Config_And_Start_CameraCapture();
 
 		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		LED_Blink(4, .3);
-		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
-		WaitFor40Degrees();
-		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+		//LED_Blink(4, .3);
 
 		CollectTxit_ImgTempRH();
-		sl_Stop(0xFFFF);
 
 		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
@@ -295,11 +297,11 @@ int32_t Config_And_Start_CameraCapture()
 
 	SoftReset_ImageSensor();
 
-	UART_PRINT("Cam Sensor Init \n\r");
+	UART_PRINT("\n\rCam Sensor Init ");
 	CameraSensorInit();
 
 	// Configure Sensor in Capture Mode
-	UART_PRINT("Start Sensor\n\r");
+	UART_PRINT("\n\rStart Sensor ");
 	lRetVal = StartSensorInJpegMode();
 	STOPHERE_ON_ERROR(lRetVal);
 
@@ -409,13 +411,6 @@ void main()
     // I2C Init
     //
     I2C_IF_Open(I2C_APP_MODE);
-
-    /*verifyISL29035();
-    configureISL29035(0);
-    while(1)
-    {
-    	getLightsensor_intrptStatus(); //To clear the interrupt
-    }*/
 
     //
 	// Initilalize DMA

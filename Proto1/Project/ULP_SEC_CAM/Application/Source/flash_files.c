@@ -134,7 +134,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
 //	param[in]	uiDataSize - number of bytes to be read
 //	param[in]	uiOffsetInFile - offset as to where to read from in the file
 //
-//	return SUCCESS or failure code
+//	return no of bytes read or failure code
 //
 //******************************************************************************
 int32_t ReadFile_FromFlash(uint8_t* pucData,
@@ -175,3 +175,41 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 
 	return uiNumBytesRead;
 }
+
+
+	/*
+sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
+//
+// Error handling if File Operation fails
+//
+if(lRetVal < 0)
+{
+    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+    ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+}
+	 */
+
+/*//
+// NVMEM File Open to write to SFLASH
+//
+lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
+					//FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+					//FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						//FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+					FS_MODE_OPEN_CREATE((MAX_IMAGE_SIZE_BYTES+MAX_IMAGE_HEADER_SIZE_BYTES),_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+                    &ulToken,
+                    &lFileHandle);
+if(lRetVal < 0)
+{
+	UART_PRINT("File Open Error: %i", lRetVal);
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+    ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+}
+// Close the created file
+lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+ASSERT_ON_ERROR(lRetVal);*/
+
+/*
+SlFsFileInfo_t fileInfo;
+sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
+ */

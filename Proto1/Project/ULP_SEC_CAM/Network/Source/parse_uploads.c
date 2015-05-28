@@ -167,6 +167,7 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
+									float_t fBatteryLevel,
 									uint8_t* pucSensorDataTxt)
 {
 	pucSensorDataTxt[0] = NULL;
