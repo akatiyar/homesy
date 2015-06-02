@@ -85,7 +85,7 @@
 #define PERPENDICULAR_AXIS				Z_AXIS	//Axis that is Horizontal, and
 												//perpendicular to the door
 
-#define PI								(3.14)
+//#define PI								(3.141592654F)
 
 #define SENSITIVITY_MAG					.1		//uT per LSB
 
@@ -101,6 +101,77 @@ struct reg_data_pair
 	uint8_t ucConfigVal;
 	uint8_t ucMask;
 };
+
+//******************************************************************************
+//
+//  This function fetches current accelerometer readings of all the 3 axis from
+//	FXOS8700 by calling i2cReadRegister API
+//
+//	\param[out] pucAccelData - pointer to array to which accelerometer data is
+//								stored
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+#define getAccelData(pucAccelData) i2cReadRegisters(FXOS8700_I2C_ADDRESS,\
+									ACCEL_OUTPUT_DATA_REG,\
+									LENGTH_OUTPUT_DATA,\
+									pucAccelData)
+
+//******************************************************************************
+//
+//  This function fetches current magnetometer readings of all the 3 axis from
+//	FXOS8700 by calling i2cReadRegister API
+//
+//	\param[out] pucData - pointer to array to which magnetometer data is
+//								stored
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+#define getMagntData(pucMagntData) i2cReadRegisters(FXOS8700_I2C_ADDRESS,\
+									MAGNT_OUTPUT_DATA_REG,\
+									LENGTH_OUTPUT_DATA,\
+									pucMagntData)
+
+//******************************************************************************
+//
+//  This function writes the value of a single register, particularly for a
+//	status register, in FXOS8700
+//
+//	\param[in]	ucStatusRegAddr - Address of a configuration register, held in a
+//									macro
+//	\param[out]	pucStatusVal - Status value as read from the register address
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+#define readStatusReg(ucStatusRegAddr, pucStatusVal)\
+								i2cReadRegisters(FXOS8700_I2C_ADDRESS,\
+									ucStatusRegAddr,\
+									LENGTH_IS_ONE,\
+									pucStatusVal)
+
+//******************************************************************************
+//
+//  This function writes a value to a single register, particularly for
+//	configuring the device, in FXOS8700
+//
+//	\param[in]	ucConfigRegAddr - Address of a configuration register, held in a
+//									macro
+//	\param[in]	ucConfigVal -	Configuration Value to be written to the
+//									register, can be a macro or variable
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+#define setConfigReg(ucConfigRegAddr, ucConfigVal)\
+								i2cWriteRegisters(FXOS8700_I2C_ADDRESS,\
+									ucConfigRegAddr,\
+									LENGTH_IS_ONE,\
+									&ucConfigVal)
+
+
 
 //*****************************************************************************
 // 								API PROTOTYPES

@@ -149,6 +149,8 @@ extern int32_t Collect_InitMangReadings();
 extern int32_t WaitFor40Degrees();
 int32_t Config_And_Start_CameraCapture();
 
+extern void fxos_main();
+
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
 #endif
@@ -256,6 +258,9 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
+	verifyAccelMagnSensor();
+	fxos_main();
+
 	//if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
 		LED_Blink(30, 1);
@@ -400,7 +405,7 @@ void main()
     // Configuring UART
     //
     InitTerm();
-    //UART_PRINT("Test");
+    UART_PRINT("Test");
 #endif
 
 	//Display Application Banner

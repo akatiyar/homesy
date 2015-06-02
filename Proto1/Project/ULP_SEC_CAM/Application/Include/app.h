@@ -42,6 +42,8 @@
 
 #define SYSTEM_CLOCK	80000000
 
+#define PI				(3.141592654F)
+
 #define TEST_MODULES_INCLUDE
 #define USB_DEBUG
 #define DEBUG_ENABLE
