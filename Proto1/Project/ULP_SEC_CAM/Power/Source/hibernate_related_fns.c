@@ -7,6 +7,8 @@
 #include "accelomtrMagntomtr_fxos8700.h"
 
 #include "hibernate_related_fns.h"
+#include "app_common.h"
+#include "stdbool.h"
 
 #define SEC_PER_MINUTE					60
 #define RTCCLKS_PER_SEC					32768
@@ -56,14 +58,33 @@ void HIBernate(uint32_t ucWakeSources,
 	if(ucWakeSources&PRCM_HIB_GPIO2)
 	{
 		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ucGPIOInterruptType);
+
+		bool temp = true;
+		uint8_t count=0;
+		// (0x01FF) is trial val
+		while(temp)
+		{
+			if (getLightsensor_data() < (0x01FF))
+			{
+				count++;
+				if(count>10)
+					temp = false;
+
+				UtilsDelay((0.5)*80000000/6);
+			}
+			else
+				count=0;
+		}
 		//
 		//	Configure or clear interrupts of wake-up trigger sensors
 		//
+		UART_PRINT("Fridge Light Off");
+		LED_Blink(5, 0.5);
 		sensorsTriggerSetup();
 		UART_PRINT("Cleared sensors\n\r");
 	}
 
-    DBG_PRINT("HIB: Entering HIBernate...\n\r"
+	DBG_PRINT("HIB: Entering HIBernate...\n\r"
         		"***OPEN DOOR TO CAPTURE IMAGE***\n\r");
     MAP_UtilsDelay(80000);
 

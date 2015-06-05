@@ -151,6 +151,10 @@ int32_t Config_And_Start_CameraCapture();
 
 extern void fxos_main();
 
+extern int32_t fxos_get_initialYaw(float_t* pfInitYaw);
+extern int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor);
+extern int32_t fxos_calibrate();
+
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
 #endif
@@ -248,6 +252,140 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 }
 #endif //USE_FREERTOS
 
+void fxos_testing()
+{
+	float_t fYaw_closedDoor;
+
+	fxos_calibrate();
+	fxos_get_initialYaw(&fYaw_closedDoor);
+
+	//fxos_calibrate();
+	fxos_waitFor40Degrees(fYaw_closedDoor);
+
+	while(1);
+}
+
+int32_t initial_magnetometerReadings()
+{
+	float_t fYaw_closedDoor;
+	int32_t lRetVal;
+
+	fxos_get_initialYaw(&fYaw_closedDoor);
+	UART_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
+	//
+	// Save initial magnetometer readings in flash
+	//
+	lRetVal = sl_Start(0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = CreateFile_Flash((uint8_t*)MAGN_INIT_VALS_FILE_NAME,
+								MAGN_INIT_VALS_FILE_MAXSIZE);
+	int32_t lFileHandle;
+	lRetVal = WriteFile_ToFlash((uint8_t*)&fYaw_closedDoor,
+								(uint8_t*)MAGN_INIT_VALS_FILE_NAME, 4, 0,
+								SINGLE_WRITE, &lFileHandle);
+
+	lRetVal = sl_Stop(0xFFFF);
+	//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+int32_t waitfor40degrees_fxos()
+{
+	float_t fYaw_closedDoor;
+	int32_t lRetVal;
+
+	//
+	// Read initial magnetometer readings from flash
+	//
+	lRetVal = sl_Start(0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = ReadFile_FromFlash((uint8_t*)&fYaw_closedDoor,
+									(uint8_t*)MAGN_INIT_VALS_FILE_NAME, 3, 0 );
+
+	lRetVal = sl_Stop(0xFFFF);
+	//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+	ASSERT_ON_ERROR(lRetVal);
+
+	//fxos_calibrate();
+	//UART_PRINT("\n\rc** Calibration over\n\r");
+	fxos_waitFor40Degrees(fYaw_closedDoor);
+
+	return 1;
+}
+
+void fxos_testing_2()
+{
+	//fxos_calibrate();
+	//LED_Blink(30, 1);
+	fxos_calibrate();
+
+
+	UART_PRINT("\n\ra** Initial Door Closed Pos\n\r");
+	initial_magnetometerReadings();
+	UART_PRINT("\n\rb**Going to Calibrate\n\r");
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	waitfor40degrees_fxos();
+	LED_Blink(10, .3);
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	UtilsDelay(5*80000000/6);
+	UART_PRINT("\n\rf**\n\r");
+	//while(1);
+}
+
+void fxos_testing_3()
+{
+	LED_Blink(30, 1);
+
+	UART_PRINT("\n\ra** Initial Door Closed Pos\n\r");
+	initial_magnetometerReadings();
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	waitfor40degrees_fxos();
+	LED_Blink(10, .3);
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+	UtilsDelay(5*80000000/6);
+	UART_PRINT("\n\rf**\n\r");
+	//while(1);
+}
+
+void fxos_testing_4()
+{
+	//LED_Blink(30, 1);
+	while(1)
+	{
+		UART_PRINT("\n\ra** Initial Door Closed Pos\n\r");
+
+		float_t fYaw_closedDoor;
+		fxos_get_initialYaw(&fYaw_closedDoor);
+		UART_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
+
+		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+		fxos_waitFor40Degrees(fYaw_closedDoor);
+		LED_Blink(10, .3);
+		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+		UtilsDelay(5*80000000/6);
+		UART_PRINT("\n\rf**\n\r");
+	}
+	//while(1);
+}
+
+void Testing_fxos()
+{
+	verifyAccelMagnSensor();
+	//fxos_calibrate();
+	fxos_main();
+	//fxos_testing();
+
+	//	while(1)
+	//	{
+	//		fxos_testing_2();
+	//	}
+
+	//fxos_testing_3();
+}
 //*****************************************************************************
 //
 //	Main Task
@@ -258,32 +396,50 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
-	verifyAccelMagnSensor();
-	fxos_main();
+	//ProvisioningAP();
 
-	//if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
+//	create_JpegImageFile();
+//	createAndWrite_ImageHeaderFile();
+//
+//	Config_And_Start_CameraCapture();
+//	CollectTxit_ImgTempRH();
+
+//	UART_PRINT("Light Sensor Val: %x\n\r", getLightsensor_data());
+
+
+	Testing_fxos();
+	//ProvisioningAP();
+
+	UART_PRINT("\n\rTest Wakeup\n\r");
+    if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
 		LED_Blink(30, 1);
-		//LED_Blink(10, 1);
 
 		//ProvisioningAP();
+		//Collect_InitMangReadings();
+		LED_On();
 
-		Collect_InitMangReadings();
-		//WaitFor40Degrees();
+		//initial_magnetometerReadings();
 
 		createAndWrite_ImageHeaderFile();
 		create_JpegImageFile();
 
 		Config_And_Start_CameraCapture();
 
+		LED_Off();
 		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		//LED_Blink(4, .3);
+		LED_Blink(4, 0.3);
+
+		//waitfor40degrees_fxos();
+		float_t fYaw_closedDoor = 333;
+		fxos_waitFor40Degrees(fYaw_closedDoor);
+		LED_On();
 
 		CollectTxit_ImgTempRH();
-
+		LED_Off();
 		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
 }

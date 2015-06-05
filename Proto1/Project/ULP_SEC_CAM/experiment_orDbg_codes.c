@@ -51,6 +51,29 @@ uint32_t ulResetCause;
 
 
 
+    uint16_t data = 0;
+	verifyISL29035();
+	while(1)
+	{
+		data = getLightsensor_data();
+		UART_PRINT("%d\n\r",data);
+		UtilsDelay(80000000/6);
+	}
+
+	uint16_t data = 0;
+	verifyISL29035();
+	while(1)
+	{
+		while(getLightsensor_data() > (0x01FF))
+		{
+			UtilsDelay(80000000/6);
+		}
+		UART_PRINT("******\n\r");
+	}
+
+
+
+
 
     //	PCLK_Rate_read();
 

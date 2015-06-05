@@ -88,8 +88,10 @@ struct MQXLiteGlobals
 
 	// flags
 	volatile uint8 I2C_Status;
+	volatile uint8 Sampling_Event_Flag;
 	volatile uint16 RunKF_Event_Flag;
 	volatile uint16 MagCal_Event_Flag;
+
 };
 
 // globals defined in mqx_tasks.c

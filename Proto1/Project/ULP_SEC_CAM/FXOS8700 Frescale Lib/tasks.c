@@ -60,6 +60,7 @@ struct MagneticBuffer thisMagBuffer;		// magnetometer measurement buffer
 struct GyroSensor thisGyro;					// this gyro
 #endif
 
+uint8_t cnt_prakz;
 // 1DOF pressure structure
 #if defined COMPUTE_1DOF_P_BASIC
 struct SV_1DOF_P_BASIC thisSV_1DOF_P_BASIC;					
@@ -343,17 +344,31 @@ void Fusion_Run(void)
 		if (thisSV_3DOF_Y_BASIC.systick < 0) thisSV_3DOF_Y_BASIC.systick += SYST_RVR;
 	}
 #endif
-
+	cnt_prakz++;
 	// 6DOF Accel / Mag: Basic: call the eCompass orientation algorithm, low pass filters and Euler angle calculation
 #if defined COMPUTE_6DOF_GB_BASIC
 	if (PARALLELNOTSEQUENTIAL || (globals.QuaternionPacketType == Q6MA))
 	{
 		/*thisSV_6DOF_GB_BASIC.systick = SYST_CVR & 0x00FFFFFF;*/
 		fRun_6DOF_GB_BASIC(&thisSV_6DOF_GB_BASIC, &thisMag, &thisAccel, globals.loopcounter, THISCOORDSYSTEM);
-		UART_PRINT("Phi: %3.2f, The: %3.2f, Psi: %3.2f, Rho: %3.2f, Delta: %3.2f, Chi: %3.2f\n\r",
+
+		if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
+		{
+			thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho +180;
+			if(thisSV_6DOF_GB_BASIC.fLPRho>360)
+			{
+				thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho-360;
+			}
+		}
+
+		if(cnt_prakz>30)
+		{
+			UART_PRINT("Phi: %3.2f, The: %3.2f, Psi: %3.2f, Rho: %3.2f, Delta: %3.2f, Chi: %3.2f\n\r",
 					thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe,
 					thisSV_6DOF_GB_BASIC.fLPPsi, thisSV_6DOF_GB_BASIC.fLPRho,
 					thisSV_6DOF_GB_BASIC.fLPDelta, thisSV_6DOF_GB_BASIC.fLPChi);
+			cnt_prakz = 0;
+		}
 		/*thisSV_6DOF_GB_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
 		if (thisSV_6DOF_GB_BASIC.systick < 0) thisSV_6DOF_GB_BASIC.systick += SYST_RVR;*/
 	}
@@ -481,6 +496,8 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				for (j = X; j <= Z; j++)
 				{
 					pthisMagCal->finvW[i][j] = pthisMagCal->ftrinvW[i][j];
+					UART_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
+
 				}
 			}
 		} // end of test to accept the new calibration 
@@ -488,6 +505,9 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 
 	// reset the calibration in progress flag to allow writing to the magnetic buffer
 	pthisMagCal->iCalInProgress = 0;
+
+	UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
+	//tag prakz
 
 	return;
 }

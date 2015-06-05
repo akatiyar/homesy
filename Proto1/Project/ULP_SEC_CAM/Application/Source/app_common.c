@@ -66,3 +66,13 @@ void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle)
 	    	UtilsDelay((fSecsForEachCycle/2.0)*80000000/6);
 	    }
 }
+
+void LED_On()
+{
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+}
+
+void LED_Off()
+{
+	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+}

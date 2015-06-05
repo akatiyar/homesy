@@ -282,3 +282,49 @@ void TestIsl29035Api(void *pvParameters)
 }
 
 
+/*
+ 	//Test Logic
+ 	//fxos_waitFor40Degrees(80);
+	//fxos_waitFor40Degrees(90);
+	//float_t fYawArray[] = {80, 60, 40, 25, 20, 15, 10, 0, 350, 340, 330, 320, 0, 20, 25, 30, 35, 40, 50, 70 };
+
+	fxos_waitFor40Degrees(30);
+	fxos_waitFor40Degrees(50);
+	float_t fYawArray[] = {25, 20, 15, 10, 0, 350, 340, 330, 320, 330, 340, 350, 0, 20, 25, 30, 35, 40, 50, 70 };
+	int i = 0;
+	while((!flag_L)&&(i!=sizeof(fYawArray)/sizeof(float_t)))
+	{
+		fYaw = fYawArray[i++];
+		if(!flag_U)
+		{
+			switch(Case_U)
+			{
+			case CASE_NO_360CCROSSOVER:
+				if((fYaw <= fYaw_U)||(fYaw > fYaw_closedDoor))
+					flag_U = 1;
+				break;
+			case CASE_360CCROSSOVER:
+				if((fYaw <= fYaw_U)&&(fYaw > fYaw_closedDoor))
+					flag_U = 1;
+				break;
+			}
+		}
+		else if(!flag_L)
+		{
+			switch(Case_L)
+			{
+			case CASE_NO_360CCROSSOVER:
+				if((fYaw >= fYaw_L)&&(fYaw < fYaw_closedDoor))
+					flag_L = 1;
+				break;
+			case CASE_360CCROSSOVER:
+				if((fYaw >= fYaw_L)||(fYaw < fYaw_closedDoor))
+					flag_L = 1;
+				break;
+			}
+		}
+		UART_PRINT("%d 	%3.2f 	%x %x\n\r", i, fYaw, flag_U, flag_L);
+	}
+	return;
+
+ */

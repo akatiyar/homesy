@@ -12,6 +12,7 @@
 #include "timer_if.h"
 
 volatile uint32_t v_TimerOverflows;
+volatile uint32_t v_OneSecFlag;
 
 int32_t InitializeTimer();
 int32_t StartTimer();

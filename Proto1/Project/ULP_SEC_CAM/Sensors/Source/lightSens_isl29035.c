@@ -34,7 +34,7 @@ void configureISL29035(uint8_t ucAppMode)
 								INT_LT_LSB_REG, 0x00,
 								INT_LT_MSB_REG, 0x00,
 								//INT_HT_LSB_REG, 0XFF, INT_HT_MSB_REG, 0x3F};//Work Table
-								INT_HT_LSB_REG, 0X1F,INT_HT_MSB_REG, 0x00};//Fridge
+								INT_HT_LSB_REG, 0XFF,INT_HT_MSB_REG, 0x01};//Fridge
 	uint8_t ucHeader;
 
 	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
@@ -111,9 +111,25 @@ uint16_t getLightsensor_data(void)
 	uint16_t data = 0;
 	uint16_t lux_reading = 0;
 
+//	uint8_t i;
+//	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
+//									/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
+//								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16)};
+//
+//	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
+//
+//	for (i = 0; i < ucNoOfConfgs; i++)
+//	{
+//		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
+//							ucConfigArray[i*2],
+//							1,
+//							&ucConfigArray[i*2 + 1]);
+//	}
+//
+//	UtilsDelay(.002*80000000/6);
 	i2cReadRegisters(ISL29035_I2C_ADDRESS, DATA_LSB_REG,2, databyte);
 	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];
-	UART_PRINT("\nLux val: %x %x", databyte[1], databyte[0]);
+	UART_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
 	//LUX = [ RANGE/2^(ADC_Res) ] x data
 
 	lux_reading = (LUX_RANGE/ADC_RANGE) * data;	//commented by uthra for testing

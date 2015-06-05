@@ -18,6 +18,11 @@ void TimerBaseIntHandler(void)
     Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
 
     v_TimerOverflows++;
+
+    if( v_TimerOverflows >= (10 * 80000000 / 65536) )
+    {
+    	v_OneSecFlag = 1;
+    }
 }
 
 int32_t InitializeTimer()
@@ -30,7 +35,7 @@ int32_t InitializeTimer()
 	Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
 
 	v_TimerOverflows = 0;
-
+	v_OneSecFlag = 0;
 	return 0;
 }
 

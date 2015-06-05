@@ -10,6 +10,7 @@
 
 unsigned short intToASCII(short cNum, char *cString);
 void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle);
-
+void LED_Off();
+void LED_On();
 
 #endif /* APP_COMMON_H_ */
