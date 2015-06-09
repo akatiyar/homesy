@@ -76,6 +76,7 @@
 #include "flash_files.h"
 
 extern int32_t WaitFor40Degrees();
+extern void fxos_main_waitfor40degrees();
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -356,10 +357,13 @@ long CaptureAndStore_Image()
 	// Configure DMA in ping-pong mode
 	//
 	DMAConfig();
+//
+//	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+//	//WaitFor40Degrees();
+//	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
 
-	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
-	//WaitFor40Degrees();
-	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+	//fxos_main_waitfor40degrees();
+	LED_On();
 
 	//
     // Perform Image Capture

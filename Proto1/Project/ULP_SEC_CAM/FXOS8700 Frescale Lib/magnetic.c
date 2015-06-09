@@ -43,6 +43,9 @@ void fInitMagCalibration(struct MagCalibration *pthisMagCal, struct MagneticBuff
 
 	// initialize the calibration hard and soft iron estimate to null
 	f3x3matrixAeqI(pthisMagCal->finvW);
+
+	pthisMagCal->fV[X] = pthisMagCal->fV[Y] = pthisMagCal->fV[Z] = 0.0F;
+
 //	pthisMagCal->finvW[0][0] = 0.968111;
 //	pthisMagCal->finvW[0][1] = 0;
 //	pthisMagCal->finvW[0][2] = 0;
@@ -53,8 +56,34 @@ void fInitMagCalibration(struct MagCalibration *pthisMagCal, struct MagneticBuff
 //	pthisMagCal->finvW[2][1] = 0;
 //	pthisMagCal->finvW[2][2] = 0.832426;
 
-	//pthisMagCal->fV[X] = pthisMagCal->fV[Y] = pthisMagCal->fV[Z] = 0.0F;
+	//Fridge top and New PCB
+//	pthisMagCal->finvW[0][0] = 0.805205;
+//	pthisMagCal->finvW[0][1] = -0.202690;
+//	pthisMagCal->finvW[0][2] = 0.070558;
+//	pthisMagCal->finvW[1][0] = -0.202690;
+//	pthisMagCal->finvW[1][1] = 1.209058;
+//	pthisMagCal->finvW[1][2] = -0.647794;
+//	pthisMagCal->finvW[2][0] = 0.070558;
+//	pthisMagCal->finvW[2][1] = -0.647794;
+//	pthisMagCal->finvW[2][2] = 1.421390;
 
+	//Fridge top and New PCB
+	pthisMagCal->finvW[0][0] = 1;
+	pthisMagCal->finvW[0][1] = 0;
+	pthisMagCal->finvW[0][2] = 0;
+	pthisMagCal->finvW[1][0] = 0;
+	pthisMagCal->finvW[1][1] = 1;
+	pthisMagCal->finvW[1][2] = 0;
+	pthisMagCal->finvW[2][0] = 0;
+	pthisMagCal->finvW[2][1] = 0;
+	pthisMagCal->finvW[2][2] = 1;
+
+
+
+
+		pthisMagCal->fV[X] = -23.722466;
+		pthisMagCal->fV[Y] = 26.559999;
+		pthisMagCal->fV[Z] = 97.408997;
 //	pthisMagCal->fV[X] = -68.467613;
 //	pthisMagCal->fV[Y] = -33.845497;
 //	pthisMagCal->fV[Z] = 68.483231;
@@ -63,9 +92,9 @@ void fInitMagCalibration(struct MagCalibration *pthisMagCal, struct MagneticBuff
 //	pthisMagCal->fV[Y] = -35.117210;
 //	pthisMagCal->fV[Z] = 75.561256;
 
-	pthisMagCal->fV[X] = -15.812077;//tag prakz
-	pthisMagCal->fV[Y] = 16.861746;
-	pthisMagCal->fV[Z] = 64.070068;
+//	pthisMagCal->fV[X] = -15.812077;//tag prakz
+//	pthisMagCal->fV[Y] = 16.861746;
+//	pthisMagCal->fV[Z] = 64.070068;
 
 	pthisMagCal->fB = DEFAULTB;
 	pthisMagCal->fFourBsq = 4.0F * pthisMagCal->fB * pthisMagCal->fB;
@@ -275,25 +304,50 @@ void fInvertMagCal(struct MagSensor *pthisMag, struct MagCalibration *pthisMagCa
 //	pthisMagCal->fV[X] = -15.812077;//tag prakz
 //	pthisMagCal->fV[Y] = 16.861746;
 //	pthisMagCal->fV[Z] = 64.070068;
+	pthisMagCal->fV[X] = -23.722466;//tag prakz
+	pthisMagCal->fV[Y] = 26.56;
+	pthisMagCal->fV[Z] = 97.409;
+//	pthisMagCal->fV[X] = -19.460857;	//At fridge
+//	pthisMagCal->fV[Y] = 16.584522;
+//	pthisMagCal->fV[Z] = 63.115200;
+//
+////	finvW[X][X] = ;
+//	pthisMagCal->finvW[0][0] = 0.968111;
+//	pthisMagCal->finvW[0][1] = 0;
+//	pthisMagCal->finvW[0][2] = 0;
+//	pthisMagCal->finvW[1][0] = 0;
+//	pthisMagCal->finvW[1][1] = 1.240878;
+//	pthisMagCal->finvW[1][2] = 0;
+//	pthisMagCal->finvW[2][0] = 0;
+//	pthisMagCal->finvW[2][1] = 0;
+//	pthisMagCal->finvW[2][2] = 0.832426;
 
-	pthisMagCal->fV[X] = -19.460857;	//At fridge
-	pthisMagCal->fV[Y] = 16.584522;
-	pthisMagCal->fV[Z] = 63.115200;
-
-	//finvW[X][X] = ;
-	pthisMagCal->finvW[0][0] = 0.968111;
+	pthisMagCal->finvW[0][0] = 1;
 	pthisMagCal->finvW[0][1] = 0;
 	pthisMagCal->finvW[0][2] = 0;
 	pthisMagCal->finvW[1][0] = 0;
-	pthisMagCal->finvW[1][1] = 1.240878;
+	pthisMagCal->finvW[1][1] = 1;
 	pthisMagCal->finvW[1][2] = 0;
 	pthisMagCal->finvW[2][0] = 0;
 	pthisMagCal->finvW[2][1] = 0;
-	pthisMagCal->finvW[2][2] = 0.832426;
-
+	pthisMagCal->finvW[2][2] = 1;
 //	pthisMagCal->fV[X] = -69.944008;
 //	pthisMagCal->fV[Y] = -35.117210;
 //	pthisMagCal->fV[Z] = 75.561256;
+
+	//Fridge top and New PCB
+//	pthisMagCal->finvW[0][0] = 0.805205;
+//	pthisMagCal->finvW[0][1] = -0.202690;
+//	pthisMagCal->finvW[0][2] = 0.070558;
+//	pthisMagCal->finvW[1][0] = -0.202690;
+//	pthisMagCal->finvW[1][1] = 1.209058;
+//	pthisMagCal->finvW[1][2] = -0.647794;
+//	pthisMagCal->finvW[2][0] = 0.070558;
+//	pthisMagCal->finvW[2][1] = -0.647794;
+//	pthisMagCal->finvW[2][2] = 1.421390;
+//	pthisMagCal->fV[X] = -159.206253;
+//	pthisMagCal->fV[Y] = -14.742977;
+//	pthisMagCal->fV[Z] = 24.760361;
 
 	// calculate fBc and iBc for the 6DOF eCompass algorithms
 	// remove the computed hard iron offsets (uT): ftmp[]=fBp[]-V[]

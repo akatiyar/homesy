@@ -287,7 +287,7 @@ long ConnectToNetwork_2()
 		lRetVal = sl_WlanConnect((signed char*)SSID_NAME, strlen(SSID_NAME), 0, &secParams, 0);
 		ASSERT_ON_ERROR(lRetVal);
 
-		// Wait for WLAN Event
+		/*// Wait for WLAN Event
 		while((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus)))
 		{
 #ifdef LED_INDICATION
@@ -297,7 +297,16 @@ long ConnectToNetwork_2()
 			GPIO_IF_LedOn(MCU_IP_ALLOC_IND);
 			MAP_UtilsDelay(800000);
 #endif
-		}
+		}*/
+
+		unsigned int uiConnectTimeoutCnt =0;
+	    // Wait for WLAN Event
+	    while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
+			((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
+	    {
+	        osi_Sleep(1); //Sleep 1 millisecond
+	        uiConnectTimeoutCnt++;
+	    }
 
 		return SUCCESS;
 }
@@ -419,13 +428,24 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 		LOOP_FOREVER();
 	}
 
-	while (!IS_IP_ACQUIRED(g_ulStatus)) {
+	/*while (!IS_IP_ACQUIRED(g_ulStatus)) {
 #ifndef SL_PLATFORM_MULTI_THREADED
 		_SlNonOsMainLoopTask();
 #else
 		osi_Sleep(100);
 #endif
-	}
+	}*/
+
+	unsigned int uiConnectTimeoutCnt =0;
+    // Wait for WLAN Event
+    while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
+		((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
+    {
+        osi_Sleep(1); //Sleep 1 millisecond
+        uiConnectTimeoutCnt++;
+    }
+
+    if(uiConnectTimeoutCnt > CONNECTION_TIMEOUT_COUNT)
 
 	sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
 

@@ -12,6 +12,8 @@
 #include "math.h"
 #include "timer_fns.h"
 
+uint8_t cnt_prakz2;
+
 struct ProjectGlobals globals;
 struct MQXLiteGlobals mqxglobals;
 
@@ -53,6 +55,70 @@ void fxos_main()
 			Fusion_Run();
 			//UART_PRINT("f\n\r");
 			i++;
+		}
+
+		//cnt_prakz2++;
+
+		if(mqxglobals.MagCal_Event_Flag == 1)
+		//if(cnt_prakz2>60)
+		{
+			MagCal_Run(&thisMagCal, &thisMagBuffer);
+			//UART_PRINT("m* %d\n\r", i);
+			cnt_prakz2 = 0;
+		}
+
+		UtilsDelay(.25*8000000/6);
+	}
+}
+volatile uint8_t flag = 0;
+
+void fxos_main_waitfor40degrees()
+{
+	// initialize globals
+	globals.iPacketNumber = 0;
+	globals.AngularVelocityPacketOn = true;
+	globals.DebugPacketOn = true;
+	globals.RPCPacketOn = true;
+	globals.AltPacketOn = true;
+	globals.iMPL3115Found = false;
+	globals.MagneticPacketID = 0;
+
+	// initialize the physical sensors over I2C and the sensor data structures
+	RdSensData_Init();
+
+	// initialize the sensor fusion algorithms
+	Fusion_Init();
+
+	int i = 0;
+	while(1)
+	{
+		// Need to wait for here till the next (1/200Hz) gets over
+
+		mqxglobals.RunKF_Event_Flag = 0;
+		// read the sensors
+		RdSensData_Run();
+		//UART_PRINT("r\n\r");
+
+		mqxglobals.MagCal_Event_Flag = 0;
+		if(mqxglobals.RunKF_Event_Flag == 1)
+		{
+			// call the sensor fusion algorithms
+			Fusion_Run();
+			//UART_PRINT("f\n\r");
+			i++;
+			if(thisSV_6DOF_GB_BASIC.fLPRho < 20)
+			{
+				flag = 1;
+			}
+			if(flag == 1)
+			{
+				if(thisSV_6DOF_GB_BASIC.fLPRho > 350)
+				{
+					flag = 0;
+					UART_PRINT("Door cndtn met: %3.2f",thisSV_6DOF_GB_BASIC.fLPRho);
+					return;
+				}
+			}
 		}
 
 		if(mqxglobals.MagCal_Event_Flag == 1)

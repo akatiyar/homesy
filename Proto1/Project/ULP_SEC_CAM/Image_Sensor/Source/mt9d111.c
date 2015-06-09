@@ -256,6 +256,9 @@ static  const s_RegList capture_cmds_list[]= {
     {100, 0x00, 0x01F4  },  // Delay =500ms
 //    {0,  0x66,  0x1E03  },
 //    {0,  0x67,  0x0501  },
+
+
+
     {0,  0x66,  0x1E01  },
 	{0,  0x67,  0x0503  },
     //{0,  0x66,  0x1E01  },	//N = 1, M = 30
@@ -263,6 +266,7 @@ static  const s_RegList capture_cmds_list[]= {
     {0, 0x65,   0xA000  },  // Power up PLL
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+	//{0, 0x20, 0x0400    },  // READ_MODE_B // Single ADC for low power. Not tested though. Should % shutter delay by 2 to maintain integration time
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {100, 0x00, 0x01F4  },  // Delay =500ms
@@ -693,7 +697,7 @@ long WriteAllAEnAWBRegs()
 								{0x00, 0x09, 0x0274},
 								{0x00, 0x0C, 0x0000}};
 */
-/*
+
 	// Fridge
 	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0024},
 								{0x00, 0x2C, 0x003A},
@@ -717,8 +721,8 @@ long WriteAllAEnAWBRegs()
 
 								{0x00, 0x09, 0x03ae},
 								{0x00, 0x0C, 0x0000}};
-*/
 
+/*
 	// Imaging Test Chart on my table
 	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0022},
 								{0x00, 0x2C, 0x002e},
@@ -742,7 +746,7 @@ long WriteAllAEnAWBRegs()
 
 								{0x00, 0x09, 0x044b},
 								{0x00, 0x0C, 0x0000}};
-
+*/
 	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
 
 	return lRetVal;
