@@ -8,6 +8,9 @@
 #ifndef APP_COMMON_H_
 #define APP_COMMON_H_
 
+#include "app.h"
+#include "math.h"
+
 unsigned short intToASCII(short cNum, char *cString);
 void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle);
 void LED_Off();

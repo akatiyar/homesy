@@ -26,6 +26,11 @@ int32_t WaitFor45Degrees();
 int32_t Collect_InitMangReadings()
 {
 	int32_t lRetVal;
+	float_t fInitDoorDirectionAngle;
+	float_t fMagnFlx_Init[3];
+		float_t fMagnFlx_InitAvg[3] = {0,0,0};
+		//float_t fMFluxMagnitudeInit = 0;
+		uint8_t j;
 
 	//
 	// Collect the Initial Magnetometr Readings(door closed)
@@ -34,15 +39,12 @@ int32_t Collect_InitMangReadings()
 	verifyAccelMagnSensor();
 	configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
 	//DBG
-	float_t fInitDoorDirectionAngle;
+
 	getDoorDirection( &fInitDoorDirectionAngle );
 	DBG_PRINT("DBG: Testing Magnetometer working:\n"\
 				" Angle: %f\n\r", fInitDoorDirectionAngle);
 
-	float_t fMagnFlx_Init[3];
-	float_t fMagnFlx_InitAvg[3] = {0,0,0};
-	//float_t fMFluxMagnitudeInit = 0;
-	uint8_t j;
+
 	for (j = 0; j < L_AVG_INIT_MAGN; j++)
 	{
 		getMagnFlux_3axis(fMagnFlx_Init);
@@ -103,7 +105,16 @@ int32_t WaitFor40Degrees()
 	float_t fMagnFluxInit3Axis_Read[3];
 
 	int32_t lRetVal;
-
+	float_t fMFluxMagnitudeInit;
+	float_t fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff;
+	float_t fMagnFlx_Now[3];
+	float_t fMagnFlx_Dif[3];
+	float_t fMFluxMagnitudeArray[MOVING_AVG_FLTR_L];
+	float_t fMFluxMagnitude;
+	uint8_t i = 0, j;
+	uint8_t ucOpenFlag = 0;
+	uint8_t ucFirstTimeFlag = 1;
+	float_t fAngle;
 	//
 	// Read initial magnetometer readings from flash
 	//
@@ -120,12 +131,12 @@ int32_t WaitFor40Degrees()
 	//
 	// Calculate magnitude corresponding to 40 and 45 degrees
 	//
-	float_t fMFluxMagnitudeInit;
+
 	fMFluxMagnitudeInit = sqrtf( (fMagnFluxInit3Axis_Read[0]*fMagnFluxInit3Axis_Read[0]) +
 								(fMagnFluxInit3Axis_Read[1]*fMagnFluxInit3Axis_Read[1]) +
 								(fMagnFluxInit3Axis_Read[2]*fMagnFluxInit3Axis_Read[2]) );
 	UART_PRINT("DBG: Initial Magnitude: %f\n\r", fMFluxMagnitudeInit);
-	float_t fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff;
+
 	fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_TO_DETECT/2) * PI / 180 );
 //		fThreshold_magnitudeOfDiff *= fThreshold_magnitudeOfDiff;
 	fThreshold_higher_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_HIGHER/2) * PI / 180);
@@ -140,14 +151,9 @@ int32_t WaitFor40Degrees()
 	//
 	// Wait for '40 degrees while closing condition'
 	//
-	float_t fMagnFlx_Now[3];
-	float_t fMagnFlx_Dif[3];
-	float_t fMFluxMagnitudeArray[MOVING_AVG_FLTR_L];
-	float_t fMFluxMagnitude;
+
 	memset(fMFluxMagnitudeArray, '0', MOVING_AVG_FLTR_L * sizeof(float_t));
-	uint8_t i = 0, j;
-	uint8_t ucOpenFlag = 0;
-	uint8_t ucFirstTimeFlag = 1;
+
 	while(1)
 	{
 //		InitializeTimer();
@@ -197,7 +203,7 @@ int32_t WaitFor40Degrees()
 		}
 
 		//DBG. Comment off
-		float_t fAngle;
+
 		fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
 		//UART_PRINT("%f, ", fMFluxMagnitude);
 		UART_PRINT("%f,", fAngle);

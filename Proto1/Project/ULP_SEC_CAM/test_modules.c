@@ -124,18 +124,23 @@ void Test_TimerWorking()
 	//
 	// Initialize timer and test working
 	//
+	float_t fTestDuration;
 	InitializeTimer();
 	StartTimer();
 	UtilsDelay(80000000/3); //2 sec delay
 	StopTimer();
-	float_t fTestDuration;
+
 	GetTimeDuration(&fTestDuration);
 	UART_PRINT("\n\rUtilsDelay Duration: %f\n\r", fTestDuration);
 }
 
 void Test_HibernateSlwClkCtrWakeup()
 {
+	uint64_t ullSlowCounterReturnVal1;
+
 	/*uint32_t ulHibWkSrc;
+	 *
+
 	ulHibWkSrc = MAP_PRCMHibernateWakeupCauseGet();
 	UART_PRINT("Hib wake cause: %x\n\r", ulHibWkSrc);
 	ulHibWkSrc = *((volatile unsigned long *)(0x4402F800 + 0x00000468));
@@ -153,7 +158,7 @@ void Test_HibernateSlwClkCtrWakeup()
 	if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
 		UART_PRINT("Reset on power on\n\r");
-		uint64_t ullSlowCounterReturnVal1;
+
 		ullSlowCounterReturnVal1 = MAP_PRCMSlowClkCtrGet();
 		UART_PRINT("b hib%lld\n\r\n\r", ullSlowCounterReturnVal1);
 		HIBernate(ENABLE_TIMER_WAKESOURCE, NULL, (10.0*(1.0/60.0)));
@@ -183,7 +188,7 @@ void Test_HibernateSlwClkCtrWakeup()
 			UART_PRINT("Wake Source : Slow Clock Counter\n\r");
 		}
 
-		uint64_t ullSlowCounterReturnVal1;
+
 		ullSlowCounterReturnVal1 = MAP_PRCMSlowClkCtrGet();
 		UART_PRINT("a wakeup %lld\n\r", ullSlowCounterReturnVal1);
 

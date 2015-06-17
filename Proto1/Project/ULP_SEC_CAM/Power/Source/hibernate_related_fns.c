@@ -45,7 +45,8 @@ void HIBernate(uint32_t ucWakeSources,
 				float_t fHibIntervalInMinutes)
 {
 
-    //
+	uint8_t count=0;
+	//
     // Setup Wake Source
     //
 	MAP_PRCMHibernateWakeupSourceDisable(PRCM_HIB_GPIO2|PRCM_HIB_SLOW_CLK_CTR);
@@ -60,14 +61,15 @@ void HIBernate(uint32_t ucWakeSources,
 		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ucGPIOInterruptType);
 
 		bool temp = true;
-		uint8_t count=0;
+
+		configureISL29035(0);
 		// (0x01FF) is trial val
 		while(temp)
 		{
 			if (getLightsensor_data() < (0x01FF))
 			{
 				count++;
-				if(count>10)
+				if(count>3)
 					temp = false;
 
 				UtilsDelay((0.5)*80000000/6);
@@ -79,9 +81,9 @@ void HIBernate(uint32_t ucWakeSources,
 		//	Configure or clear interrupts of wake-up trigger sensors
 		//
 		UART_PRINT("Fridge Light Off");
-		LED_Blink(5, 0.5);
+		//LED_Blink(5, 0.5);
 		sensorsTriggerSetup();
-		UART_PRINT("Cleared sensors\n\r");
+		//UART_PRINT("Cleared sensors\n\r");
 	}
 
 	DBG_PRINT("HIB: Entering HIBernate...\n\r"
@@ -143,11 +145,11 @@ void sensorsTriggerSetup()
 	//
 	// If Light sensor is to be used
 	//
-	UART_PRINT("\n\rLIGHT SENSOR:\n\r");
-	verifyISL29035();
+	//UART_PRINT("\n\rLIGHT SENSOR:\n\r");
+	//verifyISL29035();
 	configureISL29035(0);
 	getLightsensor_intrptStatus(); //To clear the interrupt
-	UART_PRINT("Configured Light Sensor for wake up\n\r");
+	//UART_PRINT("Configured Light Sensor for wake up\n\r");
 
 	//
 	// If Accelerometer trigger is to be used

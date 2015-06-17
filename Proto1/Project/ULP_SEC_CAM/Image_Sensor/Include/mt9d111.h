@@ -64,6 +64,8 @@ long enableAWB();
 long enableAE();
 long disableAE();
 
+long LL_Configs();
+
 long Verify_ImageSensor();
 
 long JPEGDataLength_read();

@@ -45,7 +45,7 @@
 
 #include "app.h"
 
-extern int32_t CollectTxit_ImgTempRH();
+extern uint8_t isitfirsttime;
 
 // sensor data structures
 #if defined USE_MPL3115
@@ -100,46 +100,10 @@ struct SV_9DOF_GBY_KALMAN thisSV_9DOF_GBY_KALMAN;
 #endif
 
 
-
-
-
-
-//Prakash all globals
-
-uint8_t open1_close0_invalid2;
-uint8_t valid_case;
-uint8_t avg_buffer_cnt;
-uint8_t isitfirsttime;
-#define DOORCLOSE_ORIG  359
-#define IMAGEPOS_ORIG   345
-#define ABOVE45_ORIG	320
-
-#if (DOORCLOSE_ORIG > ABOVE45_ORIG)
-#define ADJUST_VAL		0
-#else
-#define ADJUST_VAL		(DOORCLOSE_ORIG+5)
-#endif
-
-#define DOORCLOSE		(DOORCLOSE_ORIG - ADJUST_VAL)
-#define IMAGEPOS		(IMAGEPOS_ORIG - ADJUST_VAL)
-#define ABOVE45			(ABOVE45_ORIG - ADJUST_VAL)
-
-float ang_buf[4];
-float angle_reading_del1;
-float angle_avg;
-float angle_reading_del2;
-float angle_reading_del3;
-float angle_reading_del4;
-
-//Prakash refine or delete later
-
-
-
 // function initializes the sensors and the sensor data structures
 void RdSensData_Init(void)
 {
 	int8 i;							// loop counter
-	isitfirsttime = 0;
 	// zero sums of sensor data (typically 200Hz) on first execution
 	for (i = X; i <= Z; i++)
 	{
@@ -236,6 +200,7 @@ void RdSensData_Run(void)
 	FXOS8700_ReadData(&thisAccel, &thisMag);
 	ApplyAccelHAL(&thisAccel);
 	ApplyMagHAL(&thisMag);
+	//UART_PRINT("%f, %f, %f\n\r",thisMag.fBpFast[X], thisMag.fBpFast[Y], thisMag.fBpFast[Z]);
 #endif
 #if defined USE_FXAS21000
 	FXAS21000_ReadData(I2C_DeviceData, &thisGyro, iCounter);
@@ -383,15 +348,13 @@ void Fusion_Run(void)
 		if (thisSV_3DOF_Y_BASIC.systick < 0) thisSV_3DOF_Y_BASIC.systick += SYST_RVR;
 	}
 #endif
-	//cnt_prakz++;
+
 	// 6DOF Accel / Mag: Basic: call the eCompass orientation algorithm, low pass filters and Euler angle calculation
 #if defined COMPUTE_6DOF_GB_BASIC
 	if (PARALLELNOTSEQUENTIAL || (globals.QuaternionPacketType == Q6MA))
 	{
 		/*thisSV_6DOF_GB_BASIC.systick = SYST_CVR & 0x00FFFFFF;*/
 		fRun_6DOF_GB_BASIC(&thisSV_6DOF_GB_BASIC, &thisMag, &thisAccel, globals.loopcounter, THISCOORDSYSTEM);
-//Prakashs code*********************************************************
-		thisSV_6DOF_GB_BASIC.fLPRho -= ADJUST_VAL;
 
 		if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
 		{
@@ -401,99 +364,6 @@ void Fusion_Run(void)
 				thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho-360;
 			}
 		}
-
-		if(!isitfirsttime)
-		{
-			avg_buffer_cnt = 0;
-			ang_buf[0] = thisSV_6DOF_GB_BASIC.fLPRho;
-			ang_buf[1] = thisSV_6DOF_GB_BASIC.fLPRho;
-			ang_buf[2]= thisSV_6DOF_GB_BASIC.fLPRho;
-			ang_buf[3] = thisSV_6DOF_GB_BASIC.fLPRho;
-			angle_avg = thisSV_6DOF_GB_BASIC.fLPRho;
-			isitfirsttime = 1;
-		}
-//		if(   abs(angle_avg - thisSV_6DOF_GB_BASIC.fLPRho) > 20 )
-//		{
-//			UART_PRINT("SPIKE \n\r");
-//			ang_buf[0] = thisSV_6DOF_GB_BASIC.fLPRho;
-//			ang_buf[1] = thisSV_6DOF_GB_BASIC.fLPRho;
-//			ang_buf[2]= thisSV_6DOF_GB_BASIC.fLPRho;
-//			ang_buf[3] = thisSV_6DOF_GB_BASIC.fLPRho;
-//			angle_avg = thisSV_6DOF_GB_BASIC.fLPRho;
-//		}
-//		else
-		{
-			ang_buf[avg_buffer_cnt] = thisSV_6DOF_GB_BASIC.fLPRho;
-			angle_avg = (ang_buf[0] + ang_buf[1] + ang_buf[2] + ang_buf[3])/4;
-
-			if(avg_buffer_cnt==3)
-			{
-				avg_buffer_cnt = 0;
-			}
-			else
-			{
-				avg_buffer_cnt++;
-			}
-		}
-		angle_reading_del4 = angle_reading_del3;
-		angle_reading_del3 = angle_reading_del2;
-		angle_reading_del2 = angle_reading_del1;
-		angle_reading_del1 = angle_avg;
-
-//		UART_PRINT("X,%3.2f\n\r", angle_avg);
-
-
-		if( (angle_reading_del1 > angle_reading_del2) && (angle_reading_del2 > angle_reading_del3) && (angle_reading_del3 >angle_reading_del4) )
-		{
-			open1_close0_invalid2 = 0;
-			UART_PRINT("Close\n");
-		}
-		else if((angle_reading_del1 < angle_reading_del2) && (angle_reading_del2 < angle_reading_del3) && (angle_reading_del3 < angle_reading_del4) )
-		{
-			open1_close0_invalid2 = 1;
-		}
-		else
-		{
-			open1_close0_invalid2 = 2;
-			UART_PRINT("INVALID \n");
-		}
-
-
-		//check for the angle crossing and then wait for 45 degrees
-		if(  (thisSV_6DOF_GB_BASIC.fLPRho<ABOVE45) & (open1_close0_invalid2 == 1) )
-		{
-			valid_case = 1;
-			UART_PRINT("OPEN \n");
-		}
-		else if(thisSV_6DOF_GB_BASIC.fLPRho>DOORCLOSE)
-		{
-			valid_case = 0;
-			UART_PRINT("IVCASE \n");
-		}
-
-		if( (thisSV_6DOF_GB_BASIC.fLPRho>IMAGEPOS) & (open1_close0_invalid2 == 0) & (valid_case == 1 ) )
-		{
-			valid_case = 0;
-			UART_PRINT("\nS\n");
-			CollectTxit_ImgTempRH();
-
-
-
-		}
-
-
-
-		//if(cnt_prakz>30)
-		{
-//			UART_PRINT("Y,%3.2f, Z,%3.2f, Psi: %3.2f, X,%3.2f, Delta: %3.2f, Chi: %3.2f\n\r",
-//					thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe,
-//					thisSV_6DOF_GB_BASIC.fLPPsi, thisSV_6DOF_GB_BASIC.fLPRho,
-//					thisSV_6DOF_GB_BASIC.fLPDelta, thisSV_6DOF_GB_BASIC.fLPChi);
-//			cnt_prakz = 0;
-		}
-
-
-//Prakashs code ends here
 		/*thisSV_6DOF_GB_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
 		if (thisSV_6DOF_GB_BASIC.systick < 0) thisSV_6DOF_GB_BASIC.systick += SYST_RVR;*/
 	}
@@ -635,10 +505,15 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 					}
 				}
 				UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
+				UART_PRINT("\n\r***Accepted****\n\r");
 				//tag prakz
 
 		} // end of test to accept the new calibration 
 	} // end of test for geomagenetic field strength in range
+//	else
+//	{
+//		UART_PRINT("\n\rpthisMagCal->ftrB: %3.2f\n\r" , pthisMagCal->ftrB );
+//	}
 
 	// reset the calibration in progress flag to allow writing to the magnetic buffer
 	pthisMagCal->iCalInProgress = 0;

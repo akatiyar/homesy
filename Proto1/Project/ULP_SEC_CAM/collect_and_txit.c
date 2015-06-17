@@ -12,6 +12,7 @@
 #include "math.h"
 #include "string.h"
 #include "mt9d111.h"
+#include "tempRHSens_si7020.h"
 
 #include "flash_files.h"
 extern int32_t CollectTxit_ImgTempRH();
@@ -27,6 +28,13 @@ extern int32_t CollectTxit_ImgTempRH();
 int32_t CollectTxit_ImgTempRH()
 {
 	int32_t lRetVal;
+	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
+	ParseClient clientHandle;
+	uint8_t ucParseImageUrl[100];
+	//uint8_t ucParseImageUrl[] = "tfss-cdf82004-4241-425f-96ce-3f68092bebce-myPic1.jpg";
+	uint8_t ucTryNum = 0;
+	float_t fTemp = 12.34, fRH = 56.78;
+	float_t fBatteryLvl = 80;
 
 #ifndef NO_CAMERA
 	//
@@ -48,15 +56,12 @@ int32_t CollectTxit_ImgTempRH()
 	//
 	//	Parse initialization
 	//
-	ParseClient clientHandle;
 	clientHandle = InitialiseParse();
 
 	//
 	//	Upload image to Parse and retreive image's unique ID
 	//
-	uint8_t ucParseImageUrl[100];
 	memset(ucParseImageUrl, NULL, 100);
-	uint8_t ucTryNum = 0;
 	do{
 		lRetVal = UploadImageToParse(clientHandle,
 										(unsigned char*) IMAGE_DATA_FILE_NAME,
@@ -64,49 +69,25 @@ int32_t CollectTxit_ImgTempRH()
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
-	//UART_PRINT("\n%s\n", ucParseImageUrl);
+	//UART_PRINT("Prakash-Line73 \n");
 
 	//
 	//	Collect Temperature and RH values from Si7020 IC
 	//
-	float_t fTemp = 12.34, fRH = 56.78;
-//	verifyTempRHSensor();
-//	softResetTempRHSensor();
-//	configureTempRHSensor();
-//	UtilsDelay(80000000);
-//	getTempRH(&fTemp, &fRH);
+	softResetTempRHSensor();
+	configureTempRHSensor();
+	UtilsDelay(80000000);
+	getTempRH(&fTemp, &fRH);
+	UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
 
-	float_t fBatteryLvl = 80;
 //	Get_BatteryVoltageLevel_ADC081C021(&fBatteryLvl);
 
 	//
 	// Construct the JSON object string
 	//
-	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
+
 	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
 	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, fBatteryLvl, ucSensorDataTxt);
-
-	/*lRetVal = CreateFile_Flash(FILENAME_SENSORDATA, MAX_FILESIZE_SENSORDATA);
-	ASSERT_ON_ERROR(lRetVal);
-
-	int32_t lFileHandle;
-	lRetVal = WriteFile_ToFlash((uint8_t*)&ucSensorDataTxt[0],
-								(uint8_t*)FILENAME_SENSORDATA,
-								CONTENTSIZE_FILE_SENSORDATA,
-								0, SINGLE_WRITE,
-								&lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
-
-	// For verification - DBG
-	lRetVal = ReadFile_FromFlash((ucSensorDataTxt+3),
-									(uint8_t*)FILENAME_SENSORDATA,
-									CONTENTSIZE_FILE_SENSORDATA-3, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = ReadFile_FromFlash(ucSensorDataTxt,
-									(uint8_t*)FILENAME_SENSORDATA,
-									CONTENTSIZE_FILE_SENSORDATA, 0);
-	ASSERT_ON_ERROR(lRetVal);*/
 
 	//
 	//	Upload sensor data to Parse
@@ -118,7 +99,7 @@ int32_t CollectTxit_ImgTempRH()
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
 
-	//sl_Stop(0xFFFF);
+	sl_Stop(0xFFFF);
 
 //	CollectSensorData();
 //	txitSensorData(clientHandle,"",ucParseImageUrl);

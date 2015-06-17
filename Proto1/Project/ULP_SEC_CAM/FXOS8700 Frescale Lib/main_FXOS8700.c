@@ -11,8 +11,14 @@
 #include "app.h"
 #include "math.h"
 #include "timer_fns.h"
+#include "accelomtrMagntomtr_fxos8700.h"
+#include "app_common.h"
 
 uint8_t cnt_prakz2;
+uint8_t g_flag_door_closing_45degree;
+
+
+extern void check_doorpos();
 
 struct ProjectGlobals globals;
 struct MQXLiteGlobals mqxglobals;
@@ -23,6 +29,8 @@ extern volatile uint32_t v_OneSecFlag;
 
 void fxos_main()
 {
+	g_flag_door_closing_45degree = 0;
+
 	// initialize globals
 	globals.iPacketNumber = 0;
 	globals.AngularVelocityPacketOn = true;
@@ -53,8 +61,14 @@ void fxos_main()
 		{
 			// call the sensor fusion algorithms
 			Fusion_Run();
+			check_doorpos();
 			//UART_PRINT("f\n\r");
 			i++;
+			if(g_flag_door_closing_45degree)
+			{
+				standby_accelMagn_fxos8700();
+				return;
+			}
 		}
 
 		//cnt_prakz2++;
@@ -66,8 +80,7 @@ void fxos_main()
 			//UART_PRINT("m* %d\n\r", i);
 			cnt_prakz2 = 0;
 		}
-
-		UtilsDelay(.25*8000000/6);
+		//UtilsDelay(.25*8000000/6);
 	}
 }
 volatile uint8_t flag = 0;

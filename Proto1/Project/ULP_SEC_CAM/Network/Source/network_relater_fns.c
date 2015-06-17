@@ -218,7 +218,9 @@ int ConfigureMode(int iMode)
 long ConnectToNetwork()
 {
     long lRetVal = -1;
-
+    unsigned char ucAPSSID[AP_SSID_LEN_MAX];
+        unsigned short len = 32;
+        unsigned short  config_opt = WLAN_AP_OPT_SSID;
     //Start Simplelink Device
     lRetVal =  sl_Start(NULL,NULL,NULL);
     ASSERT_ON_ERROR(lRetVal);
@@ -244,9 +246,7 @@ long ConnectToNetwork()
     }
 
      //Read the AP SSID
-    unsigned char ucAPSSID[AP_SSID_LEN_MAX];
-    unsigned short len = 32;
-    unsigned short  config_opt = WLAN_AP_OPT_SSID;
+
     memset(ucAPSSID,'\0',AP_SSID_LEN_MAX);
     lRetVal = sl_WlanGet(SL_WLAN_CFG_AP_ID, &config_opt , &len, (unsigned char*) ucAPSSID);
     ASSERT_ON_ERROR(lRetVal);
@@ -261,89 +261,91 @@ long ConnectToNetwork()
     return SUCCESS;
 }
 
-long ConnectToNetwork_2()
-{
-    long lRetVal = -1;
-    //unsigned int uiConnectTimeoutCnt =0; //uncomment if wifi details are not hard-coded
-
-    //Start Simplelink Device
-    lRetVal =  sl_Start(NULL,NULL,NULL);
-    ASSERT_ON_ERROR(lRetVal);
-
-    lRetVal = sl_WlanSetMode(ROLE_STA);
-	if (lRetVal < 0) {
-		sl_Stop(SL_STOP_TIMEOUT);
-		ERR_PRINT(lRetVal);
-		LOOP_FOREVER();
-	}
-
-		SlSecParams_t secParams = {0};
-		lRetVal = 0;
-
-		secParams.Key = (signed char*)SECURITY_KEY;
-		secParams.KeyLen = strlen(SECURITY_KEY);
-		secParams.Type = SECURITY_TYPE;
-
-		lRetVal = sl_WlanConnect((signed char*)SSID_NAME, strlen(SSID_NAME), 0, &secParams, 0);
-		ASSERT_ON_ERROR(lRetVal);
-
-		/*// Wait for WLAN Event
-		while((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus)))
-		{
-#ifdef LED_INDICATION
-			// Toggle LEDs to Indicate Connection Progress
-			GPIO_IF_LedOff(MCU_IP_ALLOC_IND);
-			MAP_UtilsDelay(800000);
-			GPIO_IF_LedOn(MCU_IP_ALLOC_IND);
-			MAP_UtilsDelay(800000);
-#endif
-		}*/
-
-		unsigned int uiConnectTimeoutCnt =0;
-	    // Wait for WLAN Event
-	    while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
-			((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
-	    {
-	        osi_Sleep(1); //Sleep 1 millisecond
-	        uiConnectTimeoutCnt++;
-	    }
-
-		return SUCCESS;
-}
-
-void ConnectToNetwork_STA_2()
-{
-	 long lRetVal = -1;
-
-	//Initialize Global Variable
-	InitializeAppVariables();
-
-	ConfigureSimpleLinkToDefaultState();
-
-	//Connect to Network
-	lRetVal = ConnectToNetwork_2();
-	if(lRetVal < 0)
-	{
-		UART_PRINT("Failed to establish connection w/ an AP \n\r");
-		LOOP_FOREVER();
-	}
-}
+//long ConnectToNetwork_2()
+//{
+//    long lRetVal = -1;
+//	unsigned int uiConnectTimeoutCnt =0;
+//    //unsigned int uiConnectTimeoutCnt =0; //uncomment if wifi details are not hard-coded
+//
+//    //Start Simplelink Device
+//    lRetVal =  sl_Start(NULL,NULL,NULL);
+//    ASSERT_ON_ERROR(lRetVal);
+//
+//    lRetVal = sl_WlanSetMode(ROLE_STA);
+//	if (lRetVal < 0) {
+//		sl_Stop(SL_STOP_TIMEOUT);
+//		ERR_PRINT(lRetVal);
+//		LOOP_FOREVER();
+//	}
+//
+//		SlSecParams_t secParams = {0};
+//		lRetVal = 0;
+//
+//		secParams.Key = (signed char*)SECURITY_KEY;
+//		secParams.KeyLen = strlen(SECURITY_KEY);
+//		secParams.Type = SECURITY_TYPE;
+//
+//		lRetVal = sl_WlanConnect((signed char*)SSID_NAME, strlen(SSID_NAME), 0, &secParams, 0);
+//		ASSERT_ON_ERROR(lRetVal);
+//
+//		/*// Wait for WLAN Event
+//		while((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus)))
+//		{
+//#ifdef LED_INDICATION
+//			// Toggle LEDs to Indicate Connection Progress
+//			GPIO_IF_LedOff(MCU_IP_ALLOC_IND);
+//			MAP_UtilsDelay(800000);
+//			GPIO_IF_LedOn(MCU_IP_ALLOC_IND);
+//			MAP_UtilsDelay(800000);
+//#endif
+//		}*/
+//
+//
+//	    // Wait for WLAN Event
+//	    while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
+//			((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
+//	    {
+//	        osi_Sleep(1); //Sleep 1 millisecond
+//	        uiConnectTimeoutCnt++;
+//	    }
+//
+//		return SUCCESS;
+//}
+//
+//void ConnectToNetwork_STA_2()
+//{
+//	 long lRetVal = -1;
+//
+//	//Initialize Global Variable
+//	InitializeAppVariables();
+//
+//	ConfigureSimpleLinkToDefaultState();
+//
+//	//Connect to Network
+//	lRetVal = ConnectToNetwork_2();
+//	if(lRetVal < 0)
+//	{
+//		UART_PRINT("Failed to establish connection w/ an AP \n\r");
+//		LOOP_FOREVER();
+//	}
+//}
 
 int32_t ConnectToNetwork_STA()
 {
 	int32_t lRetVal;
-
 	uint8_t ucWifiConfigFileData[CONTENTSIZE_FILE_USERWIFI];
-	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
-									(uint8_t*)FILENAME_USERWIFI,
-									CONTENTSIZE_FILE_USERWIFI, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
 	int8_t ssid[AP_SSID_LEN_MAX];
 	int8_t ucWifiPassword[AP_PASSWORD_LEN_MAX];
 	uint8_t ucWifiSecType[AP_SECTYPE_LEN_MAX];
-	uint8_t* pucWifiConfigFileData = &ucWifiConfigFileData[0];
+	uint8_t* pucWifiConfigFileData;// = &ucWifiConfigFileData[0];
 	SlSecParams_t keyParams;
+
+	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
+									(uint8_t*)FILENAME_USERWIFI,
+									CONTENTSIZE_FILE_USERWIFI, 0);
+
+	pucWifiConfigFileData = &ucWifiConfigFileData[0];
+	ASSERT_ON_ERROR(lRetVal);
 
 	strcpy((char*)ssid, (const char*)ucWifiConfigFileData);
 	pucWifiConfigFileData += strlen((const char*)pucWifiConfigFileData)+1;
@@ -375,6 +377,7 @@ int32_t ConnectToNetwork_STA()
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 {
 	short status;
+	unsigned int uiConnectTimeoutCnt =0;
 	//short status = sl_Start(0, 0, 0);
 	//if (status >= 0)
 	//{
@@ -418,9 +421,16 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 		LOOP_FOREVER();
 	}
 
-	UART_PRINT("\r\n");
-	UART_PRINT("[QuickStart] Network init\r\n");
+	UART_PRINT("\r\n[QuickStart] Network init\r\n");
 
+//	ssid = "Soliton";
+//	keyParams->Key = "37203922bb";
+//	keyParams->KeyLen = sizeof("37203922bb");
+//	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
+	ssid = "Camera";
+	keyParams->Key = "abcdef1234";
+	keyParams->KeyLen = sizeof("abcdef1234");
+	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	if (status < 0) {
 		sl_Stop(SL_STOP_TIMEOUT);
@@ -436,7 +446,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 #endif
 	}*/
 
-	unsigned int uiConnectTimeoutCnt =0;
+
     // Wait for WLAN Event
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
 		((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))

@@ -69,14 +69,17 @@
 #include "mt9d111.h"
 
 #include "app.h"
+#include "app_common.h"
 
 #include "network_related_fns.h"
 #include "timer_fns.h"
 #include "math.h"
 #include "flash_files.h"
+#include "tempRHSens_si7020.h"
 
 extern int32_t WaitFor40Degrees();
 extern void fxos_main_waitfor40degrees();
+extern void fxos_main();
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -348,6 +351,9 @@ long CaptureAndStore_Image()
 	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
 
+
+	//fxos_main();
+
 	//
 	// Initialize camera controller
 	//
@@ -361,14 +367,25 @@ long CaptureAndStore_Image()
 //	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 //	//WaitFor40Degrees();
 //	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
-
+	//LED_Off();
+	fxos_main();
 	//fxos_main_waitfor40degrees();
 	LED_On();
 
+//	float_t fTemp = 12.34, fRH = 56.78;
+//	verifyTempRHSensor();
+//	softResetTempRHSensor();
+//	configureTempRHSensor();
+//	UtilsDelay(80000000);
+//	getTempRH(&fTemp, &fRH);
+//	UART_PRINT("Temperature: %f\n\r", fTemp);
+
+
+	//UtilsDelay(.25*80000000/6);
 	//
     // Perform Image Capture
     //
-    UART_PRINT("sB");
+    //UART_PRINT("sB");
     //InitializeTimer();
     //StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
@@ -380,8 +397,8 @@ long CaptureAndStore_Image()
     	{
     		if((0x00 == g_image_buffer[0])&&(0x00 == g_image_buffer[10])&&(0x00 == g_image_buffer[20]))	//Checking three random positions in the buffer
     		{
-				UART_PRINT("INVALID First Block\n\r ");
-    			UART_PRINT("s%d ", g_readHeader);
+				//UART_PRINT("INVALID First Block\n\r ");
+    			//UART_PRINT("s%d ", g_readHeader);
 
 				// Write a Block of Image from RAM to Flash
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
@@ -412,7 +429,7 @@ long CaptureAndStore_Image()
     	{
     		if(g_flag_blockFull[g_readHeader])
     		{
-    			UART_PRINT("s%d ", g_readHeader);
+    			//UART_PRINT("s%d ", g_readHeader);
 
     			// Write a Block of Image from RAM to Flash
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
@@ -437,7 +454,7 @@ long CaptureAndStore_Image()
     		else
     		{
     			g_flag_DataBlockFilled = 0;
-    			UART_PRINT("f");
+    			//UART_PRINT("f");
     		}
     	}
 		//UART_PRINT("F");
@@ -671,7 +688,7 @@ void CamControllerInit()
 //*****************************************************************************
 static void CameraIntHandler()
 {
-	//UART_PRINT("!");
+	//UART_PRINT("\n!");
 
 	//RegStatusRead();
 
@@ -775,7 +792,7 @@ static void CameraIntHandler()
 
             	// Update block#
             	g_block_lastFilled++;
-            	UART_PRINT("%d ", g_block_lastFilled);
+            	//UART_PRINT("%d ", g_block_lastFilled);
 
             	// Set Block full flag
             	g_flag_blockFull[g_block_lastFilled] = 1;
@@ -795,7 +812,7 @@ static void CameraIntHandler()
             MAP_uDMAChannelDisable(UDMA_CH22_CAMERA);
             HWREG(0x44026090) |= 1 << 8;
             g_frame_end = 1;
-            UART_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
+            //UART_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
         }
     }
 }
@@ -1370,7 +1387,7 @@ int32_t createAndWrite_ImageHeaderFile()
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
-	UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
+	//UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
 
 	// Close the file post writing the image
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);

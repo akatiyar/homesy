@@ -125,8 +125,8 @@ void getTempRH(float_t* pfTemp, float_t* pfRH)
 	usRHCode = (ucData[0] << 8) | (ucData[1]);
 	usTempCode = (ucData[2] << 8) | (ucData[3]);
 
-	UART_PRINT("\nData Read: %x %x %x %x\n",
-					ucData[0], ucData[1], ucData[2], ucData[3]);
+//	UART_PRINT("\nData Read: %x %x %x %x\n",
+//					ucData[0], ucData[1], ucData[2], ucData[3]);
 
 	*pfRH = ( (125.0 * usRHCode) / 65536 ) - 6;
 	*pfTemp = ( (175.72 * usTempCode) / 65536 ) - 46.85;

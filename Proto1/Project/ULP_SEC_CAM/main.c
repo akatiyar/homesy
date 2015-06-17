@@ -175,6 +175,9 @@ static void DisplayBanner(char * AppName);
 
 int32_t CollectTxit_ImgTempRH();
 void Main_Task(void *pvParameters);
+void Main_Task_withHibernate(void *pvParameters);
+void ProvisionAP_Task(void *pvParameters);
+void Test_Task(void *pvParameters);
 
 #ifdef USE_FREERTOS
 //*****************************************************************************
@@ -262,44 +265,56 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
-	Config_And_Start_CameraCapture();
-	fxos_main();
+	LED_On();
 
-while(1)
-{
-	LED_Blink(4, 0.3);
-	CollectTxit_ImgTempRH();
-	LED_Off();
-	UtilsDelay(5*80000000/6);
+	createAndWrite_ImageHeaderFile();
+	create_JpegImageFile();
+
+	Config_And_Start_CameraCapture();
+	while(1)
+	{
+		CollectTxit_ImgTempRH();
+	}
 }
 
-	//fxos_main();
-	//ProvisioningAP();
+void Test_Task(void *pvParameters)
+{
+	//Config_And_Start_CameraCapture();
+	while(1)
+	{
+		CollectTxit_ImgTempRH();
+	}
 
-//	create_JpegImageFile();
-//	createAndWrite_ImageHeaderFile();
-//
-//	Config_And_Start_CameraCapture();
-//while(1)
-//	CollectTxit_ImgTempRH();
+	//verifyISL29035();
+	//verifyTempRHSensor();
+	//verifyAccelMagnSensor();
+	//Config_And_Start_CameraCapture();
+	//Verify_ImageSensor();
+//	FXOS8700_Init();
+//	float fMagnFlux[3];
+//	while(1)
+//	{
+//		UtilsDelay(0.25*80000000/6);
+//		getMagnFlux_3axis(fMagnFlux);
+//		UART_PRINT("%f, %f, %f\n\r", fMagnFlux[0], fMagnFlux[1], fMagnFlux[2]);
+//	}
+//	while(1)
+//		fxos_main();
+}
 
-//	UART_PRINT("Light Sensor Val: %x\n\r", getLightsensor_data());
-
-	fxos_main();
-
-//	Testing_fxos();
-	//ProvisioningAP();
-
-	UART_PRINT("\n\rTest Wakeup\n\r");
+void ProvisionAP_Task(void *pvParameters)
+{
+	LED_On();
+	ProvisioningAP();
+	while(1);
+}
+void Main_Task_withHibernate(void *pvParameters)
+{
     if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
-		LED_Blink(30, 1);
-
-		//ProvisioningAP();
-		//Collect_InitMangReadings();
+    	LED_Blink(30, 1);
+		//LED_Blink(10, 1);
 		LED_On();
-
-		//initial_magnetometerReadings();
 
 		createAndWrite_ImageHeaderFile();
 		create_JpegImageFile();
@@ -311,11 +326,8 @@ while(1)
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		LED_Blink(4, 0.3);
-
-		//waitfor40degrees_fxos();
-		float_t fYaw_closedDoor = 333;
-		fxos_waitFor40Degrees(fYaw_closedDoor);
+		UART_PRINT("\n\rI'm up\n\r");
+		//LED_Blink(4, 0.3);
 		LED_On();
 
 		CollectTxit_ImgTempRH();
@@ -323,7 +335,6 @@ while(1)
 		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
 }
-
 int32_t Config_And_Start_CameraCapture()
 {
 	int32_t lRetVal;
@@ -349,6 +360,17 @@ int32_t Config_And_Start_CameraCapture()
 	disableAE();
 	disableAWB();
 	WriteAllAEnAWBRegs();
+
+//	LL_Configs();
+
+//	uint16_t x;
+//	Variable_Read(0xA743, &x);
+//	Variable_Read(0xA744, &x);
+//	Variable_Read(0xA115, &x);
+//	Variable_Read(0xA118, &x);
+//
+//	Variable_Read(0xA116, &x);
+//	Variable_Read(0xA117, &x);
 
 	UART_PRINT("I2C Camera config done\n\r");
 
@@ -441,7 +463,7 @@ void main()
     // Configuring UART
     //
     InitTerm();
-    UART_PRINT("Test");
+    //UART_PRINT("Test");
 #endif
 
 	//Display Application Banner
@@ -471,9 +493,11 @@ void main()
     //
     // Start the task
     //
-	lRetVal = osi_TaskCreate(Main_Task,
-					//TestSi7020ApiReadWrite,
-					//TestFxosApiReadWrite,
+	lRetVal = osi_TaskCreate(
+					//Main_Task,
+					//ProvisionAP_Task,
+					Main_Task_withHibernate,
+					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,
 					NULL,
