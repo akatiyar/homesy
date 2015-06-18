@@ -56,7 +56,8 @@ int32_t UploadImageToParse(ParseClient client,
 
 	ASSERT_ON_ERROR(lRetVal);
 
-	retreiveImageIDfromHTTPResponse(pucParseImageUrl);
+	simpleJsonProcessor(dataBuffer, "name", pucParseImageUrl, IMAGE_NAME_MAX_LEN);
+	//retreiveImageIDfromHTTPResponse(pucParseImageUrl);
 
 	return lRetVal;
 }

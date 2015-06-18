@@ -154,6 +154,7 @@ extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))
 //******************************************************************************
 long CaptureAndStore_Image();
 long CaptureinRAM_StoreAfterCapture_Image();
+long CaptureinRAM();
 void CamControllerInit();
 void StartCamera();
 int32_t Standby_ImageSensor();

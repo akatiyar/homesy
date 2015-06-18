@@ -495,14 +495,8 @@ long CaptureAndStore_Image()
 
     return SUCCESS;
 }
-
-long CaptureinRAM_StoreAfterCapture_Image()
+long CaptureinRAM()
 {
-    long lFileHandle;
-    unsigned long ulToken = NULL;
-    long lRetVal;
-
-
 	// Initialize camera controller
 	//
 	CamControllerInit();
@@ -525,7 +519,35 @@ long CaptureinRAM_StoreAfterCapture_Image()
 	while(g_frame_end == 0);
 	MAP_CameraCaptureStop(CAMERA_BASE, true);
 	UART_PRINT("pA");
+}
+long CaptureinRAM_StoreAfterCapture_Image()
+{
+    long lFileHandle;
+    unsigned long ulToken = NULL;
+    long lRetVal;
 
+	// Initialize camera controller
+	//
+	CamControllerInit();
+
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
+	LED_On();
+	//Wait for angle condition
+	LED_Off();
+
+	//
+	// Perform Image Capture
+	//
+	UART_PRINT("sB");
+	MAP_CameraCaptureStart(CAMERA_BASE);
+	// HWREG(0x4402609C) |= 1 << 8;
+	while(g_frame_end == 0);
+	MAP_CameraCaptureStop(CAMERA_BASE, true);
+	UART_PRINT("pA");
 
 	lRetVal = sl_Start(0, 0, 0);
 	ASSERT_ON_ERROR(lRetVal);
@@ -700,7 +722,8 @@ static void CameraIntHandler()
         //UART_PRINT("++++++");
         //JPEGDataLength_read();
     }
-    else if(HWREG(0x440260A0) & (1<<8))
+    //else if(HWREG(0x440260A0) & (1<<8))
+    else if(HWREG(0x440260A4) & (1<<8))
     {
     	//UART_PRINT(".");
     	// Camera DMA Done clear

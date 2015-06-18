@@ -85,9 +85,9 @@ int32_t CollectTxit_ImgTempRH()
 	//
 	// Construct the JSON object string
 	//
-
 	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
 	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, fBatteryLvl, ucSensorDataTxt);
+	UART_PRINT("OBJECT: %s\n", ucSensorDataTxt);
 
 	//
 	//	Upload sensor data to Parse

@@ -663,13 +663,13 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             switch( pSock->EventData.status )
             {
                 case SL_ECLOSE:
-                    UART_PRINT("[SOCK ERROR] - close socket (%d) operation "
-                    "failed to transmit all queued packets\n\n",
+                    UART_PRINT("\n[SOCK ERROR] - close socket (%d) operation "
+                    "failed to transmit all queued packets\n",
                            pSock->EventData.sd);
                     break;
                 default:
-                    UART_PRINT("[SOCK ERROR] - TX FAILED : socket %d , reason"
-                        "(%d) \n\n",
+                    UART_PRINT("\n[SOCK ERROR] - TX FAILED : socket %d , reason"
+                        "(%d) \n",
                            pSock->EventData.sd, pSock->EventData.status);
                     if(SL_ENOTCONN == pSock->EventData.status)
                     {
@@ -680,11 +680,11 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             break;
 
         default:
-            UART_PRINT("[SOCK EVENT] "
-            			"- Unexpected Event [%x0x]\n\n",pSock->Event);
+            UART_PRINT("\n[SOCK EVENT] "
+            			"- Unexpected Event [%x0x]\n",pSock->Event);
     }
     UART_PRINT("[SOCK EVENT/ERROR]:\n Event: %x\n Socket: %x\n EventStatus: "
-    				"%d\n AsynchEventValue: %x\n AsynchEventType: %x\n\r",
+    				"%d\n AsynchEventValue: %x\n AsynchEventType: %x\n\r\n\r",
     				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
     				pSock->EventData.socketAsyncEvent.val,
     				pSock->EventData.socketAsyncEvent.type);

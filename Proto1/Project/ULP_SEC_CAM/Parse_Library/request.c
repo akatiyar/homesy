@@ -277,7 +277,7 @@ int headerSend(ParseClientInternal *parseClient,
 	{
 		long temp = status;
 		status = socketWrite(socketHandle, dataBuffer, status);
-		DEBUG_PRINT("[Parse] Header Socket Write status: %d\r\n", status);
+		DEBUG_PRINT("Header SocketWrite bytes/status: %d\r\n", status);
 		if(status != temp)
 		{
 			DEBUG_PRINT("\nHeader data written != data supposed to be written\n\r");
@@ -405,7 +405,7 @@ int payloadSend( const char *httpRequestBody,
 	{
 		long temp = status;
 		status = socketWrite(socketHandle, dataBuffer, (status));
-		DEBUG_PRINT("[Parse] Payload Socket Write status: %d\r\n", status);
+		DEBUG_PRINT("Payload SocketWrite bytes/status: %d\r\n", status);
 		if(status != temp)
 		{
 			DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
@@ -428,7 +428,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         socketHandle = status;
 
 #ifdef REQUEST_DEBUG
-        DEBUG_PRINT("\r\n[Parse] --------Request--------- Start -\r\n");
+        DEBUG_PRINT("\r\n[Parse] Request:\r\n");
 #endif /* REQUEST_DEBUG */
 
         headerSend(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType, socketHandle);
@@ -452,11 +452,10 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
 #endif /* REQUEST_DEBUG */
     }
 
-
     if (status >= 0)
     {
 #ifdef REQUEST_DEBUG
-    	DEBUG_PRINT("\r\n[Parse] --------Response--------- Start -\r\n");
+    	DEBUG_PRINT("\r\n[Parse] Response:\r\n");
 #endif /* REQUEST_DEBUG */
 
         memset(dataBuffer, 0, dataBufferSize);
@@ -469,25 +468,31 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         	DEBUG_PRINT("Trying Read again\n\r");
         	status = socketRead(socketHandle, dataBuffer, dataBufferSize, 10000);
         }*/
+        //DBG - See what the buffer has
+        //DEBUG_PRINT("%s\r\n", dataBuffer);
 
-        DEBUG_PRINT("[Parse] Socket read status: %d\r\n", status);
+        DEBUG_PRINT("SocketRead bytes/status: %d\r\n", status);
 #ifdef REQUEST_DEBUG
         if (status >= 0)
         {
             //DEBUG_PRINT("%s\r\n", dataBuffer);
         	if (payloadType == jsonObject)
         	{
-        		simpleJsonProcessor(dataBuffer, "objectId", responseObjectID, OBJECT_ID_MAX_LEN);
+        		status = simpleJsonProcessor(dataBuffer, "objectId", responseObjectID, OBJECT_ID_MAX_LEN);
+        		if(status != 1)
+        			return status;
         		DEBUG_PRINT("objectID : %s\r\n", responseObjectID);
         	}
         	else if (payloadType == image)
         	{
-        		simpleJsonProcessor(dataBuffer, "name", imageName, IMAGE_NAME_MAX_LEN);
+        		status = simpleJsonProcessor(dataBuffer, "name", imageName, IMAGE_NAME_MAX_LEN);
+        		if(status != 1)
+        			return status;
         		DEBUG_PRINT("Image Name : %s\r\n", imageName);
         	}
         } else
         {
-            DEBUG_PRINT("[Parse] Response read error: %d\r\n", status);
+            DEBUG_PRINT("Response read error: %d\r\n", status);
         }
         //DEBUG_PRINT("[Parse] --------Response--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
@@ -496,7 +501,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         socketClose(socketHandle);
 #ifdef REQUEST_DEBUG
     } else {
-        DEBUG_PRINT("[Parse] Request write error: %d\r\n", status);
+        DEBUG_PRINT("Request write error: %d\r\n", status);
 #endif /* REQUEST_DEBUG */
     }
 

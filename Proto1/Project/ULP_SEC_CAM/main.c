@@ -276,7 +276,6 @@ void Main_Task(void *pvParameters)
 		CollectTxit_ImgTempRH();
 	}
 }
-
 void Test_Task(void *pvParameters)
 {
 	//Config_And_Start_CameraCapture();
@@ -494,9 +493,9 @@ void main()
     // Start the task
     //
 	lRetVal = osi_TaskCreate(
-					//Main_Task,
+					Main_Task,
 					//ProvisionAP_Task,
-					Main_Task_withHibernate,
+					//Main_Task_withHibernate,
 					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,
