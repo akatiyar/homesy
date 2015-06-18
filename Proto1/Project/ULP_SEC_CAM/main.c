@@ -155,6 +155,8 @@ extern int32_t fxos_get_initialYaw(float_t* pfInitYaw);
 extern int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor);
 extern int32_t fxos_calibrate();
 
+int16_t IsLightOff(uint16_t usThresholdLux);
+
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
 #endif
@@ -267,6 +269,11 @@ void Main_Task(void *pvParameters)
 {
 	LED_On();
 
+	configureISL29035(0);
+
+	softResetTempRHSensor();
+	configureTempRHSensor();
+
 	createAndWrite_ImageHeaderFile();
 	create_JpegImageFile();
 
@@ -278,11 +285,29 @@ void Main_Task(void *pvParameters)
 }
 void Test_Task(void *pvParameters)
 {
-	//Config_And_Start_CameraCapture();
+	verifyISL29035();
+	configureISL29035(0);
+	uint16_t lux;
 	while(1)
 	{
-		CollectTxit_ImgTempRH();
+		lux = getLightsensor_data();
+		if(lux <= 5)
+		{
+			UART_PRINT("aaa\n");
+		}
+		if(IsLightOff(100))
+		{
+			UART_PRINT("ooo\n");
+		}
 	}
+	//CheckIfLightIsOff();
+
+
+	//Config_And_Start_CameraCapture();
+//	while(1)
+//	{
+//		CollectTxit_ImgTempRH();
+//	}
 
 	//verifyISL29035();
 	//verifyTempRHSensor();
@@ -315,6 +340,10 @@ void Main_Task_withHibernate(void *pvParameters)
 		//LED_Blink(10, 1);
 		LED_On();
 
+		configureISL29035(0);	//Configures for reading Lux and wakeup interrupt
+		softResetTempRHSensor();
+		configureTempRHSensor();
+
 		createAndWrite_ImageHeaderFile();
 		create_JpegImageFile();
 
@@ -331,6 +360,7 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		CollectTxit_ImgTempRH();
 		LED_Off();
+
 		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
 	}
 }

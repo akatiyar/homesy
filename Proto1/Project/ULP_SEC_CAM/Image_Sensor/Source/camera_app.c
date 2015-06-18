@@ -80,6 +80,8 @@
 extern int32_t WaitFor40Degrees();
 extern void fxos_main_waitfor40degrees();
 extern void fxos_main();
+
+extern uint8_t g_flag_door_closing_45degree;
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -332,7 +334,8 @@ long CaptureAndStore_Image()
 	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
-	memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
+	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
+	//g_image_buffer[0] = 0xFFFFFFFF;
 
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
@@ -369,6 +372,12 @@ long CaptureAndStore_Image()
 //	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
 	//LED_Off();
 	fxos_main();
+	if(!g_flag_door_closing_45degree)	//Case where we have to abort
+	{
+		//lRetVal = sl_Stop(0xFFFF);
+		//ASSERT_ON_ERROR(lRetVal);
+		//return LIGHT_IS_OFF_BEFORE_IMAGING;
+	}
 	//fxos_main_waitfor40degrees();
 	LED_On();
 
@@ -395,9 +404,10 @@ long CaptureAndStore_Image()
     {
     	if(g_flag_blockFull[0])
     	{
-    		if((0x00 == g_image_buffer[0])&&(0x00 == g_image_buffer[10])&&(0x00 == g_image_buffer[20]))	//Checking three random positions in the buffer
+    		if((0 == g_image_buffer[0])&&(0 == g_image_buffer[10])&&(0 == g_image_buffer[20]))	//Checking three random positions in the buffer
+    		//if(0xFFFFFFFF == g_image_buffer[0])
     		{
-				//UART_PRINT("INVALID First Block\n\r ");
+				UART_PRINT("INVALID First Block\n\r ");
     			//UART_PRINT("s%d ", g_readHeader);
 
 				// Write a Block of Image from RAM to Flash

@@ -195,12 +195,15 @@ uint16_t getLightsensor_data(void)
 //	UtilsDelay(.002*80000000/6);
 	i2cReadRegisters(ISL29035_I2C_ADDRESS, DATA_LSB_REG,2, databyte);
 	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];
-	UART_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
+	//data = (uint16_t)((databyte[1]<<8) | databyte[0]);
+	//UART_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
 	//LUX = [ RANGE/2^(ADC_Res) ] x data
 
 	lux_reading = (LUX_RANGE/ADC_RANGE) * data;	//commented by uthra for testing
-//	return(lux_reading);
-	return data;
+	//UART_PRINT("Lux: %d\n", lux_reading);
+
+	return(lux_reading);
+	//return data;
 }
 
 

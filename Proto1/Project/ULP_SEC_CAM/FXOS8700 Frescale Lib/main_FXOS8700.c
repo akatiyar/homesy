@@ -69,6 +69,8 @@ void fxos_main()
 				standby_accelMagn_fxos8700();
 				return;
 			}
+			if(IsLightOff(LUX_THRESHOLD))
+				return;
 		}
 
 		//cnt_prakz2++;

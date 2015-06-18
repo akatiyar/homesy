@@ -40,7 +40,11 @@ int32_t CollectTxit_ImgTempRH()
 	//
 	//	Captute image and save in flash
 	//
-	CaptureAndStore_Image();
+	lRetVal = CaptureAndStore_Image();
+	if(lRetVal == LIGHT_IS_OFF_BEFORE_IMAGING)
+	{
+		return LIGHT_IS_OFF_BEFORE_IMAGING;
+	}
 	//CaptureinRAM_StoreAfterCapture_Image();
 #endif
 
@@ -49,7 +53,7 @@ int32_t CollectTxit_ImgTempRH()
 	//	Connect cc3200 to wifi AP
 	//
 	ConfigureSimpleLinkToDefaultState();
-	UtilsDelay(8000000);
+	//UtilsDelay(8000000);
 	lRetVal = sl_Start(0, 0, 0);
 	ConnectToNetwork_STA();
 
@@ -74,9 +78,9 @@ int32_t CollectTxit_ImgTempRH()
 	//
 	//	Collect Temperature and RH values from Si7020 IC
 	//
-	softResetTempRHSensor();
-	configureTempRHSensor();
-	UtilsDelay(80000000);
+	//softResetTempRHSensor();
+	//configureTempRHSensor();
+	//UtilsDelay(80000000/);
 	getTempRH(&fTemp, &fRH);
 	UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
 

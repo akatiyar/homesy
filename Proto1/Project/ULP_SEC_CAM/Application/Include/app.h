@@ -42,6 +42,8 @@
 
 #define SYSTEM_CLOCK	80000000
 
+#define LUX_THRESHOLD			8
+
 #define PI				(3.141592654F)
 
 #define TEST_MODULES_INCLUDE
@@ -82,6 +84,9 @@ typedef enum
 
 	// WiFi Provisioning through AP Mode
 	USER_WIFI_PROFILE_FAILED_TO_CONNECT = MT9D111_NOT_FOUND - 1,
+
+//******STATUS******
+	LIGHT_IS_OFF_BEFORE_IMAGING = USER_WIFI_PROFILE_FAILED_TO_CONNECT - 1,
 
     STATUS_CODE_MAX = -0xBB8
 }e_AppStatusCodes;

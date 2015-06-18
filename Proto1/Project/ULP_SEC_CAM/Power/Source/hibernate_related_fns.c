@@ -13,7 +13,7 @@
 #define SEC_PER_MINUTE					60
 #define RTCCLKS_PER_SEC					32768
 
-
+extern int16_t IsLightOff(uint16_t usThresholdLux);
 //******************************************************************************
 //	This function puts the device in hibernate
 //
@@ -44,8 +44,8 @@ void HIBernate(uint32_t ucWakeSources,
 				uint32_t ucGPIOInterruptType,
 				float_t fHibIntervalInMinutes)
 {
+//	uint8_t count=0;
 
-	uint8_t count=0;
 	//
     // Setup Wake Source
     //
@@ -60,28 +60,28 @@ void HIBernate(uint32_t ucWakeSources,
 	{
 		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ucGPIOInterruptType);
 
-		bool temp = true;
-
-		configureISL29035(0);
-		// (0x01FF) is trial val
-		while(temp)
-		{
-			if (getLightsensor_data() < (0x01FF))
-			{
-				count++;
-				if(count>3)
-					temp = false;
-
-				UtilsDelay((0.5)*80000000/6);
-			}
-			else
-				count=0;
-		}
+//		bool temp = true;
+//		//configureISL29035(0);
+//		while(temp)
+//		{
+//			//if (getLightsensor_data() < (0x01FF))	// (0x01FF) is trial val
+//			if (getLightsensor_data() < 8) //8Lux = 0x01FF
+//			{
+//				count++;
+//				if(count>3)
+//					temp = false;
+//
+//				UtilsDelay((0.5)*80000000/6);
+//			}
+//			else
+//				count=0;
+//		}
 		//
 		//	Configure or clear interrupts of wake-up trigger sensors
 		//
-		UART_PRINT("Fridge Light Off");
+//		UART_PRINT("Fridge Light Off\n\r");
 		//LED_Blink(5, 0.5);
+		while(!IsLightOff(LUX_THRESHOLD));
 		sensorsTriggerSetup();
 		//UART_PRINT("Cleared sensors\n\r");
 	}
@@ -147,7 +147,7 @@ void sensorsTriggerSetup()
 	//
 	//UART_PRINT("\n\rLIGHT SENSOR:\n\r");
 	//verifyISL29035();
-	configureISL29035(0);
+	//configureISL29035(0);
 	getLightsensor_intrptStatus(); //To clear the interrupt
 	//UART_PRINT("Configured Light Sensor for wake up\n\r");
 

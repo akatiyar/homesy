@@ -74,27 +74,27 @@
 //calculation for Lux
 
 #ifdef 	FS_RANGE_1K
-	#define LUX_RANGE 1000
+	#define LUX_RANGE 1000.0F
 #elif  	FS_RANGE_4K
-	#define LUX_RANGE 4000
+	#define LUX_RANGE 4000.0F
 #elif	FS_RANGE_16K
-	#define LUX_RANGE 16000
+	#define LUX_RANGE 16000.0F
 #elif 	FS_RANGE_64K
-	#define LUX_RANGE 64000
+	#define LUX_RANGE 64000.0F
 #else
-	#define LUX_RANGE 1000
+	#define LUX_RANGE 1000.0F
 #endif
 
 #ifdef 	ADC_RES_16
-	#define ADC_RANGE 65536
+	#define ADC_RANGE 65536.0F
 #elif  	ADC_RES_12
-	#define ADC_RANGE 4096
+	#define ADC_RANGE 4096.0F
 #elif	ADC_RES_8
-	#define ADC_RANGE 256
+	#define ADC_RANGE 256.0F
 #elif 	ADC_RES_4
-	#define ADC_RANGE 16
+	#define ADC_RANGE 16.0F
 #else
-	#define ADC_RANGE 65536
+	#define ADC_RANGE 65536.0F
 #endif
 
 //******************************************************************************
