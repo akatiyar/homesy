@@ -25,87 +25,19 @@
 //	\return none
 //
 ////****************************************************************************
-void configureISL29035(uint8_t ucAppMode)
-{
-	uint8_t i;
-	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
-									/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
-								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16),
-								INT_LT_LSB_REG, 0x00,
-								INT_LT_MSB_REG, 0x00,
-								//INT_HT_LSB_REG, 0XFF, INT_HT_MSB_REG, 0x3F};//Work Table
-								INT_HT_LSB_REG, 0XFF,INT_HT_MSB_REG, 0x01};//Fridge
-	uint8_t ucHeader;
-
-	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
-
-	if(FLASH_CONFIGS)
-	{
-		//Read from flash
-		ReadFile_FromFlash(&ucHeader, FILENAME_SENSORCONFIGS,
-							1, OFFSET_ISL29035);
-		ReadFile_FromFlash(ucConfigArray, FILENAME_SENSORCONFIGS,
-							ucHeader, OFFSET_ISL29035 + 1);
-		ucNoOfConfgs = ucHeader/2;
-	}
-
-	for (i = 0; i < ucNoOfConfgs; i++)
-	{
-		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
-							ucConfigArray[i*2],
-							1,
-							&ucConfigArray[i*2 + 1]);
-	}
-
-	return;
-}
-//******************************************************************************
-//
-//  This function does configures ISL29035 registers as needed by the
-//	applicaiton blueprint/mode
-//
-//	\param[in]	ucAppMode - Unique value that determines the Application mode
-//
-//	\param[in]	Lux_threshold -
-//
-//	\return none
-//
-////****************************************************************************
-//void configureISL29035(uint8_t ucAppMode,
-//							uint16_t Lux_threshold)
+//void configureISL29035(uint8_t ucAppMode)
 //{
-//	uint8_t i = 0;
-//	uint8_t ucConfigArray[20];
+//	uint8_t i;
+//	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
+//									/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
+//								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16),
+//								INT_LT_LSB_REG, 0x00,
+//								INT_LT_MSB_REG, 0x00,
+//								//INT_HT_LSB_REG, 0XFF, INT_HT_MSB_REG, 0x3F};//Work Table
+//								INT_HT_LSB_REG, 0XFF,INT_HT_MSB_REG, 0x01};//Fridge
 //	uint8_t ucHeader;
-//	uint8_t ucNoOfConfgs;
 //
-//	Lux_threshold = (ADC_RANGE / LUX_RANGE) * Lux_threshold;
-//
-//	ucConfigArray[i++] = CMD_1_REG;
-//	ucConfigArray[i++] = 0xA0;			/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
-//	ucConfigArray[i++] = CMD_2_REG;
-//	ucConfigArray[i++] = (FS_RANGE_1K | ADC_RES_16);
-//	ucConfigArray[i++] = INT_LT_LSB_REG;
-//	ucConfigArray[i++] = 0x00;
-//	ucConfigArray[i++] = INT_LT_MSB_REG;
-//	ucConfigArray[i++] = 0x00;
-//	//Work Table
-////	ucConfigArray[i++] = INT_HT_LSB_REG;
-////	ucConfigArray[i++] = 0XFF;
-////	ucConfigArray[i++] = INT_HT_MSB_REG;
-////	ucConfigArray[i++] = 0x3F;
-//	//Fridge
-//	ucConfigArray[i++] = INT_HT_LSB_REG;
-//	ucConfigArray[i++] = 0x01;
-//	ucConfigArray[i++] = INT_HT_MSB_REG;
-//	ucConfigArray[i++] = 0XFF;
-//	//Manual
-////	ucConfigArray[i++] = INT_HT_LSB_REG;
-////	ucConfigArray[i++] = Lux_threshold & 0x00FF;
-////	ucConfigArray[i++] = INT_HT_MSB_REG;
-////	ucConfigArray[i++] = (Lux_threshold & 0xFF00) >> 8;
-//
-//	ucNoOfConfgs = (i/2);
+//	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
 //
 //	if(FLASH_CONFIGS)
 //	{
@@ -127,6 +59,96 @@ void configureISL29035(uint8_t ucAppMode)
 //
 //	return;
 //}
+//******************************************************************************
+//
+//  This function does configures ISL29035 registers as needed by the
+//	applicaiton blueprint/mode
+//
+//	\param[in]	ucAppMode - Unique value that determines the Application mode
+//
+//	\param[in]	Lux_threshold -
+//
+//	/param[in] Trigger - LIGHTON_TRIGGER/LIGHTOFF_TRIGGER
+//	\return none
+//
+////****************************************************************************
+void configureISL29035(uint8_t ucAppMode,
+							uint16_t Lux_threshold, uint8_t Trigger)
+{
+	uint8_t i = 0;
+	uint8_t ucConfigArray[20];
+	uint8_t ucHeader;
+	uint8_t ucNoOfConfgs;
+
+	Lux_threshold = (ADC_RANGE / LUX_RANGE) * Lux_threshold;
+
+	ucConfigArray[i++] = CMD_1_REG;
+	ucConfigArray[i++] = 0xA0;			/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
+	ucConfigArray[i++] = CMD_2_REG;
+	ucConfigArray[i++] = (FS_RANGE_1K | ADC_RES_16);
+	//Work Table
+//	ucConfigArray[i++] = INT_LT_LSB_REG;
+//	ucConfigArray[i++] = 0x00;
+//	ucConfigArray[i++] = INT_LT_MSB_REG;
+//	ucConfigArray[i++] = 0x00;
+//	ucConfigArray[i++] = INT_HT_LSB_REG;
+//	ucConfigArray[i++] = 0XFF;
+//	ucConfigArray[i++] = INT_HT_MSB_REG;
+//	ucConfigArray[i++] = 0x3F;
+	//Fridge
+//	ucConfigArray[i++] = INT_LT_LSB_REG;
+//	ucConfigArray[i++] = 0x00;
+//	ucConfigArray[i++] = INT_LT_MSB_REG;
+//	ucConfigArray[i++] = 0x00;
+//	ucConfigArray[i++] = INT_HT_LSB_REG;
+//	ucConfigArray[i++] = 0x01;
+//	ucConfigArray[i++] = INT_HT_MSB_REG;
+//	ucConfigArray[i++] = 0XFF;
+	//Manual
+	if(Trigger == LIGHTON_TRIGGER)
+	{
+		ucConfigArray[i++] = INT_LT_LSB_REG;
+		ucConfigArray[i++] = 0x00;
+		ucConfigArray[i++] = INT_LT_MSB_REG;
+		ucConfigArray[i++] = 0x00;
+		ucConfigArray[i++] = INT_HT_LSB_REG;
+		ucConfigArray[i++] = Lux_threshold & 0x00FF;
+		ucConfigArray[i++] = INT_HT_MSB_REG;
+		ucConfigArray[i++] = (Lux_threshold & 0xFF00) >> 8;
+	}
+	else
+	{
+		ucConfigArray[i++] = INT_LT_LSB_REG;
+		ucConfigArray[i++] = Lux_threshold & 0x00FF;
+		ucConfigArray[i++] = INT_LT_MSB_REG;
+		ucConfigArray[i++] = (Lux_threshold & 0xFF00) >> 8;
+		ucConfigArray[i++] = INT_HT_LSB_REG;
+		ucConfigArray[i++] = 0xFF;
+		ucConfigArray[i++] = INT_HT_MSB_REG;
+		ucConfigArray[i++] = 0xFF;
+	}
+	ucNoOfConfgs = (i/2);
+
+	if(FLASH_CONFIGS)
+	{
+		//Read from flash
+		ReadFile_FromFlash(&ucHeader, FILENAME_SENSORCONFIGS,
+							1, OFFSET_ISL29035);
+		ReadFile_FromFlash(ucConfigArray, FILENAME_SENSORCONFIGS,
+							ucHeader, OFFSET_ISL29035 + 1);
+		ucNoOfConfgs = ucHeader/2;
+	}
+
+	for (i = 0; i < ucNoOfConfgs; i++)
+	{
+		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
+							ucConfigArray[i*2],
+							1,
+							&ucConfigArray[i*2 + 1]);
+	}
+
+	return;
+}
 //******************************************************************************
 //
 //  This function sets the upper and lower threshold registers in to the

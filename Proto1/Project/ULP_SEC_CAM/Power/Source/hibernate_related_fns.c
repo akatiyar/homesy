@@ -20,13 +20,15 @@ extern int16_t IsLightOff(uint16_t usThresholdLux);
 //	param[in]	ucWakeSources - choice of source for wake up from hibernate. Can
 //						be one of the following macros or the or of the two
 //							ENABLE_TIMER_WAKESOURCE
-//							ENABLE_GPIO02_WAKESOURCE
-//	param[in]	ucGPIOInterruptType-Type of GPIO Signal taken as wakeup signal.
+//							ENABLE_GPIO_WAKESOURCE
+//	param[in]	ucGPIOInterruptType-valid for GPIO wake up only
+//						Type of GPIO Signal taken as wakeup signal.
 //						Can take one of the following Macros as its value
 //							PRCM_HIB_LOW_LEVEL
 //							PRCM_HIB_HIGH_LEVEL
 //							PRCM_HIB_FALL_EDGE
 //							PRCM_HIB_RISE_EDGE
+//	param[in]	ucGPIOWakeCondition	- Can use WAKEON_LIGHT_ON or WAKEON_LIGHT_OFF
 //	param[in]	fHibIntervalInMinutes-Hibernation interval before the Slow Clock
 //						counter wakes the device up fom Hibernate
 //
@@ -40,8 +42,9 @@ extern int16_t IsLightOff(uint16_t usThresholdLux);
 //
 //	NOTE: The device
 //******************************************************************************
-void HIBernate(uint32_t ucWakeSources,
-				uint32_t ucGPIOInterruptType,
+void HIBernate(uint32_t ulWakeSources,
+				uint32_t ulGPIOInterruptType,
+				uint8_t ucGPIOWakeCondition,
 				float_t fHibIntervalInMinutes)
 {
 //	uint8_t count=0;
@@ -50,45 +53,43 @@ void HIBernate(uint32_t ucWakeSources,
     // Setup Wake Source
     //
 	MAP_PRCMHibernateWakeupSourceDisable(PRCM_HIB_GPIO2|PRCM_HIB_SLOW_CLK_CTR);
-	MAP_PRCMHibernateWakeupSourceEnable(ucWakeSources);
+	MAP_PRCMHibernateWakeupSourceEnable(ulWakeSources);
 
-	if(ucWakeSources&PRCM_HIB_SLOW_CLK_CTR)
+	if(ulWakeSources&PRCM_HIB_SLOW_CLK_CTR)
 	{
 		MAP_PRCMHibernateIntervalSet(fHibIntervalInMinutes*((float_t)SEC_PER_MINUTE)*((float_t)RTCCLKS_PER_SEC));
 	}
-	if(ucWakeSources&PRCM_HIB_GPIO2)
+	if(ulWakeSources&PRCM_HIB_GPIO2)
 	{
-		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ucGPIOInterruptType);
+		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ulGPIOInterruptType);
 
-//		bool temp = true;
-//		//configureISL29035(0);
-//		while(temp)
-//		{
-//			//if (getLightsensor_data() < (0x01FF))	// (0x01FF) is trial val
-//			if (getLightsensor_data() < 8) //8Lux = 0x01FF
-//			{
-//				count++;
-//				if(count>3)
-//					temp = false;
-//
-//				UtilsDelay((0.5)*80000000/6);
-//			}
-//			else
-//				count=0;
-//		}
 		//
 		//	Configure or clear interrupts of wake-up trigger sensors
 		//
-//		UART_PRINT("Fridge Light Off\n\r");
-		//LED_Blink(5, 0.5);
-		while(!IsLightOff(LUX_THRESHOLD));
-		sensorsTriggerSetup();
-		//UART_PRINT("Cleared sensors\n\r");
+		//if(ucGPIOWakeCondition == WAKEON_LIGHT_OFF)
+		if(IsLightOff(LUX_THRESHOLD))
+		{
+			configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
+			//while(!IsLightOff(LUX_THRESHOLD));
+			UART_PRINT("Fridge Light Off\n\r");
+			UART_PRINT("HIB: Entering HIBernate...\n\r"
+						"***OPEN DOOR TO CAPTURE IMAGE***\n\r");
+			sensorsTriggerSetup();
+			//UART_PRINT("Cleared sensors\n\r");
+		}
+		else
+		//if(ucGPIOWakeCondition == WAKEON_LIGHT_ON)
+		{
+			configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
+			//while(IsLightOff(LUX_THRESHOLD));
+			UART_PRINT("Light On, But entering Hibernate\n\r"
+					"Close fridge door to wake device\n\r");
+			sensorsTriggerSetup();
+			//UART_PRINT("Cleared sensors\n\r");
+		}
 	}
 
-	DBG_PRINT("HIB: Entering HIBernate...\n\r"
-        		"***OPEN DOOR TO CAPTURE IMAGE***\n\r");
-    MAP_UtilsDelay(80000);
+	 MAP_UtilsDelay(80000);
 
     //
     // Enter HIBernate mode

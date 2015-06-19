@@ -19,6 +19,9 @@
 //*****************************************************************************
 //                      MACRO DEFINITIONS
 //*****************************************************************************
+#define LIGHTON_TRIGGER					1
+#define LIGHTOFF_TRIGGER				2
+
 #define ISL29035_I2C_ADDRESS 			0x44
 
 // device register map
@@ -101,7 +104,9 @@
 // 								API PROTOTYPES
 //******************************************************************************
 uint16_t getLightsensor_data(void);
-void configureISL29035(uint8_t ucAppMode);
+//void configureISL29035(uint8_t ucAppMode);
+void configureISL29035(uint8_t ucAppMode,
+ 							uint16_t Lux_threshold, uint8_t Trigger);
 uint16_t verifyISL29035(void);
 uint16_t getLightsensor_intrptStatus(void);
 void setThreshold_lightsensor(uint16_t upper_threshold,

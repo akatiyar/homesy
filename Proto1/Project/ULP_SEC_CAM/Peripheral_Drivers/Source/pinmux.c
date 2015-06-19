@@ -128,10 +128,6 @@ PinMuxConfig(void)
     //
     MAP_PinTypeCamera(PIN_08, PIN_MODE_4);
 
-//    //
-//    // Configure PIN_01 for GPIO
-//    //
-//    MAP_PinTypeI2C(PIN_01, PIN_MODE_0);
     //
     // Configure PIN_16 for I2C0 I2C_SCL
     //

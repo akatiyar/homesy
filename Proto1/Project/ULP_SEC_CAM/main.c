@@ -269,7 +269,7 @@ void Main_Task(void *pvParameters)
 {
 	LED_On();
 
-	configureISL29035(0);
+	//configureISL29035(0);
 
 	softResetTempRHSensor();
 	configureTempRHSensor();
@@ -285,21 +285,54 @@ void Main_Task(void *pvParameters)
 }
 void Test_Task(void *pvParameters)
 {
-	verifyISL29035();
-	configureISL29035(0);
-	uint16_t lux;
-	while(1)
-	{
-		lux = getLightsensor_data();
-		if(lux <= 5)
-		{
-			UART_PRINT("aaa\n");
-		}
-		if(IsLightOff(100))
-		{
-			UART_PRINT("ooo\n");
-		}
-	}
+	UART_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
+while(1)
+{
+	configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
+	getLightsensor_intrptStatus();
+	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
+	while(GPIOPinRead(GPIOA0_BASE, 0x04));
+	UART_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
+
+	configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
+	getLightsensor_intrptStatus();
+	UART_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
+	while(GPIOPinRead(GPIOA0_BASE, 0x04));
+	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
+}
+
+//	while(1)
+//	{
+//		start_100mSecTimer();
+//		while(!(Elapsed_100MilliSecs == 100))
+//		{
+//		}
+//		stop_100mSecTimer();
+//	}
+
+//	while(1)
+//	{
+//		InitializeTimer();
+//		StartTimer();
+//		UtilsDelay(5*80000000/6);
+//	}
+
+
+//	verifyISL29035();
+//	configureISL29035(0);
+//	uint16_t lux;
+//	while(1)
+//	{
+//		lux = getLightsensor_data();
+//		if(lux <= 5)
+//		{
+//			UART_PRINT("aaa\n");
+//		}
+//		if(IsLightOff(100))
+//		{
+//			UART_PRINT("ooo\n");
+//		}
+//	}
 	//CheckIfLightIsOff();
 
 
@@ -334,13 +367,15 @@ void ProvisionAP_Task(void *pvParameters)
 }
 void Main_Task_withHibernate(void *pvParameters)
 {
+	//int32_t lRetVal;
+
     if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
 	{
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
 
-		configureISL29035(0);	//Configures for reading Lux and wakeup interrupt
+		configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);	//Configures for reading Lux and wakeup interrupt
 		softResetTempRHSensor();
 		configureTempRHSensor();
 
@@ -350,7 +385,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		Config_And_Start_CameraCapture();
 
 		LED_Off();
-		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
+		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_OFF, NULL);
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
@@ -358,10 +393,25 @@ void Main_Task_withHibernate(void *pvParameters)
 		//LED_Blink(4, 0.3);
 		LED_On();
 
+		if(IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
+		{
+			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
+		}
+
+		//lRetVal = CollectTxit_ImgTempRH();
 		CollectTxit_ImgTempRH();
 		LED_Off();
 
-		HIBernate(ENABLE_GPIO02_WAKESOURCE, FALL_EDGE, NULL);
+//		if(lRetVal == TIMEOUT_BEFORE_IMAGING)
+//		{
+//			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_OFF, NULL);
+//		}
+//		else
+//		{
+//			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
+//		}
+
+		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
 	}
 }
 int32_t Config_And_Start_CameraCapture()
@@ -523,9 +573,9 @@ void main()
     // Start the task
     //
 	lRetVal = osi_TaskCreate(
-					Main_Task,
+					//Main_Task,
 					//ProvisionAP_Task,
-					//Main_Task_withHibernate,
+					Main_Task_withHibernate,
 					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,

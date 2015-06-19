@@ -41,9 +41,9 @@ int32_t CollectTxit_ImgTempRH()
 	//	Captute image and save in flash
 	//
 	lRetVal = CaptureAndStore_Image();
-	if(lRetVal == LIGHT_IS_OFF_BEFORE_IMAGING)
+	if((lRetVal == LIGHT_IS_OFF_BEFORE_IMAGING)||(lRetVal == TIMEOUT_BEFORE_IMAGING))
 	{
-		return LIGHT_IS_OFF_BEFORE_IMAGING;
+		return lRetVal;
 	}
 	//CaptureinRAM_StoreAfterCapture_Image();
 #endif

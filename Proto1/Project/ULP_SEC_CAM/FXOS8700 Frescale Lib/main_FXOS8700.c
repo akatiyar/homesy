@@ -19,6 +19,8 @@ uint8_t g_flag_door_closing_45degree;
 
 
 extern void check_doorpos();
+int16_t angleCheck();
+int16_t angleCheck_Initializations();
 
 struct ProjectGlobals globals;
 struct MQXLiteGlobals mqxglobals;
@@ -27,6 +29,46 @@ extern struct SV_6DOF_GB_BASIC thisSV_6DOF_GB_BASIC;
 
 extern volatile uint32_t v_OneSecFlag;
 
+int16_t angleCheck_Initializations()
+{
+	g_flag_door_closing_45degree = 0;
+
+	// initialize globals
+	globals.iPacketNumber = 0;
+	globals.AngularVelocityPacketOn = true;
+	globals.DebugPacketOn = true;
+	globals.RPCPacketOn = true;
+	globals.AltPacketOn = true;
+	globals.iMPL3115Found = false;
+	globals.MagneticPacketID = 0;
+
+	// initialize the physical sensors over I2C and the sensor data structures
+	RdSensData_Init();
+
+	// initialize the sensor fusion algorithms
+	Fusion_Init();
+
+	return 0;
+}
+
+int16_t angleCheck()
+{
+	mqxglobals.RunKF_Event_Flag = 0;
+	// read the sensors
+	RdSensData_Run();
+	//UART_PRINT("r\n\r");
+
+	mqxglobals.MagCal_Event_Flag = 0;
+	if(mqxglobals.RunKF_Event_Flag == 1)
+	{
+		// call the sensor fusion algorithms
+		Fusion_Run();
+		check_doorpos();
+		//UART_PRINT("f\n\r");
+	}
+
+	return 0;
+}
 void fxos_main()
 {
 	g_flag_door_closing_45degree = 0;

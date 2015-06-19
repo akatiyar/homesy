@@ -76,10 +76,14 @@
 #include "math.h"
 #include "flash_files.h"
 #include "tempRHSens_si7020.h"
-
+#include "accelomtrMagntomtr_fxos8700.h"
 extern int32_t WaitFor40Degrees();
 extern void fxos_main_waitfor40degrees();
 extern void fxos_main();
+
+extern int16_t angleCheck();
+extern int16_t angleCheck_Initializations();
+extern int16_t IsLightOff(uint16_t usThresholdLux);
 
 extern uint8_t g_flag_door_closing_45degree;
 //*****************************************************************************
@@ -366,19 +370,52 @@ long CaptureAndStore_Image()
 	// Configure DMA in ping-pong mode
 	//
 	DMAConfig();
-//
-//	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
-//	//WaitFor40Degrees();
-//	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+
 	//LED_Off();
-	fxos_main();
-	if(!g_flag_door_closing_45degree)	//Case where we have to abort
+//	fxos_main();
+//	if(!g_flag_door_closing_45degree)	//Case where we have to abort
+//	{
+//		lRetVal = sl_Stop(0xFFFF);
+//		ASSERT_ON_ERROR(lRetVal);
+//		return LIGHT_IS_OFF_BEFORE_IMAGING;
+//	}
+
+	// Wait for Imaging Position of door
+	angleCheck_Initializations();
+	start_100mSecTimer();
+	while(1)
 	{
-		//lRetVal = sl_Stop(0xFFFF);
-		//ASSERT_ON_ERROR(lRetVal);
-		//return LIGHT_IS_OFF_BEFORE_IMAGING;
+		angleCheck();
+
+		if(g_flag_door_closing_45degree)
+		{
+			break;
+		}
+
+		if(checkForLight_Flag)	//Flag Goes up once every 100mSec
+		{
+			if(IsLightOff(LUX_THRESHOLD))
+			{
+				lRetVal = LIGHT_IS_OFF_BEFORE_IMAGING;
+				break;
+			}
+			//Timeout also happens only on 100ms
+			if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
+			{
+				lRetVal = TIMEOUT_BEFORE_IMAGING;
+				break;
+			}
+		}
+
 	}
-	//fxos_main_waitfor40degrees();
+	standby_accelMagn_fxos8700();
+	stop_100mSecTimer();
+	if(!g_flag_door_closing_45degree)
+	{
+		sl_Stop(0xFFFF);
+		return lRetVal;
+	}
+
 	LED_On();
 
 //	float_t fTemp = 12.34, fRH = 56.78;

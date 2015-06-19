@@ -13,59 +13,86 @@
 
 #define APP_PROFILING_TIMER_BASE		TIMERA0_BASE
 
-void TimerBaseIntHandler(void)
+#define RELOADVAL_100MILLISEC			0x007A11FF	//(100m*80,000,000-1)
+
+void IntHandler_100mSecTimer(void)
 {
-    Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
-
-    v_TimerOverflows++;
-
-    if( v_TimerOverflows >= (10 * 80000000 / 65536) )
-    {
-    	v_OneSecFlag = 1;
-    }
+	Timer_IF_InterruptClear(TIMERA0_BASE);
+	Elapsed_100MilliSecs++;
+	checkForLight_Flag = 1;
 }
 
-int32_t InitializeTimer()
+int32_t start_100mSecTimer()
 {
-	Timer_IF_Init(PRCM_TIMERA0, APP_PROFILING_TIMER_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
-
-	Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
-	//Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
-
-	Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
-
-	v_TimerOverflows = 0;
-	v_OneSecFlag = 0;
-	return 0;
-}
-
-int32_t StartTimer()
-{
-	MAP_TimerLoadSet(APP_PROFILING_TIMER_BASE, TIMER_A, 0xFFFF);
-	//
-	// Enable the GPT
-	//
-	MAP_TimerEnable(APP_PROFILING_TIMER_BASE, TIMER_A);
+	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
+	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_100mSecTimer);
+	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_100MILLISEC);
+	Elapsed_100MilliSecs = 0;
 
 	return 0;
 }
 
-int32_t StopTimer()
+int32_t stop_100mSecTimer()
 {
-	MAP_TimerDisable(APP_PROFILING_TIMER_BASE, TIMER_A);
+	Timer_IF_Stop(TIMERA0_BASE, TIMER_A);
+	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
 
 	return 0;
 }
 
-int32_t GetTimeDuration(float* pfDurationMilli)
-{
-	uint16_t ulCounter;
-
-	ulCounter = MAP_TimerValueGet(APP_PROFILING_TIMER_BASE, TIMER_A);
-	ulCounter = 0xFFFFFFFF - ulCounter;
-	//*pfDurationMilli = /*(v_TimerOverflows * 4294967296.0 / 80000.0) +*/ ((float_t)ulCounter / 80000.0); //in milli sec
-	*pfDurationMilli = (v_TimerOverflows * 65536 / 80000.0) + ((float_t)ulCounter / 80000.0); //in milli sec
-
-	return 0;
-}
-
+//void TimerBaseIntHandler(void)
+//{
+//    Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
+//
+//    v_TimerOverflows++;
+//
+//    if( v_TimerOverflows >= (10 * 80000000 / 65536) )
+//    {
+//    	v_OneSecFlag = 1;
+//    }
+//}
+//
+//int32_t InitializeTimer()
+//{
+//	Timer_IF_Init(PRCM_TIMERA0, APP_PROFILING_TIMER_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
+//
+//	Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
+//	//Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
+//
+//	Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
+//
+//	v_TimerOverflows = 0;
+//	v_OneSecFlag = 0;
+//	return 0;
+//}
+//
+//int32_t StartTimer()
+//{
+//	MAP_TimerLoadSet(APP_PROFILING_TIMER_BASE, TIMER_A, 0xFFFF);
+//	//
+//	// Enable the GPT
+//	//
+//	MAP_TimerEnable(APP_PROFILING_TIMER_BASE, TIMER_A);
+//
+//	return 0;
+//}
+//
+//int32_t StopTimer()
+//{
+//	MAP_TimerDisable(APP_PROFILING_TIMER_BASE, TIMER_A);
+//
+//	return 0;
+//}
+//
+//int32_t GetTimeDuration(float* pfDurationMilli)
+//{
+//	uint16_t ulCounter;
+//
+//	ulCounter = MAP_TimerValueGet(APP_PROFILING_TIMER_BASE, TIMER_A);
+//	ulCounter = 0xFFFFFFFF - ulCounter;
+//	//*pfDurationMilli = /*(v_TimerOverflows * 4294967296.0 / 80000.0) +*/ ((float_t)ulCounter / 80000.0); //in milli sec
+//	*pfDurationMilli = (v_TimerOverflows * 65536 / 80000.0) + ((float_t)ulCounter / 80000.0); //in milli sec
+//
+//	return 0;
+//}
+//
