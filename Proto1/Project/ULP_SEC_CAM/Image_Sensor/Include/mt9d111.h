@@ -74,6 +74,8 @@ long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal);
 
 int32_t EnterStandby_mt9d111();
 int32_t ExitStandby_mt9d111();
+
+int32_t Refresh_mt9d111Firmware();
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

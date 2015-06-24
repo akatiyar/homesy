@@ -46,6 +46,20 @@ void fInitMagCalibration(struct MagCalibration *pthisMagCal, struct MagneticBuff
 	//pthisMagCal->fV[X] = pthisMagCal->fV[Y] = pthisMagCal->fV[Z] = 0.0F;
 
 	//	PCB2 & PCB4
+//	pthisMagCal->finvW[0][0] = 1;
+//	pthisMagCal->finvW[0][1] = 0;
+//	pthisMagCal->finvW[0][2] = 0;
+//	pthisMagCal->finvW[1][0] = 0;
+//	pthisMagCal->finvW[1][1] = 1;
+//	pthisMagCal->finvW[1][2] = 0;
+//	pthisMagCal->finvW[2][0] = 0;
+//	pthisMagCal->finvW[2][1] = 0;
+//	pthisMagCal->finvW[2][2] = 1;
+//	pthisMagCal->fV[X] = -23.722466;
+//	pthisMagCal->fV[Y] = 26.559999;
+//	pthisMagCal->fV[Z] = 97.408997;
+
+	//	PCB5
 	pthisMagCal->finvW[0][0] = 1;
 	pthisMagCal->finvW[0][1] = 0;
 	pthisMagCal->finvW[0][2] = 0;
@@ -55,23 +69,9 @@ void fInitMagCalibration(struct MagCalibration *pthisMagCal, struct MagneticBuff
 	pthisMagCal->finvW[2][0] = 0;
 	pthisMagCal->finvW[2][1] = 0;
 	pthisMagCal->finvW[2][2] = 1;
-	pthisMagCal->fV[X] = -23.722466;
-	pthisMagCal->fV[Y] = 26.559999;
-	pthisMagCal->fV[Z] = 97.408997;
-
-	//	//	PCB5
-	//	pthisMagCal->finvW[0][0] = 1;
-	//	pthisMagCal->finvW[0][1] = 0;
-	//	pthisMagCal->finvW[0][2] = 0;
-	//	pthisMagCal->finvW[1][0] = 0;
-	//	pthisMagCal->finvW[1][1] = 1;
-	//	pthisMagCal->finvW[1][2] = 0;
-	//	pthisMagCal->finvW[2][0] = 0;
-	//	pthisMagCal->finvW[2][1] = 0;
-	//	pthisMagCal->finvW[2][2] = 1;
-	//	pthisMagCal->fV[X] = -70.676094;
-	//	pthisMagCal->fV[Y] = -25.783724;
-	//	pthisMagCal->fV[Z] = 44.112572;
+	pthisMagCal->fV[X] = -70.676094;
+	pthisMagCal->fV[Y] = -25.783724;
+	pthisMagCal->fV[Z] = 44.112572;
 
 	pthisMagCal->fB = DEFAULTB;
 	pthisMagCal->fFourBsq = 4.0F * pthisMagCal->fB * pthisMagCal->fB;
@@ -279,20 +279,6 @@ void fInvertMagCal(struct MagSensor *pthisMag, struct MagCalibration *pthisMagCa
 	int8 i; 						// loop counter
 
 	//	PCB2 & PCB4
-	pthisMagCal->finvW[0][0] = 1;
-	pthisMagCal->finvW[0][1] = 0;
-	pthisMagCal->finvW[0][2] = 0;
-	pthisMagCal->finvW[1][0] = 0;
-	pthisMagCal->finvW[1][1] = 1;
-	pthisMagCal->finvW[1][2] = 0;
-	pthisMagCal->finvW[2][0] = 0;
-	pthisMagCal->finvW[2][1] = 0;
-	pthisMagCal->finvW[2][2] = 1;
-	pthisMagCal->fV[X] = -23.722466;//tag prakz
-	pthisMagCal->fV[Y] = 26.56;
-	pthisMagCal->fV[Z] = 97.409;
-
-////PCB 5
 //	pthisMagCal->finvW[0][0] = 1;
 //	pthisMagCal->finvW[0][1] = 0;
 //	pthisMagCal->finvW[0][2] = 0;
@@ -302,9 +288,23 @@ void fInvertMagCal(struct MagSensor *pthisMag, struct MagCalibration *pthisMagCa
 //	pthisMagCal->finvW[2][0] = 0;
 //	pthisMagCal->finvW[2][1] = 0;
 //	pthisMagCal->finvW[2][2] = 1;
-//	pthisMagCal->fV[X] = -70.676094;
-//	pthisMagCal->fV[Y] = -25.783724;
-//	pthisMagCal->fV[Z] = 44.112572;
+//	pthisMagCal->fV[X] = -23.722466;//tag prakz
+//	pthisMagCal->fV[Y] = 26.56;
+//	pthisMagCal->fV[Z] = 97.409;
+
+////PCB 5
+	pthisMagCal->finvW[0][0] = 1;
+	pthisMagCal->finvW[0][1] = 0;
+	pthisMagCal->finvW[0][2] = 0;
+	pthisMagCal->finvW[1][0] = 0;
+	pthisMagCal->finvW[1][1] = 1;
+	pthisMagCal->finvW[1][2] = 0;
+	pthisMagCal->finvW[2][0] = 0;
+	pthisMagCal->finvW[2][1] = 0;
+	pthisMagCal->finvW[2][2] = 1;
+	pthisMagCal->fV[X] = -70.676094;
+	pthisMagCal->fV[Y] = -25.783724;
+	pthisMagCal->fV[Z] = 44.112572;
 
 	// calculate fBc and iBc for the 6DOF eCompass algorithms
 	// remove the computed hard iron offsets (uT): ftmp[]=fBp[]-V[]

@@ -4,6 +4,7 @@
  *  Created on: 21-Apr-2015
  *      Author: Chrysolin
  */
+#include "stdlib.h"
 
 #include "app.h"
 #include "camera_app.h"
@@ -102,6 +103,9 @@ int32_t CollectTxit_ImgTempRH()
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
+
+	//	Free the memory allocated for clientHandle in InitialiseParse()
+	free((void*)clientHandle);
 
 	sl_Stop(0xFFFF);
 

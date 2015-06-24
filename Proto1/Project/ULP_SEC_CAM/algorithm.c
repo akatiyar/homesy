@@ -27,9 +27,15 @@ uint8_t isitfirsttime;
 //#define IMAGEPOS_DEG   (350-5)
 //#define OPEN_DEG	330
 
-#define DOORCLOSE_DEG	361
-#define IMAGEPOS_DEG	359
-#define OPEN_DEG		345
+//	PCB4
+//#define DOORCLOSE_DEG	361
+//#define IMAGEPOS_DEG	359
+//#define OPEN_DEG		345
+
+//	PCB5 at Krishna's Fridge
+#define IMAGEPOS_DEG	120
+#define DOORCLOSE_DEG	(IMAGEPOS_DEG - 5)
+#define OPEN_DEG		290
 
 #define ANG_RANGE		0
 #define ANG_RANGE_VAL	180

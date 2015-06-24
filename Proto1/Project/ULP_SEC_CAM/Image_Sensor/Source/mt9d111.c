@@ -885,8 +885,9 @@ long enableAWB()
 	long lRetVal;
 	uint16_t usRegVal;
 
-	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
-			    				{1, 0xC8, 0x0004    },  };
+	s_RegList StatusRegLst[] = {
+								{1, 0xC6, 0xA102}, {1, 0xC8, 0x0004},
+								};
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
 	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
@@ -903,8 +904,9 @@ long disableAWB()
 	long lRetVal;
 	uint16_t usRegVal;
 
-	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
-			    				{1, 0xC8, 0x0004    },  };
+	s_RegList StatusRegLst[] = {
+								{1, 0xC6, 0xA102}, {1, 0xC8, 0x0004},
+								};
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
 	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
@@ -921,8 +923,9 @@ long enableAE()
 	long lRetVal;
 	uint16_t usRegVal;
 
-	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
-			    				{1, 0xC8, 0x0001    },  };
+	s_RegList StatusRegLst[] = {
+								{1, 0xC6, 0xA102}, {1, 0xC8, 0x0001},
+								};
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
 	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
@@ -939,8 +942,9 @@ long disableAE()
 	long lRetVal;
 	uint16_t usRegVal;
 
-	s_RegList StatusRegLst[] = {{1, 0xC6, 0xA102    },
-			    				{1, 0xC8, 0x0001    },  };
+	s_RegList StatusRegLst[] = {
+								{1, 0xC6, 0xA102}, {1, 0xC8, 0x0001},
+								};
 
 	lRetVal = RegLstWrite(StatusRegLst, 1);
 	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
@@ -1161,6 +1165,18 @@ long Verify_ImageSensor()
 		UART_PRINT("MT9D111 Chip Version# error\n\r");
 		lRetVal = MT9D111_NOT_FOUND;
 	}
+
+	return lRetVal;
+}
+int32_t Refresh_mt9d111Firmware()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = {
+									{1, 0xC6, 0xA103}, {1, 0xC8, 0x0005}	//Refresh
+								};	//Disable the resets
+
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
 
 	return lRetVal;
 }

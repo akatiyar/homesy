@@ -439,6 +439,8 @@ long CaptureAndStore_Image()
 
     while(1)
     {
+
+
     	if(g_flag_blockFull[0])
     	{
     		if((0 == g_image_buffer[0])&&(0 == g_image_buffer[10])&&(0 == g_image_buffer[20]))	//Checking three random positions in the buffer
@@ -535,6 +537,7 @@ long CaptureAndStore_Image()
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
     UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
 
+    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)IMAGE_DATA_FILE_NAME, uiImageFile_Offset, 0);
     lRetVal = sl_Stop(0xFFFF);
 	ASSERT_ON_ERROR(lRetVal);
 

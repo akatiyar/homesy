@@ -37,7 +37,7 @@ unsigned short sshPort = 443;
 #define REQUEST_HEADERS_SIZE	400
 #define REQUEST_BODY_SIZE		500
 
-#define SIZE_SOCK_WRITE_DATA	1024
+#define SIZE_SOCK_WRITE_DATA	1024	//bytes
 // We need roughly 400 bytes for headers
 // and about 500 bytes for a reasonably big object
 // (enough to fit a full installation object)
@@ -331,12 +331,14 @@ int payloadSend( const char *httpRequestBody,
 		}
 
 		unsigned int i, size_readBytes = 0;
+		unsigned int size_SumSocketWriteReturnVal = 0;
 
 		for (i=0; i<(fileInfo.FileLen/SIZE_SOCK_WRITE_DATA); i++)
 		{
 			status = sl_FsRead(lFileHandle,
 								(SIZE_SOCK_WRITE_DATA*i),
-								(unsigned char*)dataBuffer,
+								//(unsigned char*)dataBuffer,
+								(unsigned char*)(dataBuffer+i*SIZE_SOCK_WRITE_DATA),
 								SIZE_SOCK_WRITE_DATA);
 			 if (status < 0)
 			 {
@@ -349,21 +351,27 @@ int payloadSend( const char *httpRequestBody,
 			if (status >= 0)
 			{
 				long temp = status;
-				status = socketWrite(socketHandle, dataBuffer, (status));
+				//status = socketWrite(socketHandle, dataBuffer, (status));
+				status = socketWrite(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), (status));
+				//status = socketWrite(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), SIZE_SOCK_WRITE_DATA);
+				//status = sl_Send(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), SIZE_SOCK_WRITE_DATA, NULL);
 				//DEBUG_PRINT("[Parse] Payload Socket Write status: %d\r\n", status);
 				if(status != temp)
 				{
 					DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
 					while(1);
 				}
+				size_SumSocketWriteReturnVal += status;
 			}
+			UtilsDelay(80000);
 		}
-
+		DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
 		if(0 != fileInfo.FileLen%SIZE_SOCK_WRITE_DATA)
 		{
 			status = sl_FsRead(lFileHandle,
 								(SIZE_SOCK_WRITE_DATA*i),
-								(unsigned char*)dataBuffer,
+								//(unsigned char*)dataBuffer,
+								(unsigned char*)(dataBuffer+(i*SIZE_SOCK_WRITE_DATA)),
 								(fileInfo.FileLen%SIZE_SOCK_WRITE_DATA));
 			 if (status < 0)
 			 {
@@ -382,6 +390,7 @@ int payloadSend( const char *httpRequestBody,
 		}
 
 		status = (fileInfo.FileLen%SIZE_SOCK_WRITE_DATA);
+//		status = fileInfo.FileLen;
 	}
 	else
 	{

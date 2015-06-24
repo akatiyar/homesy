@@ -200,6 +200,7 @@ long socketWrite(short socketHandle, const char *sendBuffer, unsigned int sendBu
 
         if(status < 0)
         {
+        	DEBUG_PRINT("*");
             if(status == SL_EAGAIN)
                 status=0;
             else

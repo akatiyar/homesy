@@ -283,8 +283,27 @@ void Main_Task(void *pvParameters)
 		CollectTxit_ImgTempRH();
 	}
 }
+
 void Test_Task(void *pvParameters)
 {
+	verifyAccelMagnSensor();
+	verifyISL29035();
+	verifyTempRHSensor();
+	Config_And_Start_CameraCapture();
+	verifyISL29035();
+	verifyTempRHSensor();
+	verifyAccelMagnSensor();
+	Config_And_Start_CameraCapture();
+	Verify_ImageSensor();
+#ifdef 0
+	Config_And_Start_CameraCapture();
+	while(1)
+	{
+		CollectTxit_ImgTempRH();
+	}
+#endif
+
+#ifdef 0
 	UART_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
 while(1)
 {
@@ -300,15 +319,18 @@ while(1)
 	while(GPIOPinRead(GPIOA0_BASE, 0x04));
 	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
 }
+#endif
 
-//	while(1)
-//	{
-//		start_100mSecTimer();
-//		while(!(Elapsed_100MilliSecs == 100))
-//		{
-//		}
-//		stop_100mSecTimer();
-//	}
+#ifdef 0
+	while(1)
+	{
+		start_100mSecTimer();
+		while(!(Elapsed_100MilliSecs == 100))
+		{
+		}
+		stop_100mSecTimer();
+	}
+#endif
 
 //	while(1)
 //	{
@@ -317,30 +339,23 @@ while(1)
 //		UtilsDelay(5*80000000/6);
 //	}
 
-
-//	verifyISL29035();
-//	configureISL29035(0);
-//	uint16_t lux;
-//	while(1)
-//	{
-//		lux = getLightsensor_data();
-//		if(lux <= 5)
-//		{
-//			UART_PRINT("aaa\n");
-//		}
-//		if(IsLightOff(100))
-//		{
-//			UART_PRINT("ooo\n");
-//		}
-//	}
-	//CheckIfLightIsOff();
-
-
-	//Config_And_Start_CameraCapture();
-//	while(1)
-//	{
-//		CollectTxit_ImgTempRH();
-//	}
+#ifdef 0
+	verifyISL29035();
+	configureISL29035(0);
+	uint16_t lux;
+	while(1)
+	{
+		lux = getLightsensor_data();
+		if(lux <= 5)
+		{
+			UART_PRINT("aaa\n");
+		}
+		if(IsLightOff(100))
+		{
+			UART_PRINT("ooo\n");
+		}
+	}
+#endif
 
 	//verifyISL29035();
 	//verifyTempRHSensor();
@@ -436,13 +451,15 @@ int32_t Config_And_Start_CameraCapture()
 	lRetVal = StartSensorInJpegMode();
 	STOPHERE_ON_ERROR(lRetVal);
 
+//	uint16_t x;
 	disableAE();
 	disableAWB();
 	WriteAllAEnAWBRegs();
+	Refresh_mt9d111Firmware();
 
 //	LL_Configs();
 
-//	uint16_t x;
+
 //	Variable_Read(0xA743, &x);
 //	Variable_Read(0xA744, &x);
 //	Variable_Read(0xA115, &x);

@@ -427,10 +427,15 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->Key = "37203922bb";
 //	keyParams->KeyLen = sizeof("37203922bb");
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
-	ssid = "Camera";
-	keyParams->Key = "abcdef1234";
-	keyParams->KeyLen = sizeof("abcdef1234");
+//	ssid = "Camera";
+//	keyParams->Key = "abcdef1234";
+//	keyParams->KeyLen = sizeof("abcdef1234");
+//	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
+	ssid = "kris fire";
+	keyParams->Key = "cfuclcxjfdi";
+	keyParams->KeyLen = sizeof("cfuclcxjfdi");
 	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
+
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	if (status < 0) {
 		sl_Stop(SL_STOP_TIMEOUT);
