@@ -75,8 +75,8 @@ int16_t angleCheck_Initializations()
 	thisMagCal.fV[1]= Mag_Calb_Value[tmpCnt++];
 	thisMagCal.fV[2]= Mag_Calb_Value[tmpCnt++];
 
-	UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
-	UART_PRINT("40w = %3.2f\n\r",gdoor_40deg_angle);
+	//UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
+	//UART_PRINT("40w:%3.2f\n\r",gdoor_40deg_angle);
 	return 0;
 }
 

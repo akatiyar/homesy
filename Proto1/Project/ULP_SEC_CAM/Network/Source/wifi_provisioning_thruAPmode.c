@@ -263,7 +263,7 @@ int32_t WiFiProvisioning()
 		{
 			while(IS_CONNECTED(g_ulStatus));
 		}
-		UART_PRINT("WLAN Disconnected back\n\r");
+		//UART_PRINT("WLAN Disconnected back\n\r");
 
 		//Write to Flash file
 		lRetVal = CreateFile_Flash(FILENAME_USERWIFI, MAX_FILESIZE_USERWIFI);
@@ -295,7 +295,7 @@ int32_t WiFiProvisioning()
 	}
 	else
 	{
-		UART_PRINT("WiFi connect test failed\n\r");
+		UART_PRINT("WiFi connect test failed\n\r***TRY AGAIN*** \n\r");
 	}
 
 	//
@@ -325,7 +325,7 @@ int32_t WiFiProvisioning()
 		ERR_PRINT(lRetVal);
 		LOOP_FOREVER();
 	}
-	UART_PRINT("HTTPSrvr Strtd again\n\r");
+	UART_PRINT("HTTPServer Started again\n\r");
 	MAP_UtilsDelay(80000000);	//Wait for some time to let http msgs txit
 
 	return 0;
@@ -349,7 +349,7 @@ int32_t CollectAngle(uint8_t ucAngle)
 	for(tmpCnt =0;tmpCnt<75;tmpCnt++)
 	{
 		fAngleTemp = get_angle();
-		UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
+		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
 	ReadFile_FromFlash((uint8_t*)g_image_buffer, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
@@ -371,7 +371,7 @@ int32_t CollectAngle(uint8_t ucAngle)
 	}
 	else if (ucAngle == ANGLE_40)
 	{
-		UART_PRINT("40w %f\n\r",fAngleTemp);
+		UART_PRINT("40deg: %f\n\r",fAngleTemp);
 		Mag_Calb_Value[1] = fAngleTemp;
 		lRetVal = WriteFile_ToFlash((uint8_t*)g_image_buffer,
 								(uint8_t*)FILENAME_ANGLE_VALS,
@@ -415,11 +415,9 @@ int32_t CalibrateMagSensor()
 	Mag_Calb_Value[tmpCnt++] = thisMagCal.fV[1];
 	Mag_Calb_Value[tmpCnt++] = thisMagCal.fV[2];
 
-	uint8_t i=0;
-	for(i=2; i<14;i++)
-		UART_PRINT("%f\n",Mag_Calb_Value[i]);
-
-
+//	uint8_t i=0;
+//	for(i=2; i<14;i++)
+//		UART_PRINT("%f\n",Mag_Calb_Value[i]);
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)Mag_Calb_Value,
 							(uint8_t*)FILENAME_ANGLE_VALS,
@@ -457,7 +455,7 @@ int32_t AccessPtMode_HTTPServer_Start()
 
 	   LOOP_FOREVER();
    }
-	UART_PRINT("Device is configured in default state \n\r");
+	//UART_PRINT("Device is configured in default state \n\r");
 
 	//	Start NWP
 	lRetVal = sl_Start(0, 0, 0);
@@ -478,7 +476,7 @@ int32_t AccessPtMode_HTTPServer_Start()
 		LOOP_FOREVER();
 	}
 	while(!IS_IP_ACQUIRED(g_ulStatus));	//looping till ip is acquired
-	UART_PRINT("Configd APmode\n\r");
+	UART_PRINT("CC3200 in APmode\n\r");
 
 	//Stop Internal HTTP Server
 	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
@@ -495,7 +493,7 @@ int32_t AccessPtMode_HTTPServer_Start()
 		LOOP_FOREVER();
 	}
 
-	UART_PRINT("HTTPSrvr Strtd\n\r");
+	UART_PRINT("HTTPServer Started\n\r");
 
 	return lRetVal;
 }
@@ -507,9 +505,9 @@ int32_t User_Configure()
 	uint8_t tmpCnt=0;
 	bool run_flag=true;
 
+//	CreateFile_Flash((uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
 
 	AccessPtMode_HTTPServer_Start();
-//	CreateFile_Flash((uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
 
 //
 //	ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), 0);
@@ -523,39 +521,44 @@ int32_t User_Configure()
 
 		if(g_ucCalibration == BUTTON_PRESSED)
 		{
-			UART_PRINT("\n *** Calibration");
+			UART_PRINT("*** Calibration\n\r");
+			UART_PRINT("***ROTATE DEVICE NOW***\n\r");
 			CalibrateMagSensor();
+			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucCalibration = BUTTON_NOT_PRESSED;
     	}
 		if(g_ucAngle40 == BUTTON_PRESSED)
 		{
-			UART_PRINT("\n *** Angle40");
+			UART_PRINT("*** Angle40\n\r");
 			CollectAngle(ANGLE_40);
+			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle40 = BUTTON_NOT_PRESSED;
 		}
 
 		if(g_ucAngle90 == BUTTON_PRESSED)
 		{
-			UART_PRINT("\n *** Angle90");
+			UART_PRINT("*** Angle90\n\r");
 			CollectAngle(ANGLE_90);
+			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle90 = BUTTON_NOT_PRESSED;
 		}
 
 		if(g_ucConfig == BUTTON_PRESSED)
 		{
 			WiFiProvisioning();
+			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucConfig = BUTTON_NOT_PRESSED;
     	}
 
 		if(g_ucExitButton == BUTTON_PRESSED)
 		{
-			fAngle = 0;
-			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), 0);
-			UART_PRINT("\n\nAngle90 = %3.2f\n\r",fAngle);
-
-			fAngle = 0;
-			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), sizeof(float));
-			UART_PRINT("\n\nAngle40 = %3.2f\n\r",fAngle);
+//			fAngle = 0;
+//			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), 0);
+//			UART_PRINT("Angle90 = %3.2f\n\r",fAngle);
+//
+//			fAngle = 0;
+//			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), sizeof(float));
+//			UART_PRINT("\n\nAngle40 = %3.2f\n\r",fAngle);
 			run_flag = false;
 			break;
 		}
@@ -568,6 +571,11 @@ int32_t User_Configure()
 	{
 		ERR_PRINT(lRetVal);
 		LOOP_FOREVER();
+	}
+
+	if(ConfigureMode(ROLE_STA) !=ROLE_STA)
+	{
+		UART_PRINT("Unable to set to Station mode\n\r");
 	}
 
 	lRetVal = sl_Stop(SL_STOP_TIMEOUT);

@@ -28,6 +28,7 @@
 #include "utils.h"
 #include "parse_impl.h"
 
+#include "app.h"
 #include "flash_files.h"
 const char g_deviceClientVersion[] = "c-ti-cc3200-rtos-1.0.0";
 
@@ -271,7 +272,7 @@ int headerSend(ParseClientInternal *parseClient,
 	status = buildRequestHeaders(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType);
 
 	//(status >= 0)?DEBUG_PRINT("Header:\n\r%s", dataBuffer):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
-	(status >= 0)?DEBUG_PRINT("Header Built\n\r%s"):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
+	//(status >= 0)?DEBUG_PRINT("Header Built\n\r%s"):DEBUG_PRINT("[Parse] Build request header error: %d\r\n", status);
 
 	if (status >= 0)
 	{
@@ -365,7 +366,7 @@ int payloadSend( const char *httpRequestBody,
 			}
 			UtilsDelay(80000);
 		}
-		DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
+		//DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
 		if(0 != fileInfo.FileLen%SIZE_SOCK_WRITE_DATA)
 		{
 			status = sl_FsRead(lFileHandle,
@@ -408,7 +409,7 @@ int payloadSend( const char *httpRequestBody,
     }
 
 	//(status >= 0)?DEBUG_PRINT("Payload:\n\r%s\n\r", dataBuffer):DEBUG_PRINT("[Parse] Build request Payload error: %d\r\n", status);
-	(status >= 0)?DEBUG_PRINT("Payload built\n\r"):DEBUG_PRINT("[Parse] Build request Payload error: %d\r\n", status);
+	//(status >= 0)?DEBUG_PRINT("Payload built\n\r"):DEBUG_PRINT("[Parse] Build request Payload error: %d\r\n", status);
 
 	if (status >= 0)
 	{
@@ -437,13 +438,18 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         socketHandle = status;
 
 #ifdef REQUEST_DEBUG
-        DEBUG_PRINT("\r\n[Parse] Request:\r\n");
+        UART_PRINT("\r\n[Parse] Request:\r\n");
 #endif /* REQUEST_DEBUG */
 
         headerSend(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType, socketHandle);
 
-        payloadSend(httpRequestBody, payloadType, socketHandle);
+        status = payloadSend(httpRequestBody, payloadType, socketHandle);
+        if (status >= 0)
+		{
 
+		}
+
+        UART_PRINT("Sent\r\n");
 //        if (status >= 0)
 //		{
 //			long temp = status;
@@ -464,7 +470,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
     if (status >= 0)
     {
 #ifdef REQUEST_DEBUG
-    	DEBUG_PRINT("\r\n[Parse] Response:\r\n");
+    	UART_PRINT("\r\n[Parse] Response:\r\n");
 #endif /* REQUEST_DEBUG */
 
         memset(dataBuffer, 0, dataBufferSize);
@@ -490,14 +496,14 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         		status = simpleJsonProcessor(dataBuffer, "objectId", responseObjectID, OBJECT_ID_MAX_LEN);
         		if(status != 1)
         			return status;
-        		DEBUG_PRINT("objectID : %s\r\n", responseObjectID);
+        		UART_PRINT("objectID : %s\r\n", responseObjectID);
         	}
         	else if (payloadType == image)
         	{
         		status = simpleJsonProcessor(dataBuffer, "name", imageName, IMAGE_NAME_MAX_LEN);
         		if(status != 1)
         			return status;
-        		DEBUG_PRINT("Image Name : %s\r\n", imageName);
+        		UART_PRINT("Image Name : %s\r\n", imageName);
         	}
         } else
         {

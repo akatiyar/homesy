@@ -1257,7 +1257,7 @@ static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 
 	*pusRegVal = ucBuffer[0] << 8;
 	*pusRegVal |= ucBuffer[1];
-	UART_PRINT("Register Val: %x\n\r", *pusRegVal);
+	//UART_PRINT("Register Val: %x\n\r", *pusRegVal);
 
 	pRegLst->usValue = *pusRegVal;
 

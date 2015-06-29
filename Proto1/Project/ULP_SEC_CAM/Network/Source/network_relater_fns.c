@@ -64,10 +64,10 @@ long ConfigureSimpleLinkToDefaultState()
     long lRetVal = -1;
     long lMode = -1;
 
-    UART_PRINT("b sl_start()\n\r");
+    //UART_PRINT("b sl_start()\n\r");
     lMode = sl_Start(0, 0, 0);
     ASSERT_ON_ERROR(lMode);
-    UART_PRINT("a sl_start()\n\r");
+    //UART_PRINT("a sl_start()\n\r");
 
     // If the device is not in station-mode, try configuring it in station-mode
     if (ROLE_STA != lMode)
@@ -109,13 +109,13 @@ long ConfigureSimpleLinkToDefaultState()
                                 &ucConfigLen, (unsigned char *)(&ver));
     ASSERT_ON_ERROR(lRetVal);
 
-    UART_PRINT("Host Driver Version: %s\n\r",SL_DRIVER_VERSION);
-    UART_PRINT("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n\r",
-    ver.NwpVersion[0],ver.NwpVersion[1],ver.NwpVersion[2],ver.NwpVersion[3],
-    ver.ChipFwAndPhyVersion.FwVersion[0],ver.ChipFwAndPhyVersion.FwVersion[1],
-    ver.ChipFwAndPhyVersion.FwVersion[2],ver.ChipFwAndPhyVersion.FwVersion[3],
-    ver.ChipFwAndPhyVersion.PhyVersion[0],ver.ChipFwAndPhyVersion.PhyVersion[1],
-    ver.ChipFwAndPhyVersion.PhyVersion[2],ver.ChipFwAndPhyVersion.PhyVersion[3]);
+//    UART_PRINT("Host Driver Version: %s\n\r",SL_DRIVER_VERSION);
+//    UART_PRINT("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n\r",
+//    ver.NwpVersion[0],ver.NwpVersion[1],ver.NwpVersion[2],ver.NwpVersion[3],
+//    ver.ChipFwAndPhyVersion.FwVersion[0],ver.ChipFwAndPhyVersion.FwVersion[1],
+//    ver.ChipFwAndPhyVersion.FwVersion[2],ver.ChipFwAndPhyVersion.FwVersion[3],
+//    ver.ChipFwAndPhyVersion.PhyVersion[0],ver.ChipFwAndPhyVersion.PhyVersion[1],
+//    ver.ChipFwAndPhyVersion.PhyVersion[2],ver.ChipFwAndPhyVersion.PhyVersion[3]);
 
     // Set connection policy to Auto + SmartConfig
     //      (Device's default connection policy)
@@ -429,7 +429,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 		LOOP_FOREVER();
 	}
 
-	UART_PRINT("\r\n[QuickStart] Network init\r\n");
+	//UART_PRINT("\r\n[QuickStart] Network init\r\n");
 
 //	ssid = "Soliton";
 //	keyParams->Key = "37203922bb";
@@ -519,8 +519,8 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
                    pWlanEvent->EventData.STAandP2PModeWlanConnected.bssid,
                    SL_BSSID_LENGTH);
 
-            UART_PRINT("[WLAN EVENT] STA Connected to the AP: %s ,\
-                BSSID: %x:%x:%x:%x:%x:%x\n\r",
+            UART_PRINT("[WLAN EVENT] STA Connected to the AP: %s ,"
+            		"BSSID: %x:%x:%x:%x:%x:%x\n\r",
                       g_ucConnectionSSID,g_ucConnectionBSSID[0],
                       g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
                       g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
@@ -583,8 +583,9 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 
         case SL_WLAN_STA_CONNECTED_EVENT:
         {
-        	UART_PRINT("[WLAN EVENT] Mobile Station connected to CC3200-AP");
+        	UART_PRINT("[WLAN EVENT] Mobile Station connected to CC3200-AP\n\r");
         }
+        break;
         default:
         {
             UART_PRINT("[WLAN EVENT] Unexpected event [0x%x]\n\r",
@@ -640,7 +641,7 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
         break;
         case SL_NETAPP_IP_LEASED_EVENT:
         {
-        	UART_PRINT("[NETAPP EVENT] IP leased by CC3200-AP to Station\n\r");
+        	UART_PRINT("[NETAPP EVENT] CC3200-AP has leased IP to Mobile Station\n\r");
         }
         break;
         default:
@@ -696,11 +697,11 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             UART_PRINT("\n[SOCK EVENT] "
             			"- Unexpected Event [%x0x]\n",pSock->Event);
     }
-    UART_PRINT("[SOCK EVENT/ERROR]:\n Event: %x\n Socket: %x\n EventStatus: "
-    				"%d\n AsynchEventValue: %x\n AsynchEventType: %x\n\r\n\r",
-    				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
-    				pSock->EventData.socketAsyncEvent.val,
-    				pSock->EventData.socketAsyncEvent.type);
+//    UART_PRINT("[SOCK EVENT/ERROR]:\n Event: %x\n Socket: %x\n EventStatus: "
+//    				"%d\n AsynchEventValue: %x\n AsynchEventType: %x\n\r\n\r",
+//    				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
+//    				pSock->EventData.socketAsyncEvent.val,
+//    				pSock->EventData.socketAsyncEvent.type);
 }
 
 //*****************************************************************************
@@ -792,13 +793,15 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         case SL_NETAPP_HTTPPOSTTOKENVALUE_EVENT:
         {
 
-        	UART_PRINT("\nReceived POST Token");
+        	UART_PRINT("\nReceived POST Token\n\r");
         	uint16_t Token_Len = pSlHttpServerEvent->EventData.httpPostData.token_name.len;
         	uint16_t Value_Len =  pSlHttpServerEvent->EventData.httpPostData.token_value.len;
         	memcpy(Value,  pSlHttpServerEvent->EventData.httpPostData.token_value.data,Value_Len);
         	memcpy(Token,  pSlHttpServerEvent->EventData.httpPostData.token_name.data,Token_Len);
-        	UART_PRINT("\nToken : %s",Token);
-        	UART_PRINT("\nValue : %s",Value);
+        	Token[Token_Len] = '\0';
+        	Value[Value_Len] = '\0';
+        	UART_PRINT("Token : %s\n\r",Token);
+        	UART_PRINT("Value : %s\n\r",Value);
 
 
 

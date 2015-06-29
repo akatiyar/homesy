@@ -502,7 +502,7 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				{
 					for (j = X; j <= Z; j++)
 					{
-						UART_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
+						UART_PRINT("pthisMagCal->fV[x]: %f	 i: %d	j: %d\n\r",pthisMagCal->finvW[i][j], i, j);
 			//tag prakz
 					}
 				}

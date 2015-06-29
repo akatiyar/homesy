@@ -30,7 +30,7 @@ extern "C"
 #endif
 
 // Uncomment for console output
-#define CONSOLE_DEBUG
+//#define CONSOLE_DEBUG
 
 // Uncomment for client state output on console
 #define CLIENT_DEBUG

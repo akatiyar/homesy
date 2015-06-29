@@ -58,11 +58,13 @@ void HIBernate(uint32_t ulWakeSources,
 	if(ulWakeSources&PRCM_HIB_SLOW_CLK_CTR)
 	{
 		MAP_PRCMHibernateIntervalSet(fHibIntervalInMinutes*((float_t)SEC_PER_MINUTE)*((float_t)RTCCLKS_PER_SEC));
+		MAP_UtilsDelay(80000);
 	}
 	if(ulWakeSources&PRCM_HIB_GPIO2)
 	{
 		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ulGPIOInterruptType);
 
+		MAP_UtilsDelay(80000);
 		//
 		//	Configure or clear interrupts of wake-up trigger sensors
 		//
@@ -71,8 +73,8 @@ void HIBernate(uint32_t ulWakeSources,
 		{
 			configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
 			//while(!IsLightOff(LUX_THRESHOLD));
-			UART_PRINT("Fridge Light Off\n\r");
-			UART_PRINT("HIB: Entering HIBernate...\n\r"
+			UART_PRINT("Fridge Light Off. ");
+			UART_PRINT("Entering HIBernate...\n\r"
 						"***OPEN DOOR TO CAPTURE IMAGE***\n\r");
 			sensorsTriggerSetup();
 			//UART_PRINT("Cleared sensors\n\r");
@@ -82,14 +84,12 @@ void HIBernate(uint32_t ulWakeSources,
 		{
 			configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
 			//while(IsLightOff(LUX_THRESHOLD));
-			UART_PRINT("Light On, But entering Hibernate\n\r"
-					"Close fridge door to wake device\n\r");
+			UART_PRINT("Light On. Entering Hibernate\n\r"
+					"***CLOSE DOOR TO WAKE DEVICE***\n\r");
 			sensorsTriggerSetup();
 			//UART_PRINT("Cleared sensors\n\r");
 		}
 	}
-
-	 MAP_UtilsDelay(80000);
 
     //
     // Enter HIBernate mode

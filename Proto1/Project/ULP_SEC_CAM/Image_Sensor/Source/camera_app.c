@@ -413,6 +413,7 @@ long CaptureAndStore_Image()
 			if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
 			{
 				lRetVal = TIMEOUT_BEFORE_IMAGING;
+				UART_PRINT("Timeout\n\r");
 				break;
 			}
 		}
@@ -521,7 +522,8 @@ long CaptureAndStore_Image()
 
     MAP_CameraCaptureStop(CAMERA_BASE, true);
     //StopTimer();
-    UART_PRINT("pA");
+    //UART_PRINT("pA");
+    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
 
     //float_t fPicCaptureDuration;
     //GetTimeDuration(&fPicCaptureDuration);
@@ -543,9 +545,8 @@ long CaptureAndStore_Image()
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
-    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
-    UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
+    //UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
 
     //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)IMAGE_DATA_FILE_NAME, uiImageFile_Offset, 0);
     lRetVal = sl_Stop(0xFFFF);
