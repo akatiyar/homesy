@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 #ifndef NOTERM
 #include "uartA1_if.h"
@@ -61,7 +62,7 @@ typedef enum
 }appModes;
 
 
-// Application specific status/error codes
+// Application specific status/error codes. Assign these to lRetVal or g_appStatus
 typedef enum
 {
     // Choosing -0x7D0 to avoid overlap w/ host-driver's error codes
@@ -91,8 +92,15 @@ typedef enum
 	TIMEOUT_BEFORE_IMAGING = LIGHT_IS_OFF_BEFORE_IMAGING - 1,
 
     STATUS_CODE_MAX = -0xBB8
-}e_AppStatusCodes;
+}e_AppErrorOrReturnCodes;
 
+// Application specific status codes. Assign this to g_lAppStatus variable
+typedef enum
+{
+	START = 0,
+	USER_CONFIG_TAKING_PLACE,
+	USER_CONFIG_DONE
+}e_AppStatusCodes;
 
 #define STOPHERE_ON_ERROR(error_code)\
             {\
@@ -102,7 +110,7 @@ typedef enum
 					}\
             }
 
-
-
+//Global variable used through out the app
+uint32_t g_ulAppStatus;
 
 #endif /* GENERAL_INCLUDES_H_ */

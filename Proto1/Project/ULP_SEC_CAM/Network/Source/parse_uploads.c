@@ -7,6 +7,7 @@
 extern char* dataBuffer;
 
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
+int simpleJsonProcessor(const char *data, const char *key, char* value, int size);
 
 
 //******************************************************************************
@@ -56,7 +57,7 @@ int32_t UploadImageToParse(ParseClient client,
 
 	ASSERT_ON_ERROR(lRetVal);
 
-	simpleJsonProcessor(dataBuffer, "name", pucParseImageUrl, IMAGE_NAME_MAX_LEN);
+	simpleJsonProcessor(dataBuffer, "name",(char*) pucParseImageUrl, IMAGE_NAME_MAX_LEN);
 	//retreiveImageIDfromHTTPResponse(pucParseImageUrl);
 
 	return lRetVal;

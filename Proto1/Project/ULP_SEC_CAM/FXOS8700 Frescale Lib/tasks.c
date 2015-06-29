@@ -46,6 +46,7 @@
 #include "app.h"
 
 extern uint8_t isitfirsttime;
+extern uint8_t g_ucMagCalb;
 
 // sensor data structures
 #if defined USE_MPL3115
@@ -56,7 +57,7 @@ struct AccelSensor thisAccel;				// this accelerometer
 #endif
 #if defined USE_FXOS8700 || defined USE_MAG3110
 struct MagSensor thisMag;					// this magnetometer
-struct MagCalibration thisMagCal;			// hard and soft iron magnetic calibration
+extern struct MagCalibration thisMagCal;			// hard and soft iron magnetic calibration
 struct MagneticBuffer thisMagBuffer;		// magnetometer measurement buffer
 #endif
 #if defined USE_FXAS21000 || defined USE_FXAS21002
@@ -361,6 +362,7 @@ void Fusion_Run(void)
 			thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho +180;
 			if(thisSV_6DOF_GB_BASIC.fLPRho>360)
 			{
+				// Prakash : Check this code again
 				thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho-360;
 			}
 		}
@@ -506,6 +508,7 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				}
 				UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
 				UART_PRINT("\n\r***Accepted****\n\r");
+				g_ucMagCalb++;
 				//tag prakz
 
 		} // end of test to accept the new calibration 
@@ -518,16 +521,16 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 	// reset the calibration in progress flag to allow writing to the magnetic buffer
 	pthisMagCal->iCalInProgress = 0;
 
-	for (i = X; i <= Z; i++)
-	{
-		for (j = X; j <= Z; j++)
-		{
-			UART_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
-//tag prakz
-		}
-	}
-	UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
-	//tag prakz
+//	for (i = X; i <= Z; i++)
+//	{
+//		for (j = X; j <= Z; j++)
+//		{
+//			UART_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
+////tag prakz
+//		}
+//	}
+//	UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
+//	//tag prakz
 
 	return;
 }

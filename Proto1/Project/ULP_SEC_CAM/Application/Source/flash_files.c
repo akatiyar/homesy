@@ -83,8 +83,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
 		//
 		if(lRetVal < 0)
 		{
-			ASSERT_ON_ERROR(lRetVal);
-			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+			sl_FsClose(lFileHandle, 0, 0, 0);
 			ASSERT_ON_ERROR(lRetVal);
 		}
 
@@ -104,8 +103,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
     //
     if (lRetVal <0)
     {
-    	ASSERT_ON_ERROR(lRetVal);
-        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+        sl_FsClose(lFileHandle, 0, 0, 0);
         ASSERT_ON_ERROR(lRetVal);
     }
     else
@@ -153,16 +151,14 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 						(_i32*)&lFileHandle);
 	 if(lRetVal < 0)
 	 {
-		ASSERT_ON_ERROR(lRetVal);
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(lRetVal);
 	 }
 
 	 lRetVal = sl_FsRead(lFileHandle, uiOffsetInFile, pucData, uiDataSize);
 	 if (lRetVal < 0)
 	 {
-		ASSERT_ON_ERROR(lRetVal);
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(lRetVal);
 	 }
 	 else

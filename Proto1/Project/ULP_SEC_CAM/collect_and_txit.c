@@ -16,6 +16,8 @@
 #include "tempRHSens_si7020.h"
 
 #include "flash_files.h"
+
+extern uint8_t g_ucMagCalb;
 extern int32_t CollectTxit_ImgTempRH();
 //*****************************************************************************
 //

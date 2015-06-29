@@ -19,6 +19,19 @@
 //#define IMAGE_DATA_FILE_NAME			"www/images/jpeg_image.jpg"
 #define IMAGE_DATA_FILE_NAME			"www/images/cc3200_camera_capture.jpg"
 
+#define FILENAME_ANGLE_VALS			"angleValues.txt"
+#define MAX_FILESIZE_ANGLE_VALS		100	//Bytes
+											//File created for this size
+											//Can be used when more fields
+											//are needed in the file
+#define CONTENTSIZE_FILE_ANGLE_VALS	(50)	//Bytes
+											//Find way to employ the Macros
+
+//Uthra
+//#define MAG_SENSOR_CALIBCOUNT		3
+#define MAG_SENSOR_CALIBCOUNT		1
+#define OFFSET_MAG_CALB				2	// Intrms of Number of float values
+
 #define FILENAME_USERWIFI			"user_wifi_profile_file"
 #define MAX_FILESIZE_USERWIFI		1024	//Bytes
 											//File created for this size

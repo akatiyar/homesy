@@ -137,9 +137,12 @@ int g_uiSimplelinkRole = ROLE_INVALID;
 signed char g_cWlanSecurityType[2];
 signed char g_cWlanSecurityKey[50];
 SlSecParams_t g_SecParams;
-unsigned char g_ucProfileAdded = 1;
 unsigned char g_ucConnectedToConfAP = 0, g_ucProvisioningDone = 0;
 unsigned char g_ucPriority = 0;
+unsigned char g_ucConfigsDone = 0;
+
+OsiTaskHandle g_ConfigTaskHandle = NULL ;
+OsiTaskHandle g_MainTaskHandle = NULL ;
 
 Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
@@ -148,6 +151,7 @@ char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
 extern int32_t Collect_InitMangReadings();
 extern int32_t WaitFor40Degrees();
 int32_t Config_And_Start_CameraCapture();
+extern int32_t create_AngleValuesFile();
 
 extern void fxos_main();
 
@@ -172,8 +176,6 @@ extern uVectorEntry __vector_table;
 //                      LOCAL FUNCTION PROTOTYPES                           
 //****************************************************************************
 static void BoardInit();
-static void DisplayBanner(char * AppName);
-
 
 int32_t CollectTxit_ImgTempRH();
 void Main_Task(void *pvParameters);
@@ -267,15 +269,23 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
-	LED_On();
+	LED_Blink(30, 1);
 
-	//configureISL29035(0);
+	LED_On();
+	while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
+	{
+		osi_Sleep(100);	//Wait if User Config is happening presently
+	}
+	osi_TaskDelete(&g_ConfigTaskHandle);
+	UART_PRINT("!!Application running!!\n\r");
 
 	softResetTempRHSensor();
 	configureTempRHSensor();
 
 	createAndWrite_ImageHeaderFile();
 	create_JpegImageFile();
+
+	configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);	//Configures for reading Lux and wakeup interrupt
 
 	Config_And_Start_CameraCapture();
 	while(1)
@@ -295,7 +305,7 @@ void Test_Task(void *pvParameters)
 	verifyAccelMagnSensor();
 	Config_And_Start_CameraCapture();
 	Verify_ImageSensor();
-#ifdef 0
+#ifdef COMPILE_THIS
 	Config_And_Start_CameraCapture();
 	while(1)
 	{
@@ -303,7 +313,7 @@ void Test_Task(void *pvParameters)
 	}
 #endif
 
-#ifdef 0
+#ifdef COMPILE_THIS
 	UART_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
 while(1)
 {
@@ -321,7 +331,7 @@ while(1)
 }
 #endif
 
-#ifdef 0
+#ifdef COMPILE_THIS
 	while(1)
 	{
 		start_100mSecTimer();
@@ -339,7 +349,7 @@ while(1)
 //		UtilsDelay(5*80000000/6);
 //	}
 
-#ifdef 0
+#ifdef COMPILE_THIS
 	verifyISL29035();
 	configureISL29035(0);
 	uint16_t lux;
@@ -376,8 +386,24 @@ while(1)
 
 void ProvisionAP_Task(void *pvParameters)
 {
-	LED_On();
-	ProvisioningAP();
+//	verifyAccelMagnSensor();
+//	verifyISL29035();
+//	verifyTempRHSensor();
+//	Config_And_Start_CameraCapture();
+	//create_AngleValuesFile();
+
+	//LED_On();
+	g_ulAppStatus  = START;
+	UART_PRINT("Press button to Configure thru Phone_App\n\r");
+	while(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
+	{
+		osi_Sleep(20);
+	}
+	g_ulAppStatus = USER_CONFIG_TAKING_PLACE;
+	UART_PRINT("Switch Pressed\n\r");
+	User_Configure();
+	UART_PRINT("User cofig exit\n\r");
+	g_ulAppStatus = USER_CONFIG_DONE;
 	while(1);
 }
 void Main_Task_withHibernate(void *pvParameters)
@@ -389,7 +415,12 @@ void Main_Task_withHibernate(void *pvParameters)
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
-
+		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
+		{
+			osi_Sleep(100);	//Wait if User Config is happening presently
+		}
+		osi_TaskDelete(&g_ConfigTaskHandle);
+		UART_PRINT("!!Application running!!\n\r");
 		configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);	//Configures for reading Lux and wakeup interrupt
 		softResetTempRHSensor();
 		configureTempRHSensor();
@@ -416,16 +447,6 @@ void Main_Task_withHibernate(void *pvParameters)
 		//lRetVal = CollectTxit_ImgTempRH();
 		CollectTxit_ImgTempRH();
 		LED_Off();
-
-//		if(lRetVal == TIMEOUT_BEFORE_IMAGING)
-//		{
-//			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_OFF, NULL);
-//		}
-//		else
-//		{
-//			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
-//		}
-
 		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
 	}
 }
@@ -443,11 +464,11 @@ int32_t Config_And_Start_CameraCapture()
 
 	SoftReset_ImageSensor();
 
-	UART_PRINT("\n\rCam Sensor Init ");
+	//UART_PRINT("\n\rCam Sensor Init ");
 	CameraSensorInit();
 
 	// Configure Sensor in Capture Mode
-	UART_PRINT("\n\rStart Sensor ");
+	//UART_PRINT("\n\rStart Sensor ");
 	lRetVal = StartSensorInJpegMode();
 	STOPHERE_ON_ERROR(lRetVal);
 
@@ -474,24 +495,6 @@ int32_t Config_And_Start_CameraCapture()
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 
 	return lRetVal;
-}
-//*****************************************************************************
-//
-//! Application startup display on UART
-//!
-//! \param  none
-//!
-//! \return none
-//!
-//*****************************************************************************
-static void
-DisplayBanner(char * AppName)
-{
-    UART_PRINT("\n\n\n\r");
-    UART_PRINT("********************************************************\n\r");
-    UART_PRINT("%s\n\r", AppName);
-    UART_PRINT("********************************************************\n\r");
-    UART_PRINT("\n\n\n\r");
 }
 
 //*****************************************************************************
@@ -544,6 +547,8 @@ void main()
 {
 	long lRetVal = -1;
 
+	g_ulAppStatus = START;
+
     //
     // Initialize Board configurations
     //
@@ -586,19 +591,33 @@ void main()
         LOOP_FOREVER();
     }
 
+
     //
-    // Start the task
-    //
+	// Start the tasks
+	//
 	lRetVal = osi_TaskCreate(
+					ProvisionAP_Task,
+					//Test_Task,
+					(const signed char *)"Collect And Txit ImgTempRM",
+					OSI_STACK_SIZE,
+					NULL,
+					1,
+					&g_ConfigTaskHandle );
+	if(lRetVal < 0)
+	{
+		ERR_PRINT(lRetVal);
+		LOOP_FOREVER();
+	}
+
+    lRetVal = osi_TaskCreate(
 					//Main_Task,
-					//ProvisionAP_Task,
 					Main_Task_withHibernate,
 					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,
 					NULL,
 					1,
-					0 );
+					&g_MainTaskHandle );
 	if(lRetVal < 0)
 	{
 		ERR_PRINT(lRetVal);

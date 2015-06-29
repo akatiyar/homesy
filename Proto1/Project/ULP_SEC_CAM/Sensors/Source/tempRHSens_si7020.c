@@ -45,7 +45,7 @@ void verifyTempRHSensor()
 	}
 	else
 	{
-		UART_PRINT("\nSi7020 I2C communication FAILED\nPLEASE CHECK\n");
+		UART_PRINT("Si7020 I2C communication FAILED! CHECK!\n");
 	}
 
 	return;

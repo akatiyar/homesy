@@ -5,6 +5,8 @@
 #include "camera_app.h"
 #include "flash_files.h"
 extern volatile unsigned char g_CaptureImage;
+char Token[100]="";
+char Value[100]="";
 
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 //****************************************************************************
@@ -16,16 +18,22 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 //!    \return     0 on success, negative error-code on error
 //
 //****************************************************************************
-void InitializeAppVariables()
+void InitializeUserConfigVariables()
 {
     g_ulStatus = 0;
     g_ulGatewayIP = 0;
     memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
     memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
 
-    g_ucProfileAdded = 1;
+    g_ucProfileAdded = 0;
     g_ucConnectedToConfAP = 0;
 	g_ucProvisioningDone = 0;
+
+	g_ucAngle90 = BUTTON_NOT_PRESSED;
+	g_ucAngle40 = BUTTON_NOT_PRESSED;
+	g_ucExitButton = BUTTON_NOT_PRESSED;
+	g_ucConfig= BUTTON_NOT_PRESSED;
+	g_ucCalibration= BUTTON_NOT_PRESSED;
 }
 
 //*****************************************************************************
@@ -172,7 +180,7 @@ long ConfigureSimpleLinkToDefaultState()
     lRetVal = sl_Stop(SL_STOP_TIMEOUT);
     ASSERT_ON_ERROR(lRetVal);
 
-    InitializeAppVariables();
+    InitializeUserConfigVariables();
 
     return lRetVal; // Success
 }
@@ -431,10 +439,10 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->Key = "abcdef1234";
 //	keyParams->KeyLen = sizeof("abcdef1234");
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
-	ssid = "kris fire";
-	keyParams->Key = "cfuclcxjfdi";
-	keyParams->KeyLen = sizeof("cfuclcxjfdi");
-	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
+//	ssid = "kris fire";
+//	keyParams->Key = "cfuclcxjfdi";
+//	keyParams->KeyLen = sizeof("cfuclcxjfdi");
+//	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	if (status < 0) {
@@ -714,161 +722,239 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
     {
         case SL_NETAPP_HTTPGETTOKENVALUE_EVENT:
         {
-
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
-                            g_token_get [0], \
-                            pSlHttpServerEvent->EventData.httpTokenName.len))
+        	UART_PRINT("Received GET Token");
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [0], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 if(g_ucConnectedToConfAP == 1)
                 {
                     // Important - Connection Status
-                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                            "TRUE",strlen("TRUE"));
-                    pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                                strlen("TRUE");
+                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "TRUE",strlen("TRUE"));
+                    pSlHttpServerResponse->ResponseData.token_value.len = strlen("TRUE");
                 }
                 else
                 {
                     // Important - Connection Status
-                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                            "FALSE",strlen("FALSE"));
-                    pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                                strlen("FALSE");
+                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "FALSE",strlen("FALSE"));
+                    pSlHttpServerResponse->ResponseData.token_value.len = strlen("FALSE");
                 }
             }
 
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
-                            g_token_get [1], \
-                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [1], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                        g_NetEntries[0].ssid,g_NetEntries[0].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                      g_NetEntries[0].ssid_len;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[0].ssid,g_NetEntries[0].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[0].ssid_len;
             }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
-                            g_token_get [2], \
-                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [2], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                        g_NetEntries[1].ssid,g_NetEntries[1].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                       g_NetEntries[1].ssid_len;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[1].ssid,g_NetEntries[1].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[1].ssid_len;
             }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
-                            g_token_get [3], \
-                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [3], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                        g_NetEntries[2].ssid,g_NetEntries[2].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                       g_NetEntries[2].ssid_len;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[2].ssid,g_NetEntries[2].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[2].ssid_len;
             }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
-                            g_token_get [4], \
-                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [4], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                        g_NetEntries[3].ssid,g_NetEntries[3].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                       g_NetEntries[3].ssid_len;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[3].ssid,g_NetEntries[3].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[3].ssid_len;
             }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, \
-                            g_token_get [5], \
-                            pSlHttpServerEvent->EventData.httpTokenName.len))
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [5], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, \
-                        g_NetEntries[4].ssid,g_NetEntries[4].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = \
-                                                      g_NetEntries[4].ssid_len;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[4].ssid,g_NetEntries[4].ssid_len);
+                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[4].ssid_len;
             }
-
-            else
-                break;
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, "Button90", pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+            	g_ucAngle90 = BUTTON_PRESSED;
+            	while(g_ucAngle90 != ANGLE_VALUE_COLLECTED);
+            	g_ucAngle90 = BUTTON_NOT_PRESSED;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "Angle90 Collected",strlen("Angle90 Collected"));
+                pSlHttpServerResponse->ResponseData.token_value.len = strlen("Angle90 Collected");
+            }
+            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, "Button40", pSlHttpServerEvent->EventData.httpTokenName.len))
+            {
+            	g_ucAngle90 = BUTTON_PRESSED;
+            	while(g_ucAngle90 != ANGLE_VALUE_COLLECTED);
+            	g_ucAngle90 = BUTTON_NOT_PRESSED;
+                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "Angle40 Collected",strlen("Angle40 Collected"));
+                pSlHttpServerResponse->ResponseData.token_value.len = strlen("Angle40 Collected");
+            }
 
         }
         break;
 
         case SL_NETAPP_HTTPPOSTTOKENVALUE_EVENT:
         {
-            if((0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-                          "__SL_P_USC", \
-                 pSlHttpServerEvent->EventData.httpPostData.token_name.len)) && \
-            (0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-                     "Add", \
-                     pSlHttpServerEvent->EventData.httpPostData.token_value.len)))
-            {
-                g_ucProfileAdded = 0;
 
-            }
-            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-                     "__SL_P_USD", \
-                     pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-            {
-                memcpy(g_cWlanSSID,  \
-                pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-                pSlHttpServerEvent->EventData.httpPostData.token_value.len);
-                g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
-            }
+        	UART_PRINT("\nReceived POST Token");
+        	uint16_t Token_Len = pSlHttpServerEvent->EventData.httpPostData.token_name.len;
+        	uint16_t Value_Len =  pSlHttpServerEvent->EventData.httpPostData.token_value.len;
+        	memcpy(Value,  pSlHttpServerEvent->EventData.httpPostData.token_value.data,Value_Len);
+        	memcpy(Token,  pSlHttpServerEvent->EventData.httpPostData.token_name.data,Token_Len);
+        	UART_PRINT("\nToken : %s",Token);
+        	UART_PRINT("\nValue : %s",Value);
 
-            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-                         "__SL_P_USE", \
-                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-            {
 
-                if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
-                                                                        == '0')
-                {
-                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
 
-                }
-                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
-                                                                        == '1')
-                {
-                    g_SecParams.Type =  SL_SEC_TYPE_WEP;//SL_SEC_TYPE_WEP
+        	//angle90 , angle40
+        	if(0 == memcmp(Token, TOK_ANGLE, Token_Len))
+			{
+        		if(0 == memcmp(Value, "Angle90", Value_Len))
+        		{
+        			g_ucAngle90 = BUTTON_PRESSED;
 
-                }
-                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] == '2')
-                {
-                    g_SecParams.Type =  SL_SEC_TYPE_WPA;//SL_SEC_TYPE_WPA
+        		}
+        		else if(0 == memcmp(Value, "Angle40", Value_Len))
+        		{
+        			g_ucAngle40 = BUTTON_PRESSED;
+        		}
+			}
+           	else if(0 == memcmp(Token, TOK_CALIB, Token_Len))
+			{
+				if(0 == memcmp(Value, "Calibrate", Value_Len))
+				{
+					g_ucCalibration = BUTTON_PRESSED;
+				}
+			}
+        	else if(0 == memcmp(Token, TOK_SSID, Token_Len))		//__SL_P_USD
+        	{
+        		memcpy(g_cWlanSSID,  Value, Value_Len);
+        		g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
+        	}
+        	//Security Type
+        	else if(0 == memcmp(Token, TOK_KEYTYPE, Token_Len))		//__SL_P_USE
+        	{
+        		//memcpy(g_cWlanSSID,  Token, Token_Len);
+				if(Value[0] == '0')
+				{
+					g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
+				}
+				else if(Value[0] == '1')
+				{
+					g_SecParams.Type =  SL_SEC_TYPE_WEP;//SL_SEC_TYPE_WEP
+				}
+				else if(Value[0]== '2')
+				{
+					g_SecParams.Type =  SL_SEC_TYPE_WPA;//SL_SEC_TYPE_WPA
+				}
+				else
+				{
+					g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
+				}
+				g_cWlanSecurityType[0] = g_SecParams.Type;
+				g_cWlanSecurityType[1] = 0;
+        	}
 
-                }
-                else
-                {
-                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
-                }
-                g_cWlanSecurityType[0] = g_SecParams.Type;
-                g_cWlanSecurityType[1] = 0;
+        	//Security Key
+        	else if(0 == memcmp(Token, TOK_KEY, Token_Len))		//__SL_P_USF
+        	{
+				memcpy(g_cWlanSecurityKey,Value, Value_Len);
+				g_cWlanSecurityKey[Token_Len] = 0;
+				g_SecParams.Key = g_cWlanSecurityKey;
+				g_SecParams.KeyLen = Value_Len;
+			}
+        	else if(0 == memcmp(Token, TOK_CONFIG_DONE, Token_Len))		//__SL_P_US0
+        	{
+        		g_ucConfig = BUTTON_PRESSED;
             }
-            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-                         "__SL_P_USF", \
-                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-            {
-                memcpy(g_cWlanSecurityKey, \
-                    pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-                    pSlHttpServerEvent->EventData.httpPostData.token_value.len);
-                g_cWlanSecurityKey[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
-                g_SecParams.Key = g_cWlanSecurityKey;
-                g_SecParams.KeyLen = pSlHttpServerEvent->EventData.httpPostData.token_value.len;
-            }
-            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-                        "__SL_P_USG", \
-                        pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-            {
-                g_ucPriority = pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] - 48;
-            }
-            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-                         "__SL_P_US0", \
-                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-            {
-                g_ucProvisioningDone = 1;
-            }
+        	else if(0 == memcmp(Token, TOK_EXIT, Token_Len))
+        	{
+        		if(0 == memcmp(Value, "Exit", Value_Len))
+				{
+        			g_ucExitButton = BUTTON_PRESSED;
+				}
+        	}
         }
+//        {
+//        	 if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//        	                     "Done_Configs", \
+//        	                     pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+//			{
+//				memcpy(g_cWlanSSID,  \
+//				pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+//				pSlHttpServerEvent->EventData.httpPostData.token_value.len);
+//				g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
+//			}
+//
+//            if((0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//                          "__SL_P_USC", \
+//                 pSlHttpServerEvent->EventData.httpPostData.token_name.len)) && \
+//            (0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+//                     "Add", \
+//                     pSlHttpServerEvent->EventData.httpPostData.token_value.len)))
+//            {
+//                g_ucProfileAdded = 1;
+//
+//            }
+//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//                     "__SL_P_USD", \
+//                     pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+//            {
+//                memcpy(g_cWlanSSID,  \
+//                pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+//                pSlHttpServerEvent->EventData.httpPostData.token_value.len);
+//                g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
+//            }
+//
+//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//                         "__SL_P_USE", \
+//                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+//            {
+//
+//                if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
+//                                                                        == '0')
+//                {
+//                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
+//
+//                }
+//                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
+//                                                                        == '1')
+//                {
+//                    g_SecParams.Type =  SL_SEC_TYPE_WEP;//SL_SEC_TYPE_WEP
+//
+//                }
+//                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] == '2')
+//                {
+//                    g_SecParams.Type =  SL_SEC_TYPE_WPA;//SL_SEC_TYPE_WPA
+//
+//                }
+//                else
+//                {
+//                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
+//                }
+//                g_cWlanSecurityType[0] = g_SecParams.Type;
+//                g_cWlanSecurityType[1] = 0;
+//            }
+//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//                         "__SL_P_USF", \
+//                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+//            {
+//                memcpy(g_cWlanSecurityKey, \
+//                    pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
+//                    pSlHttpServerEvent->EventData.httpPostData.token_value.len);
+//                g_cWlanSecurityKey[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
+//                g_SecParams.Key = g_cWlanSecurityKey;
+//                g_SecParams.KeyLen = pSlHttpServerEvent->EventData.httpPostData.token_value.len;
+//            }
+//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//                        "__SL_P_USG", \
+//                        pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+//            {
+//                g_ucPriority = pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] - 48;
+//            }
+//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
+//                         "__SL_P_US0", \
+//                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
+//            {
+//                g_ucProvisioningDone = 1;
+//            }
+//        }
         break;
 
       default:

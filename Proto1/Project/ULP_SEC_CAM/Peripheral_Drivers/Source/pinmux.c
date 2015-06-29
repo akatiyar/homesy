@@ -145,6 +145,12 @@ PinMuxConfig(void)
 	//MAP_GPIODirModeSet(GPIOA0_BASE, 0x02, GPIO_DIR_MODE_IN);
 	MAP_GPIODirModeSet(GPIOA0_BASE, 0x04, GPIO_DIR_MODE_IN);
 
+    //
+	// Configure PIN_63 for GPIOIn - Config_SW1
+	//
+	MAP_PinTypeGPIO(PIN_63, PIN_MODE_0, false);
+	MAP_GPIODirModeSet(GPIOA1_BASE, 0x01, GPIO_DIR_MODE_IN);
+
 	//
 	// Configure PIN_62 for GPIOOut - CameraModule Standby
 	//

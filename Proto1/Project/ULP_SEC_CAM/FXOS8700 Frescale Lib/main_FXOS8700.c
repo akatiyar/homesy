@@ -13,14 +13,22 @@
 #include "timer_fns.h"
 #include "accelomtrMagntomtr_fxos8700.h"
 #include "app_common.h"
+#include "flash_files.h"
+#include "camera_app.h"
 
 uint8_t cnt_prakz2;
 uint8_t g_flag_door_closing_45degree;
-
+extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
+extern float gdoor_90deg_angle;
+extern float gdoor_40deg_angle;
 
 extern void check_doorpos();
 int16_t angleCheck();
 int16_t angleCheck_Initializations();
+float_t get_angle();
+int16_t angleCheck_WithCalibration();
+
+int16_t IsLightOff(uint16_t usThresholdLux);
 
 struct ProjectGlobals globals;
 struct MQXLiteGlobals mqxglobals;
@@ -30,6 +38,49 @@ extern struct SV_6DOF_GB_BASIC thisSV_6DOF_GB_BASIC;
 extern volatile uint32_t v_OneSecFlag;
 
 int16_t angleCheck_Initializations()
+{
+	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
+	uint8_t tmpCnt=0;
+	g_flag_door_closing_45degree = 0;
+
+	// initialize globals
+	globals.iPacketNumber = 0;
+	globals.AngularVelocityPacketOn = true;
+	globals.DebugPacketOn = true;
+	globals.RPCPacketOn = true;
+	globals.AltPacketOn = true;
+	globals.iMPL3115Found = false;
+	globals.MagneticPacketID = 0;
+
+	// initialize the physical sensors over I2C and the sensor data structures
+	RdSensData_Init();
+
+	// initialize the sensor fusion algorithms
+	Fusion_Init();
+
+	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
+
+	gdoor_90deg_angle = Mag_Calb_Value[tmpCnt++];
+	gdoor_40deg_angle  = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[0][0] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[0][1]=  Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[0][2] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[1][0] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[1][1] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[1][2] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[2][0] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[2][1] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.finvW[2][2] = Mag_Calb_Value[tmpCnt++];
+	thisMagCal.fV[0]= Mag_Calb_Value[tmpCnt++];
+	thisMagCal.fV[1]= Mag_Calb_Value[tmpCnt++];
+	thisMagCal.fV[2]= Mag_Calb_Value[tmpCnt++];
+
+	UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
+	UART_PRINT("40w = %3.2f\n\r",gdoor_40deg_angle);
+	return 0;
+}
+
+int16_t fxosDefault_Initializations()
 {
 	g_flag_door_closing_45degree = 0;
 
@@ -69,6 +120,53 @@ int16_t angleCheck()
 
 	return 0;
 }
+
+int16_t fxos_Calibration()
+{
+	mqxglobals.RunKF_Event_Flag = 0;
+	// read the sensors
+	RdSensData_Run();
+	//UART_PRINT("r\n\r");
+	mqxglobals.MagCal_Event_Flag = 0;
+	if(mqxglobals.RunKF_Event_Flag == 1)
+	{
+		// call the sensor fusion algorithms
+		Fusion_Run();
+		//UART_PRINT("f\n\r");
+	}
+	if(mqxglobals.MagCal_Event_Flag == 1)
+	//if(cnt_prakz2>60)
+	{
+		MagCal_Run(&thisMagCal, &thisMagBuffer);
+		//UART_PRINT("m* %d\n\r", i);
+	}
+
+	return 0;
+}
+
+
+
+float_t get_angle()
+{
+	while(1)
+	{
+		mqxglobals.RunKF_Event_Flag = 0;
+		// read the sensors
+		RdSensData_Run();
+		//UART_PRINT("r\n\r");
+
+		mqxglobals.MagCal_Event_Flag = 0;
+		if(mqxglobals.RunKF_Event_Flag == 1)
+		{
+			// call the sensor fusion algorithms
+			Fusion_Run();
+			//UART_PRINT("f\n\r");
+			return thisSV_6DOF_GB_BASIC.fLPRho;
+		}
+	}
+
+}
+
 void fxos_main()
 {
 	g_flag_door_closing_45degree = 0;

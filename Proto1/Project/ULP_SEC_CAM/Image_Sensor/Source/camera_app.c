@@ -77,6 +77,7 @@
 #include "flash_files.h"
 #include "tempRHSens_si7020.h"
 #include "accelomtrMagntomtr_fxos8700.h"
+#include "include_all.h"
 extern int32_t WaitFor40Degrees();
 extern void fxos_main_waitfor40degrees();
 extern void fxos_main();
@@ -86,6 +87,11 @@ extern int16_t angleCheck_Initializations();
 extern int16_t IsLightOff(uint16_t usThresholdLux);
 
 extern uint8_t g_flag_door_closing_45degree;
+extern int gdoor_90deg_angle;
+extern int gdoor_close_angle;
+extern int gdoor_snap_angle;
+
+extern struct MagCalibration thisMagCal;
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -330,7 +336,7 @@ long CaptureAndStore_Image()
     long lFileHandle;
     unsigned long ulToken = NULL;
     long lRetVal;
-
+    uint8_t tmpCnt=0;
     // Initial values set
     uint32_t uiImageFile_Offset = 0;
     g_block_lastFilled = -1;
@@ -344,7 +350,6 @@ long CaptureAndStore_Image()
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
-
 	//
 	// Open the file for Write Operation
 	//
@@ -382,6 +387,11 @@ long CaptureAndStore_Image()
 
 	// Wait for Imaging Position of door
 	angleCheck_Initializations();
+	int i;
+	for(i=0; i<100; i++)
+	{
+		get_angle();
+	}
 	start_100mSecTimer();
 	while(1)
 	{
@@ -569,7 +579,10 @@ long CaptureinRAM()
 	while(g_frame_end == 0);
 	MAP_CameraCaptureStop(CAMERA_BASE, true);
 	UART_PRINT("pA");
+
+	return 0;
 }
+
 long CaptureinRAM_StoreAfterCapture_Image()
 {
     long lFileHandle;

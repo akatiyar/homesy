@@ -412,6 +412,7 @@ long CameraSensorInit()
     return lRetVal;
 }
 
+#ifdef FLASH_FILES
 //Read ImageSensorConfig File from SFlash and initialise the camera
 long CameraSensorInit_SettingsFromFlash()
 {
@@ -510,6 +511,7 @@ long WriteConfigRegFilefromUser_toFlash(uint8_t* pFileContent,
 
 	return lRetVal;
 }
+#endif
 
 //*****************************************************************************
 //
