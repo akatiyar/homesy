@@ -85,6 +85,7 @@ extern void fxos_main();
 extern int16_t angleCheck();
 extern int16_t angleCheck_Initializations();
 extern int16_t IsLightOff(uint16_t usThresholdLux);
+extern float_t get_angle();
 
 extern uint8_t g_flag_door_closing_45degree;
 extern int gdoor_90deg_angle;
@@ -336,7 +337,7 @@ long CaptureAndStore_Image()
     long lFileHandle;
     unsigned long ulToken = NULL;
     long lRetVal;
-    uint8_t tmpCnt=0;
+
     // Initial values set
     uint32_t uiImageFile_Offset = 0;
     g_block_lastFilled = -1;

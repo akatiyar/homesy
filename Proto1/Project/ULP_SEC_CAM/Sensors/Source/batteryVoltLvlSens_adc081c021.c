@@ -28,12 +28,6 @@
 #define POINTER_ADDR_LOWESTDATA_REG				0X06
 #define POINTER_ADDR_HIGHESTDATA_REG			0X07
 
-#define RESISTOR_R1								(100.0F)//in KOhms. Tag:Schematic
-#define RESISTOR_R2								(47.0F)	//in KOhms. Tag:Schematic
-
-#define VREF									(3.0F)	//Supply Vcc to chip = Reference
-#define ONE_LSB_EQUALS							(VREF/256.0F)	// 2^8 = 256
-
 #define MASK_DATA_BITS							0x0ff0
 
 #define VALUE_CONFIGREG_CYCLETIMEFIELD_400SPS	0xE0
@@ -42,6 +36,7 @@
 
 #define	VALUE_CONFIGREG_ALERTPOLARITYFIELD_LO	0X00
 #define	VALUE_CONFIGREG_ALERTPOLARITYFIELD_HI	0X00
+
 //******************************************************************************
 //
 //	This function gets the voltage level of battery from the ADC
@@ -51,28 +46,22 @@
 //	return  - SUCCESS/failure code
 //
 //******************************************************************************
-int32_t Get_BatteryVoltageLevel_ADC081C021(float_t* pfBatteryVoltage)
+int32_t Get_BatteryVoltageLevel_ADC081C021(uint8_t* pucADCValue)
 {
 	int32_t lRetVal;
 	uint8_t ucDataRegVal[2];
-	uint8_t ucADCValue;
+//	uint8_t ucADCValue;
 //	uint16_t usDataRegVal;
 
 	lRetVal = i2cReadRegisters(ADC081C021_I2C_ADDRESS, POINTER_ADDR_DATA_REG,
 								LENGTH_IS_TWO, ucDataRegVal);
-//	usDataRegVal = (ucDataRegVal[0]<<8) + ucDataRegVal[1];
-//	usDataRegVal &= MASK_DATA_BITS;
-//	usDataRegVal >>= 4;
-	ucADCValue = (ucDataRegVal[0]<<4) | (ucDataRegVal[1]>>4);
-	*pfBatteryVoltage = ((float_t)ucADCValue * ONE_LSB_EQUALS) + 0.5 * ONE_LSB_EQUALS;	//Analog Voltage(VA)
-	(*pfBatteryVoltage) = (*pfBatteryVoltage) * (RESISTOR_R1+RESISTOR_R2)/RESISTOR_R2;	//VA = VBAT*R2/(R1+R2)
 
-	//Assuming a linear relation between Voltage and Charge, which is usually not the case
-
+	(*pucADCValue) = (ucDataRegVal[0]<<4) | (ucDataRegVal[1]>>4);
 
 	return lRetVal;
 }
 
+#ifdef COMPILE_THIS
 //******************************************************************************
 //
 //	This function puts the ADC in Alert/Automatic conversion mode
@@ -130,3 +119,4 @@ int32_t PutInAlertMode_ADC081C021(float_t fAlertVoltageLimit)
 	}
 	return lRetVal;
 }
+#endif

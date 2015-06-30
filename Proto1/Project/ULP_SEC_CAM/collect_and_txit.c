@@ -16,6 +16,7 @@
 #include "tempRHSens_si7020.h"
 
 #include "flash_files.h"
+#include "appFns.h"
 
 extern uint8_t g_ucMagCalb;
 extern int32_t CollectTxit_ImgTempRH();
@@ -37,7 +38,8 @@ int32_t CollectTxit_ImgTempRH()
 	//uint8_t ucParseImageUrl[] = "tfss-cdf82004-4241-425f-96ce-3f68092bebce-myPic1.jpg";
 	uint8_t ucTryNum = 0;
 	float_t fTemp = 12.34, fRH = 56.78;
-	float_t fBatteryLvl = 80;
+	//float_t fBatteryLvl = 80;
+	uint8_t ucBatteryLvl = 80;
 
 #ifndef NO_CAMERA
 	//
@@ -88,12 +90,13 @@ int32_t CollectTxit_ImgTempRH()
 	UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
 
 //	Get_BatteryVoltageLevel_ADC081C021(&fBatteryLvl);
+	ucBatteryLvl = Get_BatteryPercent();
 
 	//
 	// Construct the JSON object string
 	//
 	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
-	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, fBatteryLvl, ucSensorDataTxt);
+	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucBatteryLvl, ucSensorDataTxt);
 	UART_PRINT("OBJECT: %s\n", ucSensorDataTxt);
 
 	//

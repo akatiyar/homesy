@@ -43,7 +43,7 @@ void verifyAccelMagnSensor()
 	if(DEVICE_ID == ucDeviceID)
 	{
 //		UART_PRINT("Device ID read thru' I2C = expected device ID of FXOS8700\n\r"
-//					"I2C communication with FXOS8700 SUCCESS\n\r");
+		UART_PRINT("I2C communication with FXOS8700 SUCCESS\n\r");
 	}
 	else
 	{

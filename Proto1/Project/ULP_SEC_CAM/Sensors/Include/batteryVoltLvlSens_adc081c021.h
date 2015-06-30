@@ -18,11 +18,11 @@
 #include "app.h"
 #include "math.h"
 
-
+#define ADC_RESOLUTION							(256.0F)
 
 int32_t PutInAlertMode_ADC081C021(float_t fAlertVoltageLimit);
 
-int32_t Get_BatteryVoltageLevel_ADC081C021(float_t* pfBatteryVoltage);
+int32_t Get_BatteryVoltageLevel_ADC081C021(uint8_t* pucADCValue);
 
 
 

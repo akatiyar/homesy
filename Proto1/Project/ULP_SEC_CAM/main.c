@@ -110,6 +110,9 @@
 
 #include "test_modules.h"
 #include "test_fns.h"
+
+#include "appFns.h"
+#include "dbgFns.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -275,11 +278,11 @@ void Main_Task(void *pvParameters)
 	LED_Blink(30, 1);
 
 	LED_On();
-	while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
-	{
-		osi_Sleep(100);	//Wait if User Config is happening presently
-	}
-	osi_TaskDelete(&g_UserConfigTaskHandle);
+//	while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
+//	{
+//		osi_Sleep(100);	//Wait if User Config is happening presently
+//	}
+//	osi_TaskDelete(&g_UserConfigTaskHandle);
 	UART_PRINT("!!Application running!!\n\r");
 
 	softResetTempRHSensor();
@@ -299,21 +302,27 @@ void Main_Task(void *pvParameters)
 
 void Test_Task(void *pvParameters)
 {
-	float fBatteryPercent;
-	Get_BatteryVoltageLevel_ADC081C021(&fBatteryPercent);
-	UART_PRINT("Battery Voltage: %3.4f\n\r", fBatteryPercent);
-
-#ifdef COMPILE_THIS
-	verifyAccelMagnSensor();
-	verifyISL29035();
-	verifyTempRHSensor();
-	Config_And_Start_CameraCapture();
-	verifyISL29035();
-	verifyTempRHSensor();
-	verifyAccelMagnSensor();
-	Config_And_Start_CameraCapture();
-	Verify_ImageSensor();
+	Check_I2CDevices();
+	while(1)
+	{
+		UART_PRINT("%d\n\r", Get_BatteryPercent());
+		UtilsDelay(80000000);
+	}
+#ifdef COMPILE_I2CDEVICE_CHECK
+	Check_I2CDevices();
 #endif
+
+//#define COMPILE_THIS_1
+#ifdef COMPILE_THIS_1
+	uint8_t ucADCVal;
+	while(1)
+	{
+		Get_BatteryVoltageLevel_ADC081C021(&ucADCVal);
+		UART_PRINT("%xH\n\r", ucADCVal);
+		UART_PRINT("%d\n\r", Get_BatteryPercent());
+	}
+#endif
+
 #ifdef COMPILE_THIS
 	Config_And_Start_CameraCapture();
 	while(1)
@@ -612,24 +621,24 @@ void main()
 	//
 	// Start the tasks
 	//
-	lRetVal = osi_TaskCreate(
-					UserConfigure_Task,
-					//Test_Task,
-					(const signed char *)"User Config",
-					OSI_STACK_SIZE,
-					NULL,
-					1,
-					&g_UserConfigTaskHandle );
-	if(lRetVal < 0)
-	{
-		ERR_PRINT(lRetVal);
-		LOOP_FOREVER();
-	}
+//	lRetVal = osi_TaskCreate(
+//					//UserConfigure_Task,
+//					//Test_Task,
+//					(const signed char *)"User Config",
+//					OSI_STACK_SIZE,
+//					NULL,
+//					1,
+//					&g_UserConfigTaskHandle );
+//	if(lRetVal < 0)
+//	{
+//		ERR_PRINT(lRetVal);
+//		LOOP_FOREVER();
+//	}
 
     lRetVal = osi_TaskCreate(
 					//Main_Task,
-					Main_Task_withHibernate,
-					//Test_Task,
+					//Main_Task_withHibernate,
+					Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,
 					NULL,

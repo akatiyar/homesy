@@ -60,9 +60,9 @@ extern "C"
 // APIs
 //******************************************************************************
 unsigned long I2CInit();
-unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
+long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
                             unsigned long ulSize,unsigned char ucFlags);
-unsigned long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
+long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
                              unsigned long ulSize,unsigned char ucFlags);
 
 //*****************************************************************************

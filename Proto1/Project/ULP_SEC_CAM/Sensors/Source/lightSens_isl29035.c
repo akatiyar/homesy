@@ -264,6 +264,15 @@ uint16_t verifyISL29035(void)
 	i2cReadRegisters(ISL29035_I2C_ADDRESS, DEVICE_ID_REG, 1, &data);
 	UART_PRINT("LightSensor Device ID: %x\n\r", data);
 
+	if((data & DEVICE_ID_MASK) == DEVICE_ID)
+	{
+		UART_PRINT("I2C communication with ISL29035 SUCCESS\n\r");
+	}
+	else
+	{
+		UART_PRINT("ISL29035 I2C communication FAILED! CHECK!\n\r");
+	}
+
 	return( !((data & DEVICE_ID_MASK) == DEVICE_ID) );
 }
 

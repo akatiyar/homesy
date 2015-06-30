@@ -36,12 +36,12 @@ void verifyTempRHSensor()
 							LENGTH_IS_FOUR,
 							ucDeviceID);
 
-	UART_PRINT("\nData Read: %x %x %x %x\n",
+	UART_PRINT("TempRH Device ID: %x %x %x %x\n",
 						ucDeviceID[0], ucDeviceID[1], ucDeviceID[2], ucDeviceID[3]);
 	if(DEVICE_ID == ucDeviceID[0])
 	{
-		UART_PRINT("\nDevice ID read thru' I2C = expected device ID of Si7020"
-					"\nI2C communication with Si7020 SUCCESS\n");
+		//UART_PRINT("\nDevice ID read thru' I2C = expected device ID of Si7020"
+		UART_PRINT("I2C communication with Si7020 SUCCESS\n");
 	}
 	else
 	{

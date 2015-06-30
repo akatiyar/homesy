@@ -1158,11 +1158,17 @@ long Verify_ImageSensor()
 {
 	long lRetVal;
 	uint16_t usRegVal;
-	s_RegList StatusRegLst[] = {0x00, 0x00, 0xBADD};	// Sensor Chip Version#
+	s_RegList StatusRegLst = {0x00, 0x00, 0xBADD};	// Sensor Chip Version#
 
-	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
+	lRetVal = Register_Read(&StatusRegLst, &usRegVal);
 
-	if (usRegVal != CHIP_VERSION)
+	UART_PRINT("MT9D111 Device ID: %x\n\r", usRegVal);
+
+	if (usRegVal == CHIP_VERSION)
+	{
+		UART_PRINT("I2C communication with MT9D111 SUCCESS\n\r");
+	}
+	else
 	{
 		UART_PRINT("MT9D111 Chip Version# error\n\r");
 		lRetVal = MT9D111_NOT_FOUND;

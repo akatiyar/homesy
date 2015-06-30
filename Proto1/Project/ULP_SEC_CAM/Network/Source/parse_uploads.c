@@ -169,12 +169,13 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
-									float_t fBatteryLevel,
+									uint8_t ucBatteryLevel,
 									uint8_t* pucSensorDataTxt)
 {
-	pucSensorDataTxt[0] = NULL;
-
+	uint8_t ucLength;
 	uint8_t ucCharConv[20];
+
+	pucSensorDataTxt[0] = NULL;
 	memset(ucCharConv, '0', 20);
 	strncat((char*)pucSensorDataTxt, "{\"deviceId\":\"",
 					sizeof("{\"deviceId\":\""));
@@ -189,6 +190,9 @@ int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 	strncat((char*)pucSensorDataTxt,
 					"\",\"__type\":\"File",
 					sizeof("\",\"__type\":\"File"));
+	strncat((char*)pucSensorDataTxt, "\"},\"battery\":", sizeof("\"},\"battery\":"));
+	ucLength = intToASCII((uint16_t)ucBatteryLevel, (char*)ucCharConv);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, ucLength);
 	strncat((char*)pucSensorDataTxt, "\"},\"temp\":", sizeof("\"},\"temp\":"));
 	intToASCII((uint16_t)(fTemp*100), (char*)ucCharConv);
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, 2);

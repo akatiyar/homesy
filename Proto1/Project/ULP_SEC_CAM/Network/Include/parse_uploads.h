@@ -22,5 +22,5 @@ int32_t UploadSensorDataToParse(ParseClient client,
 int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
-									float_t fBatteryLevel,
+									uint8_t ucBatteryLevel,
 									uint8_t* pucSensorDataTxt);

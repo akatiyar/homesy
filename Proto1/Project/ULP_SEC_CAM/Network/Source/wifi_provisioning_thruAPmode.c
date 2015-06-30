@@ -501,8 +501,6 @@ int32_t AccessPtMode_HTTPServer_Start()
 int32_t User_Configure()
 {
 	long lRetVal = -1;
-	float_t fAngle;
-	uint8_t tmpCnt=0;
 	bool run_flag=true;
 
 //	CreateFile_Flash((uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);

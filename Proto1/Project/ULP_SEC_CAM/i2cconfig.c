@@ -50,6 +50,16 @@
 #include "i2c.h"
 #include "prcm.h"
 #include "i2cconfig.h"
+#include "common.h"
+
+#define I2C_MRIS_CLKTOUT        0x2
+//*****************************************************************************
+// I2C transaction time-out value.
+// Set to value 0x7D. (@100KHz it is 20ms, @400Khz it is 5 ms)
+//*****************************************************************************
+#define I2C_TIMEOUT_VAL         0x7D
+//#define I2C_TIMEOUT_VAL         0x10
+#define I2C_BASE                I2CA0_BASE
 
 
 void MT9D111Delay(unsigned long ucDelay);
@@ -124,7 +134,7 @@ unsigned long I2CInit()
 //! \return 0: Success, < 0: Failure.
 //
 //****************************************************************************
-unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
+long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
                             unsigned long ulSize,unsigned char ucFlags)
 {
     unsigned long ulNdx;
@@ -132,6 +142,10 @@ unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
     // Set I2C codec slave address 
     MAP_I2CMasterSlaveAddrSet(I2CA0_BASE,ucDevAddr, true);
     MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
+    //
+	// Set the time-out. Not to be used with breakpoints.
+	//
+    MAP_I2CMasterTimeoutSet(I2C_BASE, I2C_TIMEOUT_VAL);
 
     if(ulSize == 1)
     {
@@ -144,9 +158,37 @@ unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
         MAP_I2CMasterControl(I2CA0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
 
         // Wait for transfer completion. 
-        while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) &
-                                                   I2C_INT_MASTER) == 0)
+//        while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) &
+//                                                   I2C_INT_MASTER) == 0)
+        while((MAP_I2CMasterIntStatusEx(I2C_BASE, false)
+                           & (I2C_INT_MASTER | I2C_MRIS_CLKTOUT)) == 0)
         {
+        }
+
+        //
+        // Check for any errors in transfer
+        //
+        if(MAP_I2CMasterErr(I2C_BASE) != I2C_MASTER_ERR_NONE)
+        {
+            switch(I2C_MASTER_CMD_BURST_RECEIVE_START)
+            {
+            case I2C_MASTER_CMD_BURST_SEND_START:
+            case I2C_MASTER_CMD_BURST_SEND_CONT:
+            case I2C_MASTER_CMD_BURST_SEND_STOP:
+                MAP_I2CMasterControl(I2C_BASE,
+                             I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+                break;
+            case I2C_MASTER_CMD_BURST_RECEIVE_START:
+            case I2C_MASTER_CMD_BURST_RECEIVE_CONT:
+            case I2C_MASTER_CMD_BURST_RECEIVE_FINISH:
+                MAP_I2CMasterControl(I2C_BASE,
+                             I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+                break;
+            default:
+                break;
+            }
+            return FAILURE;
+            //return MAP_I2CMasterErr(I2C_BASE);
         }
 
         // Read first byte from the controller. 
@@ -158,13 +200,46 @@ unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
             MT9D111Delay(40);
             MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
 
+            //
+		   // Set the time-out. Not to be used with breakpoints.
+		   //
+		   MAP_I2CMasterTimeoutSet(I2C_BASE, I2C_TIMEOUT_VAL);
+
             // continue the transfer. 
             MAP_I2CMasterControl(I2CA0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
 
             // Wait for transfer completion. 
-            while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & 
-                                                         I2C_INT_MASTER) == 0)
+//            while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) &
+//                                                         I2C_INT_MASTER) == 0)
+            while((MAP_I2CMasterIntStatusEx(I2C_BASE, false)
+                               & (I2C_INT_MASTER | I2C_MRIS_CLKTOUT)) == 0)
             {
+            }
+
+            //
+            // Check for any errors in transfer
+            //
+            if(MAP_I2CMasterErr(I2C_BASE) != I2C_MASTER_ERR_NONE)
+            {
+                switch(I2C_MASTER_CMD_BURST_RECEIVE_CONT)
+                {
+                case I2C_MASTER_CMD_BURST_SEND_START:
+                case I2C_MASTER_CMD_BURST_SEND_CONT:
+                case I2C_MASTER_CMD_BURST_SEND_STOP:
+                    MAP_I2CMasterControl(I2C_BASE,
+                                 I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+                    break;
+                case I2C_MASTER_CMD_BURST_RECEIVE_START:
+                case I2C_MASTER_CMD_BURST_RECEIVE_CONT:
+                case I2C_MASTER_CMD_BURST_RECEIVE_FINISH:
+                    MAP_I2CMasterControl(I2C_BASE,
+                                 I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+                    break;
+                default:
+                    break;
+                }
+                return FAILURE;
+                //return MAP_I2CMasterErr(I2C_BASE);
             }
 
             // Read next byte from the controller. 
@@ -172,14 +247,47 @@ unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
         }
 
         MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
+
+		//
+		// Set the time-out. Not to be used with breakpoints.
+		//
+		MAP_I2CMasterTimeoutSet(I2C_BASE, I2C_TIMEOUT_VAL);
+
         MAP_I2CMasterControl(I2CA0_BASE,I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
     }
 
     // Wait for transfer completion. 
-    while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) == 0)
+    //while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) == 0)
+    while((MAP_I2CMasterIntStatusEx(I2C_BASE, false)
+                       & (I2C_INT_MASTER | I2C_MRIS_CLKTOUT)) == 0)
     {
     }
 
+    //
+    // Check for any errors in transfer
+    //
+    if(MAP_I2CMasterErr(I2C_BASE) != I2C_MASTER_ERR_NONE)
+    {
+        switch(I2C_MASTER_CMD_BURST_RECEIVE_FINISH)
+        {
+        case I2C_MASTER_CMD_BURST_SEND_START:
+        case I2C_MASTER_CMD_BURST_SEND_CONT:
+        case I2C_MASTER_CMD_BURST_SEND_STOP:
+            MAP_I2CMasterControl(I2C_BASE,
+                         I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+            break;
+        case I2C_MASTER_CMD_BURST_RECEIVE_START:
+        case I2C_MASTER_CMD_BURST_RECEIVE_CONT:
+        case I2C_MASTER_CMD_BURST_RECEIVE_FINISH:
+            MAP_I2CMasterControl(I2C_BASE,
+                         I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+            break;
+        default:
+            break;
+        }
+        return FAILURE;
+        //return MAP_I2CMasterErr(I2C_BASE);
+    }
     // Read the last byte from the controller. 
     ucBuffer[ulSize-1] = MAP_I2CMasterDataGet(I2CA0_BASE);
 
@@ -202,7 +310,7 @@ unsigned long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
 //
 //****************************************************************************
 
-unsigned long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
+long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
                              unsigned long ulSize,unsigned char ucFlags)
 {
     unsigned long ulNdx;
@@ -213,19 +321,51 @@ unsigned long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
    // Write the first byte to the controller. 
     MAP_I2CMasterDataPut(I2CA0_BASE,ucBuffer[0]);
     MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
+    //
+	// Set the time-out. Not to be used with breakpoints.
+	//
+    MAP_I2CMasterTimeoutSet(I2C_BASE, I2C_TIMEOUT_VAL);
 
     if( ulSize == 1)
     {
+
         MAP_I2CMasterControl(I2CA0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
     }
     else
     {
-       // Continue the transfer. 
+        // Continue the transfer.
         MAP_I2CMasterControl(I2CA0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
 
        // Wait until the current byte has been transferred. 
-     while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) == 0)
+        while((MAP_I2CMasterIntStatusEx(I2C_BASE, false)
+                    & (I2C_INT_MASTER | I2C_MRIS_CLKTOUT)) == 0)
+     //while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) == 0)
         {
+        }
+        //
+        // Check for any errors in transfer
+        //
+        if(MAP_I2CMasterErr(I2C_BASE) != I2C_MASTER_ERR_NONE)
+        {
+            switch(I2C_MASTER_CMD_BURST_SEND_START)
+            {
+            case I2C_MASTER_CMD_BURST_SEND_START:
+            case I2C_MASTER_CMD_BURST_SEND_CONT:
+            case I2C_MASTER_CMD_BURST_SEND_STOP:
+                MAP_I2CMasterControl(I2C_BASE,
+                             I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+                break;
+            case I2C_MASTER_CMD_BURST_RECEIVE_START:
+            case I2C_MASTER_CMD_BURST_RECEIVE_CONT:
+            case I2C_MASTER_CMD_BURST_RECEIVE_FINISH:
+                MAP_I2CMasterControl(I2C_BASE,
+                             I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+                break;
+            default:
+                break;
+            }
+            return FAILURE;
+            //return MAP_I2CMasterErr(I2C_BASE);
         }
         for(ulNdx=1; ulNdx < ulSize-1; ulNdx++)
         {
@@ -235,13 +375,46 @@ unsigned long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
            // Clear Master Interrupt 
             MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
 
+            //
+            // Set the time-out. Not to be used with breakpoints.
+            //
+            MAP_I2CMasterTimeoutSet(I2C_BASE, I2C_TIMEOUT_VAL);
+
            // Continue the transfer. 
             MAP_I2CMasterControl(I2CA0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
 
            // Wait until the current byte has been transferred. 
-            while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) 
-                                                                 == 0)
+//            while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER)
+//                                                                 == 0)
+            while((MAP_I2CMasterIntStatusEx(I2C_BASE, false)
+                               & (I2C_INT_MASTER | I2C_MRIS_CLKTOUT)) == 0)
+
             {
+            }
+            //
+            // Check for any errors in transfer
+            //
+            if(MAP_I2CMasterErr(I2C_BASE) != I2C_MASTER_ERR_NONE)
+            {
+                switch(I2C_MASTER_CMD_BURST_SEND_CONT)
+                {
+                case I2C_MASTER_CMD_BURST_SEND_START:
+                case I2C_MASTER_CMD_BURST_SEND_CONT:
+                case I2C_MASTER_CMD_BURST_SEND_STOP:
+                    MAP_I2CMasterControl(I2C_BASE,
+                                 I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+                    break;
+                case I2C_MASTER_CMD_BURST_RECEIVE_START:
+                case I2C_MASTER_CMD_BURST_RECEIVE_CONT:
+                case I2C_MASTER_CMD_BURST_RECEIVE_FINISH:
+                    MAP_I2CMasterControl(I2C_BASE,
+                                 I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+                    break;
+                default:
+                    break;
+                }
+                return FAILURE;
+                //return MAP_I2CMasterErr(I2C_BASE);
             }
         }
 
@@ -249,13 +422,45 @@ unsigned long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
         MAP_I2CMasterDataPut(I2CA0_BASE, ucBuffer[ulSize-1]);
         MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
 
+        //
+	   // Set the time-out. Not to be used with breakpoints.
+	   //
+	   MAP_I2CMasterTimeoutSet(I2C_BASE, I2C_TIMEOUT_VAL);
+
        // End the transfer. 
         MAP_I2CMasterControl(I2CA0_BASE,I2C_MASTER_CMD_BURST_SEND_FINISH);
     }
 
    // Wait until the current byte has been transferred. 
-    while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) == 0)
+    //while((MAP_I2CMasterIntStatusEx(I2CA0_BASE, false) & I2C_INT_MASTER) == 0)
+    while((MAP_I2CMasterIntStatusEx(I2C_BASE, false)
+                       & (I2C_INT_MASTER | I2C_MRIS_CLKTOUT)) == 0)
     {
+    }
+    //
+    // Check for any errors in transfer
+    //
+    if(MAP_I2CMasterErr(I2C_BASE) != I2C_MASTER_ERR_NONE)
+    {
+        switch(I2C_MASTER_CMD_BURST_SEND_FINISH)
+        {
+        case I2C_MASTER_CMD_BURST_SEND_START:
+        case I2C_MASTER_CMD_BURST_SEND_CONT:
+        case I2C_MASTER_CMD_BURST_SEND_STOP:
+            MAP_I2CMasterControl(I2C_BASE,
+                         I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+            break;
+        case I2C_MASTER_CMD_BURST_RECEIVE_START:
+        case I2C_MASTER_CMD_BURST_RECEIVE_CONT:
+        case I2C_MASTER_CMD_BURST_RECEIVE_FINISH:
+            MAP_I2CMasterControl(I2C_BASE,
+                         I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+            break;
+        default:
+            break;
+        }
+        return FAILURE;
+        //return MAP_I2CMasterErr(I2C_BASE);
     }
 
     return 0;

@@ -15,11 +15,11 @@
 #define MULTIPLE_WRITE_LAST			3
 #define MULTIPLE_WRITE_MIDDLE		4
 
-#define IMAGE_HEADER_FILE_NAME			"www/images/jpeg_header.jpg"
+#define IMAGE_HEADER_FILE_NAME			"www/images/jpeg_header.jpg"	//Rename as "data/jpeg_header"
 //#define IMAGE_DATA_FILE_NAME			"www/images/jpeg_image.jpg"
-#define IMAGE_DATA_FILE_NAME			"www/images/cc3200_camera_capture.jpg"
+#define IMAGE_DATA_FILE_NAME			"www/images/cc3200_camera_capture.jpg"	//Rename as "data/jpeg_image"
 
-#define FILENAME_ANGLE_VALS			"angleValues.txt"
+#define FILENAME_ANGLE_VALS			"angleValues.txt"	//Merge to "config/user_config"
 #define MAX_FILESIZE_ANGLE_VALS		100	//Bytes
 											//File created for this size
 											//Can be used when more fields
@@ -32,7 +32,7 @@
 #define MAG_SENSOR_CALIBCOUNT		1
 #define OFFSET_MAG_CALB				2	// Intrms of Number of float values
 
-#define FILENAME_USERWIFI			"user_wifi_profile_file"
+#define FILENAME_USERWIFI			"user_wifi_profile_file"	//Merge to "config/user_config"
 #define MAX_FILESIZE_USERWIFI		1024	//Bytes
 											//File created for this size
 											//Can be used when more fields
@@ -40,7 +40,7 @@
 #define CONTENTSIZE_FILE_USERWIFI	(33+2+50)	//Bytes
 											//Find way to employ the Macros
 
-#define FILENAME_SENSORDATA			"sensor_data_file"
+#define FILENAME_SENSORDATA			"sensor_data_file"	//Remane as "data/sensors_data"
 #define MAX_FILESIZE_SENSORDATA		1024	//Bytes
 											//File created for this size
 											//Can be used when more fields
@@ -60,7 +60,7 @@
 #define OFFSET_TCA6408A					(OFFSET_SI7020 + FILESZ_SI7020)
 
 
-#define FILENAME_SENSORCONFIGS			"sensor_configs_file"
+#define FILENAME_SENSORCONFIGS			"sensor_configs_file"	//Rename as "configs/sensors_configs"
 #define MAX_FILESIZE_SENSORCONFIGS		1024	//Bytes
 											//File created for this size
 											//Can be used when more fields
@@ -69,7 +69,7 @@
 											//Find way to employ the Macro
 
 
-#define FILENAME_IMAGESENS_CONFIG	"imagesensor_configs_file"
+#define FILENAME_IMAGESENS_CONFIG		"imagesensor_configs_file"	//Rename as "configs/mt9d111_configs"
 #define MAX_FILESIZE_IMAGESENS_CONFIG					1024	//Bytes
 											//File created for this size
 											//Can be used when more fields
@@ -77,7 +77,7 @@
 #define CONTENTSIZE_FILE_IMAGESENS_CONFIG	1024	//Bytes
 
 
-#define MAGN_INIT_VALS_FILE_NAME		"Magnetometer_Initial_Vals"
+#define MAGN_INIT_VALS_FILE_NAME		"Magnetometer_Initial_Vals"	//Not used now
 #define MAGN_INIT_VALS_FILE_MAXSIZE		20
 
 #define FILE_NAME_USER_CONFIG			"config/user_config_file.txt"
