@@ -858,7 +858,7 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         	else if(0 == memcmp(Token, TOK_KEY, Token_Len))		//__SL_P_USF
         	{
 				memcpy(g_cWlanSecurityKey,Value, Value_Len);
-				g_cWlanSecurityKey[Token_Len] = 0;
+				g_cWlanSecurityKey[Value_Len] = 0;
 				g_SecParams.Key = g_cWlanSecurityKey;
 				g_SecParams.KeyLen = Value_Len;
 			}
