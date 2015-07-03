@@ -48,25 +48,12 @@
 #define RH11BIT_TEMP11BIT		0b10000001
 
 //******************************************************************************
-//
-//	Calling this function does a software reset of SI7020
-//
-//	\param none
-//
-//	\return 0: Success or <0: Failure
-//
-//******************************************************************************
-#define softResetTempRHSensor() i2cWriteRegisters(SI7020_I2C_ADDRESS,\
-													RESET_CMD,\
-													0, \
-													NULL)
-
-//******************************************************************************
 // 								API PROTOTYPES
 //******************************************************************************
-void verifyTempRHSensor();
-void configureTempRHSensor();
-void getTempRH(float_t* pfTemp, float_t* pfRH);
+int32_t verifyTempRHSensor();
+int32_t configureTempRHSensor();
+int32_t softResetTempRHSensor();
+int32_t getTempRH(float_t* pfTemp, float_t* pfRH);
 
 
 #endif /* SI7020_H_ */

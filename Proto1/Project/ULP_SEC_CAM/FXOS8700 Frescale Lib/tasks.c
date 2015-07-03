@@ -357,15 +357,7 @@ void Fusion_Run(void)
 		/*thisSV_6DOF_GB_BASIC.systick = SYST_CVR & 0x00FFFFFF;*/
 		fRun_6DOF_GB_BASIC(&thisSV_6DOF_GB_BASIC, &thisMag, &thisAccel, globals.loopcounter, THISCOORDSYSTEM);
 
-		if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
-		{
-			thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho +180;
-			if(thisSV_6DOF_GB_BASIC.fLPRho>360)
-			{
-				// Prakash : Check this code again
-				thisSV_6DOF_GB_BASIC.fLPRho = thisSV_6DOF_GB_BASIC.fLPRho-360;
-			}
-		}
+
 		/*thisSV_6DOF_GB_BASIC.systick -= SYST_CVR & 0x00FFFFFF;
 		if (thisSV_6DOF_GB_BASIC.systick < 0) thisSV_6DOF_GB_BASIC.systick += SYST_RVR;*/
 	}
@@ -509,6 +501,7 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
 				UART_PRINT("\n\r***Accepted****\n\r");
 				g_ucMagCalb++;
+				UART_PRINT("\n\rFit Error: %f%%\n\r", pthisMagCal->fFitErrorpc);
 				//tag prakz
 
 		} // end of test to accept the new calibration 

@@ -30,6 +30,7 @@
 //Uthra
 //#define MAG_SENSOR_CALIBCOUNT		3
 #define MAG_SENSOR_CALIBCOUNT		1
+//#define MAG_SENSOR_CALIBCOUNT		2
 #define OFFSET_MAG_CALB				2	// Intrms of Number of float values
 
 #define FILENAME_USERWIFI			"user_wifi_profile_file"	//Merge to "config/user_config"

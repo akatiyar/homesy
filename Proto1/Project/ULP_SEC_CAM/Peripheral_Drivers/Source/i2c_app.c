@@ -19,6 +19,7 @@
 #include "i2c.h"
 #include "rom_map.h"
 
+#include "prcm.h"
 //******************************************************************************
 //                      		MACRO DEFINITIONS
 //******************************************************************************
@@ -47,27 +48,34 @@ int32_t i2cReadRegisters(uint8_t ucDevI2CAddr,
 								uint8_t ucLen,
 								uint8_t* pucRegReadValues)
 {
-	int32_t iRetVal;
+	int32_t lRetVal;
 
 	if(MAP_I2CMasterErr(I2CA0_BASE) != I2C_MASTER_ERR_NONE)
 	{
-		DBG_PRINT("I2C Master Error: %x",MAP_I2CMasterErr(I2CA0_BASE));
+		DBG_PRINT("I2C Master Error: %x Read()",MAP_I2CMasterErr(I2CA0_BASE));
 		//return FAILURE;
-		LOOP_FOREVER();
+		//LOOP_FOREVER();
+	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
+	    MAP_PRCMPeripheralClkDisable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+	    MAP_UtilsDelay(1);
+	    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
 	}
 
-	iRetVal = I2C_IF_Write(ucDevI2CAddr,
+	lRetVal = I2C_IF_Write(ucDevI2CAddr,
 							&ucRegAddr,
 							LENGTH_IS_ONE,
 							ZERO_STOP_BIT);
-	if(iRetVal == SUCCESS)
+	PRINT_ON_ERROR(lRetVal);
+	if(lRetVal == SUCCESS)
 	{
-		iRetVal = I2C_IF_Read(ucDevI2CAddr,
+		lRetVal = I2C_IF_Read(ucDevI2CAddr,
 								pucRegReadValues,
 								ucLen);
 	}
+	PRINT_ON_ERROR(lRetVal);
 
-	return iRetVal;
+	return lRetVal;
 }
 
 
@@ -94,15 +102,20 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 										uint8_t ucLen,
 										uint8_t* pucRegWriteValues)
 {
-	int32_t iRetVal;
+	int32_t lRetVal;
 	uint8_t ucWriteArray[ucLen+1];
 	uint8_t i;
 
 	if(MAP_I2CMasterErr(I2CA0_BASE) != I2C_MASTER_ERR_NONE)
 	{
-		DBG_PRINT("I2C Master Error: %x",MAP_I2CMasterErr(I2CA0_BASE));
+		DBG_PRINT("I2C Master Error: %x Write()",MAP_I2CMasterErr(I2CA0_BASE));
 		//return FAILURE;
-		LOOP_FOREVER();
+		//LOOP_FOREVER();
+	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
+	    MAP_PRCMPeripheralClkDisable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+	    MAP_UtilsDelay(1);
+	    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
 	}
 
 	//
@@ -114,12 +127,14 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 		ucWriteArray[i] = pucRegWriteValues[i-1];
 	}
 
-	iRetVal = I2C_IF_Write(ucDevI2CAddr,
+	lRetVal = I2C_IF_Write(ucDevI2CAddr,
 							ucWriteArray,
 							ucLen+1,
 							ONE_STOP_BIT);
 
-	return iRetVal;
+	PRINT_ON_ERROR(lRetVal);
+
+	return lRetVal;
 }
 
 
@@ -145,26 +160,33 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 								uint8_t ucLen,
 								uint8_t* pucRegReadValues)
 {
-	int32_t iRetVal;
+	int32_t lRetVal;
 
 	if(MAP_I2CMasterErr(I2CA0_BASE) != I2C_MASTER_ERR_NONE)
 	{
-		DBG_PRINT("I2C Master Error: %x",MAP_I2CMasterErr(I2CA0_BASE));
+		DBG_PRINT("I2C Master Error: %x ReadTwo()",MAP_I2CMasterErr(I2CA0_BASE));
 		//return FAILURE;
-		LOOP_FOREVER();
+		//LOOP_FOREVER();
+	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
+	    MAP_PRCMPeripheralClkDisable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+	    MAP_UtilsDelay(1);
+	    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
 	}
 
-	iRetVal = I2C_IF_Write(ucDevI2CAddr,
+	lRetVal = I2C_IF_Write(ucDevI2CAddr,
 							pucRegAddr,
 							LENGTH_IS_TWO,
 							//LENGTH_IS_ONE,
 							ZERO_STOP_BIT);
-	if(iRetVal == SUCCESS)
+	PRINT_ON_ERROR(lRetVal);
+	if(lRetVal == SUCCESS)
 	{
-		iRetVal = I2C_IF_Read(ucDevI2CAddr,
+		lRetVal = I2C_IF_Read(ucDevI2CAddr,
 								pucRegReadValues,
 								ucLen);
 	}
+	PRINT_ON_ERROR(lRetVal);
 
-	return iRetVal;
+	return lRetVal;
 }

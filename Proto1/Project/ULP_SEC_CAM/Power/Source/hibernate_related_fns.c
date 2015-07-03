@@ -75,7 +75,8 @@ void HIBernate(uint32_t ulWakeSources,
 			//while(!IsLightOff(LUX_THRESHOLD));
 			UART_PRINT("Fridge Light Off. ");
 			UART_PRINT("Entering HIBernate...\n\r"
-						"***OPEN DOOR TO CAPTURE IMAGE***\n\r");
+						"***OPEN DOOR TO CAPTURE IMAGE***			   \n\r");
+			UtilsDelay(800000);
 			sensorsTriggerSetup();
 			//UART_PRINT("Cleared sensors\n\r");
 		}
@@ -85,7 +86,8 @@ void HIBernate(uint32_t ulWakeSources,
 			configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
 			//while(IsLightOff(LUX_THRESHOLD));
 			UART_PRINT("Light On. Entering Hibernate\n\r"
-					"***CLOSE DOOR TO WAKE DEVICE***\n\r");
+					"***CLOSE DOOR TO WAKE DEVICE***                   \n\r");
+			UtilsDelay(800000);
 			sensorsTriggerSetup();
 			//UART_PRINT("Cleared sensors\n\r");
 		}

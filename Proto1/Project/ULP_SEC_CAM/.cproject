@@ -126,7 +126,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="algorithm2.c|algorithm_1.c|test_modules.c|Sensors/Source/test_fns.c|appfile_magnmtr_old_logic.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|FXOS8700 Frescale Lib/tasks_backup.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/main.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Frescale Lib/user_tasks.c|FXOS8700 Frescale Lib/mqx_tasks.c|rough_file.c|experiment_orDbg_codes.c|Parse_Library/common/tests/simplejson_tests.cc|main1.c|network_if.c|demo1_collectAndTxitSensorData.c|customer_demo1_collectAndTxitSensorData.c|Sensors/Source/fxos8700-112.c|get_weather.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="algorithm.c|algorithm2.c|algorithm_1.c|test_modules.c|Sensors/Source/test_fns.c|appfile_magnmtr_old_logic.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|FXOS8700 Frescale Lib/tasks_backup.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/main.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Frescale Lib/user_tasks.c|FXOS8700 Frescale Lib/mqx_tasks.c|rough_file.c|experiment_orDbg_codes.c|Parse_Library/common/tests/simplejson_tests.cc|main1.c|network_if.c|demo1_collectAndTxitSensorData.c|customer_demo1_collectAndTxitSensorData.c|Sensors/Source/fxos8700-112.c|get_weather.cmd" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

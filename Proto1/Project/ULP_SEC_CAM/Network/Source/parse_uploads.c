@@ -193,7 +193,7 @@ int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 	strncat((char*)pucSensorDataTxt, "\"},\"battery\":", sizeof("\"},\"battery\":"));
 	ucLength = intToASCII((uint16_t)ucBatteryLevel, (char*)ucCharConv);
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, ucLength);
-	strncat((char*)pucSensorDataTxt, "\"},\"temp\":", sizeof("\"},\"temp\":"));
+	strncat((char*)pucSensorDataTxt, ",\"temp\":", sizeof("\"},\"temp\":"));
 	intToASCII((uint16_t)(fTemp*100), (char*)ucCharConv);
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, 2);
 	strncat((char*)pucSensorDataTxt, ".", 1);

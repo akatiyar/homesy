@@ -240,6 +240,7 @@ vApplicationIdleHook( void)
 //*****************************************************************************
 void vApplicationMallocFailedHook()
 {
+	UART_PRINT("Malloc Failed\n\r");
     //Handle Memory Allocation Errors
     while(1)
     {
@@ -275,7 +276,7 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
-	LED_Blink(30, 1);
+	//LED_Blink(30, 1);
 
 	LED_On();
 //	while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
@@ -404,16 +405,10 @@ while(1)
 
 void UserConfigure_Task(void *pvParameters)
 {
-//	verifyAccelMagnSensor();
-//	verifyISL29035();
-//	verifyTempRHSensor();
-//	Config_And_Start_CameraCapture();
-	//create_AngleValuesFile();
-
 	//LED_On();
 	g_ulAppStatus  = START;
 	UtilsDelay(1000000);
-	if  (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
+	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON) ||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
 		UART_PRINT("***PRESS BUTTON TO CONFIGURE THROUGH PHONE APP***\n\r");
 		while(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
@@ -435,9 +430,7 @@ void UserConfigure_Task(void *pvParameters)
 
 void Main_Task_withHibernate(void *pvParameters)
 {
-	//int32_t lRetVal;
-
-    if (MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)
+    if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
@@ -448,6 +441,9 @@ void Main_Task_withHibernate(void *pvParameters)
 		}
 		osi_TaskDelete(&g_UserConfigTaskHandle);
 		UART_PRINT("!!Application running!!\n\r");
+
+		Check_I2CDevices();
+
 		configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);	//Configures for reading Lux and wakeup interrupt
 		softResetTempRHSensor();
 		configureTempRHSensor();
@@ -463,7 +459,6 @@ void Main_Task_withHibernate(void *pvParameters)
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
 		UART_PRINT("\n\rI'm up\n\r");
-		//LED_Blink(4, 0.3);
 		LED_On();
 
 		if(IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
@@ -471,7 +466,6 @@ void Main_Task_withHibernate(void *pvParameters)
 			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
 		}
 
-		//lRetVal = CollectTxit_ImgTempRH();
 		CollectTxit_ImgTempRH();
 		LED_Off();
 		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
@@ -497,7 +491,7 @@ int32_t Config_And_Start_CameraCapture()
 	// Configure Sensor in Capture Mode
 	//UART_PRINT("\n\rStart Sensor ");
 	lRetVal = StartSensorInJpegMode();
-	STOPHERE_ON_ERROR(lRetVal);
+	ASSERT_ON_ERROR(lRetVal);
 
 //	uint16_t x;
 	disableAE();
@@ -506,7 +500,6 @@ int32_t Config_And_Start_CameraCapture()
 	Refresh_mt9d111Firmware();
 
 //	LL_Configs();
-
 
 //	Variable_Read(0xA743, &x);
 //	Variable_Read(0xA744, &x);
@@ -618,27 +611,27 @@ void main()
         LOOP_FOREVER();
     }
 
-	//
+    //
 	// Start the tasks
 	//
-//	lRetVal = osi_TaskCreate(
-//					//UserConfigure_Task,
-//					//Test_Task,
-//					(const signed char *)"User Config",
-//					OSI_STACK_SIZE,
-//					NULL,
-//					1,
-//					&g_UserConfigTaskHandle );
-//	if(lRetVal < 0)
-//	{
-//		ERR_PRINT(lRetVal);
-//		LOOP_FOREVER();
-//	}
+	lRetVal = osi_TaskCreate(
+					UserConfigure_Task,
+					//Test_Task,
+					(const signed char *)"User Config",
+					OSI_STACK_SIZE,
+					NULL,
+					1,
+					&g_UserConfigTaskHandle );
+	if(lRetVal < 0)
+	{
+		ERR_PRINT(lRetVal);
+		LOOP_FOREVER();
+	}
 
     lRetVal = osi_TaskCreate(
 					//Main_Task,
-					//Main_Task_withHibernate,
-					Test_Task,
+					Main_Task_withHibernate,
+					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
 					OSI_STACK_SIZE,
 					NULL,

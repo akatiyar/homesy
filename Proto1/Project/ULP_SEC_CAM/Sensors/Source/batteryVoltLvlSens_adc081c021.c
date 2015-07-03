@@ -55,6 +55,7 @@ int32_t Get_BatteryVoltageLevel_ADC081C021(uint8_t* pucADCValue)
 
 	lRetVal = i2cReadRegisters(ADC081C021_I2C_ADDRESS, POINTER_ADDR_DATA_REG,
 								LENGTH_IS_TWO, ucDataRegVal);
+	PRINT_ON_ERROR(lRetVal);
 
 	(*pucADCValue) = (ucDataRegVal[0]<<4) | (ucDataRegVal[1]>>4);
 

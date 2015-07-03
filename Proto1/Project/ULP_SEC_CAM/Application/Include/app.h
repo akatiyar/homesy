@@ -16,6 +16,7 @@
 #include "hw_memmap.h"
 #include "utils.h"
 #include "rom_map.h"
+#include "prcm.h"
 
 //#define APP_SSID_NAME 			"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -29,7 +30,7 @@
 //#define APP_SSID_PASSWORD		"chrysolin"
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
-#define VCOGNITION_DEVICE_ID	"fd1234cam3"
+#define VCOGNITION_DEVICE_ID	"cam1"
 
 #define SLEEP_TIME              8000000
 //#define OSI_STACK_SIZE          3000
@@ -67,6 +68,7 @@ typedef enum
 {
     // Choosing -0x7D0 to avoid overlap w/ host-driver's error codes
     CAMERA_CAPTURE_FAILED = -0x7D0,
+	CAMERA_CONFIG_FAILED = CAMERA_CAPTURE_FAILED - 1,
 
     DEVICE_NOT_IN_STATION_MODE = CAMERA_CAPTURE_FAILED - 1,
     DEVICE_NOT_IN_AP_MODE = DEVICE_NOT_IN_STATION_MODE - 1,
@@ -108,6 +110,22 @@ typedef enum
                    {\
                 	 	 while(1);\
 					}\
+            }
+
+#define RESET_CC3200_ON_ERROR(error_code)\
+            {\
+                 if(error_code < 0) \
+                   {\
+                	 	 PRCMSOCReset();\
+					}\
+            }
+
+#define PRINT_ON_ERROR(error_code)\
+            {\
+                 if(error_code < 0) \
+                   {\
+                        ERR_PRINT(error_code);\
+                 }\
             }
 
 //Global variable used through out the app

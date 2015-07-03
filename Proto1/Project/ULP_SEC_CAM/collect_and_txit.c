@@ -77,45 +77,44 @@ int32_t CollectTxit_ImgTempRH()
 										ucParseImageUrl);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
-	//UART_PRINT("Prakash-Line73 \n");
+	PRINT_ON_ERROR(lRetVal);
 
-	//
-	//	Collect Temperature and RH values from Si7020 IC
-	//
-	//softResetTempRHSensor();
-	//configureTempRHSensor();
-	//UtilsDelay(80000000/);
-	getTempRH(&fTemp, &fRH);
-	UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
+	if (lRetVal >= 0)	//Check whether image upload was successful
+	{
+		//
+		//	Collect Temperature and RH values from Si7020 IC
+		//
+		//softResetTempRHSensor();
+		//configureTempRHSensor();
+		//UtilsDelay(80000000/);
+		getTempRH(&fTemp, &fRH);
+		UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
 
-//	Get_BatteryVoltageLevel_ADC081C021(&fBatteryLvl);
-	ucBatteryLvl = Get_BatteryPercent();
+		//	Get_BatteryVoltageLevel_ADC081C021(&fBatteryLvl);
+		ucBatteryLvl = Get_BatteryPercent();
 
-	//
-	// Construct the JSON object string
-	//
-	memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
-	ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucBatteryLvl, ucSensorDataTxt);
-	UART_PRINT("OBJECT: %s\n", ucSensorDataTxt);
+		//
+		// Construct the JSON object string
+		//
+		memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
+		ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucBatteryLvl, ucSensorDataTxt);
+		UART_PRINT("OBJECT: %s\n", ucSensorDataTxt);
 
-	//
-	//	Upload sensor data to Parse
-	//
-	ucTryNum = 0;
-	do{
-		lRetVal = UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
-		ucTryNum++;
-	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
+		//
+		//	Upload sensor data to Parse
+		//
+		ucTryNum = 0;
+		do{
+			lRetVal = UploadSensorDataToParse(clientHandle, ucSensorDataTxt);
+			ucTryNum++;
+		}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
+		PRINT_ON_ERROR(lRetVal);
+	}
 
 	//	Free the memory allocated for clientHandle in InitialiseParse()
 	free((void*)clientHandle);
 
 	sl_Stop(0xFFFF);
-
-//	CollectSensorData();
-//	txitSensorData(clientHandle,"",ucParseImageUrl);
 
 	return lRetVal;
 }

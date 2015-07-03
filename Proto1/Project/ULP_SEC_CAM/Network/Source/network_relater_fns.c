@@ -464,7 +464,8 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
 		((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
     {
-        osi_Sleep(1); //Sleep 1 millisecond
+        //osi_Sleep(1); //Sleep 1 millisecond
+    	osi_Sleep(10); //Sleep 10 millisecond
         uiConnectTimeoutCnt++;
     }
 

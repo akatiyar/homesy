@@ -26,15 +26,18 @@
 //	\return none
 //
 //******************************************************************************
-void verifyTempRHSensor()
+int32_t verifyTempRHSensor()
 {
 	uint8_t ucDeviceID[4];
 	uint8_t ucCommand[] = {FETCH_ID_CMD_BYTE1, FETCH_ID_CMD_BYTE2};
 
-	i2cReadRegistersTwoBytes(SI7020_I2C_ADDRESS,
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegistersTwoBytes(SI7020_I2C_ADDRESS,
 							ucCommand,
 							LENGTH_IS_FOUR,
 							ucDeviceID);
+	PRINT_ON_ERROR(lRetVal);
 
 	UART_PRINT("TempRH Device ID: %x %x %x %x\n",
 						ucDeviceID[0], ucDeviceID[1], ucDeviceID[2], ucDeviceID[3]);
@@ -48,7 +51,30 @@ void verifyTempRHSensor()
 		UART_PRINT("Si7020 I2C communication FAILED! CHECK!\n");
 	}
 
-	return;
+	return lRetVal;
+}
+
+//******************************************************************************
+//
+//	Calling this function does a software reset of SI7020
+//
+//	\param none
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+int32_t softResetTempRHSensor()
+{
+	int32_t lRetVal;
+
+	lRetVal = i2cWriteRegisters(SI7020_I2C_ADDRESS,	RESET_CMD,
+									0, NULL);
+	PRINT_ON_ERROR(lRetVal);
+
+	MAP_UtilsDelay(200000);	//15 ms max delay for power up after soft reset
+							//.015*80000000/6 = 200000
+
+	return lRetVal;
 }
 
 //******************************************************************************
@@ -61,19 +87,22 @@ void verifyTempRHSensor()
 //	\return none
 //
 //******************************************************************************
-void configureTempRHSensor()
+int32_t configureTempRHSensor()
 {
 	uint8_t ucResolution = RH8BIT_TEMP12BIT;	// Conversion time - resolution
 												// trade-off
 	uint8_t ucHeaterEnable = 0;	// Use HEATER_ENABLE to ON heater - Not used
-
+	uint8_t ucCommand = READ_CONFIGREG_CMD;
 	uint8_t ucConfigRegVal;
 	uint8_t ucBitMask = RESOLUTION_MASK|HEATER_ENABLE_MASK;
 
-	i2cReadRegisters(SI7020_I2C_ADDRESS,
-						READ_CONFIGREG_CMD, //Read Command instead of RegAddr
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegisters(SI7020_I2C_ADDRESS,
+						ucCommand, //Read Command instead of RegAddr
 						LENGTH_IS_ONE,
 						&ucConfigRegVal);
+	PRINT_ON_ERROR(lRetVal);
 
 	if(FLASH_CONFIGS)
 	{
@@ -88,13 +117,13 @@ void configureTempRHSensor()
 	ucConfigRegVal &= ~ ucBitMask;
 	ucConfigRegVal |= (ucResolution | ucHeaterEnable);
 
-
-	i2cWriteRegisters(SI7020_I2C_ADDRESS,
+	lRetVal = i2cWriteRegisters(SI7020_I2C_ADDRESS,
 						WRITE_CONFIGREG_CMD, //Write Command instead of RegAddr
 						LENGTH_IS_ONE,
 						&ucConfigRegVal);
+	PRINT_ON_ERROR(lRetVal);
 
-	return;
+	return lRetVal;
 }
 
 //******************************************************************************
@@ -108,19 +137,23 @@ void configureTempRHSensor()
 //	\return none
 //
 //******************************************************************************
-void getTempRH(float_t* pfTemp, float_t* pfRH)
+int32_t getTempRH(float_t* pfTemp, float_t* pfRH)
 {
 	uint8_t ucData[4];
 	uint16_t usRHCode, usTempCode;
 
-	i2cReadRegisters( SI7020_I2C_ADDRESS,
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegisters( SI7020_I2C_ADDRESS,
 						MEASURE_RH_CMD,
 						LENGTH_IS_TWO,
 						ucData);
-	i2cReadRegisters( SI7020_I2C_ADDRESS,
+	PRINT_ON_ERROR(lRetVal);
+	lRetVal = i2cReadRegisters( SI7020_I2C_ADDRESS,
 						READ_TEMP_CMD,	// MEASURE_TEMP_CMD if not measuring RH
 						LENGTH_IS_TWO,
 						&ucData[2]);
+	PRINT_ON_ERROR(lRetVal);
 
 	usRHCode = (ucData[0] << 8) | (ucData[1]);
 	usTempCode = (ucData[2] << 8) | (ucData[3]);
@@ -131,6 +164,6 @@ void getTempRH(float_t* pfTemp, float_t* pfRH)
 	*pfRH = ( (125.0 * usRHCode) / 65536 ) - 6;
 	*pfTemp = ( (175.72 * usTempCode) / 65536 ) - 46.85;
 
-	return;
+	return lRetVal;
 }
 

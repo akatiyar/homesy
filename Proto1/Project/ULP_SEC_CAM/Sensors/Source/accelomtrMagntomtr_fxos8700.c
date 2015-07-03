@@ -33,10 +33,13 @@ void verifyAccelMagnSensor()
 {
 	uint8_t ucDeviceID = 0x00;
 
-	i2cReadRegisters(FXOS8700_I2C_ADDRESS,
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS,
 						DEVICE_ID_REG,
 						LENGTH_IS_ONE,
 						&ucDeviceID);
+	PRINT_ON_ERROR(lRetVal);
 
 	UART_PRINT("A+M Read Device ID: %x\n\r", ucDeviceID);
 
@@ -60,9 +63,10 @@ void verifyAccelMagnSensor()
 int32_t standby_accelMagn_fxos8700()
 {
 	uint8_t data = 0x00;
-	uint32_t lRetVal;
+	int32_t lRetVal;
 
 	lRetVal = setConfigReg(CTRL_REG1, data);
+	PRINT_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -82,6 +86,8 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 	uint8_t ucConfigArray[100];
 	uint8_t ucNoofCfgs;
 	uint8_t ucHeader[HEADER_SIZE];
+	int32_t lRetVal;
+
 	switch(ucAccelMagnMode)
 	{
 		case MODE_READ_ACCEL_MAGN_DATA:
@@ -229,16 +235,41 @@ void configureFXOS8700(uint8_t ucAccelMagnMode)
 	}
 	for (i = 0; i < ucNoofCfgs; i++)
 	{
-		setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
+		lRetVal = setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
 //		updateConfigReg(ucConfigArray[i*2],
 //							ucConfigArray[i*2 + 1],
 //							0b11111111);
+		PRINT_ON_ERROR(lRetVal);
+
 	}
 	UtilsDelay(80000000*.3);
 
 	return;
 }
 
+
+//******************************************************************************
+//
+//  This function fetches current magnetometer readings of all the 3 axis from
+//	FXOS8700 by calling i2cReadRegister API
+//
+//	\param[out] pucData - pointer to array to which magnetometer data is
+//								stored
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+int32_t getMagntData(uint8_t* pucMagntData)
+{
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS, MAGNT_OUTPUT_DATA_REG,
+									LENGTH_OUTPUT_DATA, pucMagntData);
+	PRINT_ON_ERROR(lRetVal);
+	return lRetVal;
+}
+
+#ifdef COMPILE_THIS
 //******************************************************************************
 //
 //	This function sets the Acceleration Threshold value crossing which Motion
@@ -615,3 +646,4 @@ void writeMagntCalibrationValue(int16_t* psCalibOffsetVals)
 						LENGTH_IS_SIX,
 						ucCalibOffsetVals);
 }
+#endif

@@ -120,22 +120,6 @@ struct reg_data_pair
 
 //******************************************************************************
 //
-//  This function fetches current magnetometer readings of all the 3 axis from
-//	FXOS8700 by calling i2cReadRegister API
-//
-//	\param[out] pucData - pointer to array to which magnetometer data is
-//								stored
-//
-//	\return 0: Success or <0: Failure
-//
-//******************************************************************************
-#define getMagntData(pucMagntData) i2cReadRegisters(FXOS8700_I2C_ADDRESS,\
-									MAGNT_OUTPUT_DATA_REG,\
-									LENGTH_OUTPUT_DATA,\
-									pucMagntData)
-
-//******************************************************************************
-//
 //  This function writes the value of a single register, particularly for a
 //	status register, in FXOS8700
 //
@@ -181,6 +165,7 @@ void configureFXOS8700(uint8_t ucAppMode);
 void getDoorDirection(float_t* pfDegrees);
 void getAccelerationMagnitude(float_t* pfAccel);
 void getMagnFlux_3axis(float_t* pfMagnFlux_3axis);
+int32_t getMagntData(uint8_t* pucMagntData);
 
 void setMotionDetectionThreshold(float accelThreshold);
 void updateConfigReg(uint8_t ucConfigRegAddr,

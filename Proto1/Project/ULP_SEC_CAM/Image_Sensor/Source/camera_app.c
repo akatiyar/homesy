@@ -295,6 +295,10 @@ static int FrameHeaderMarker(char *pbuf, int width, int height, int format);
 static int JfifApp0Marker(char *pbuf);
 #endif 
 
+
+extern uint8_t print_count;
+extern uint8_t valid_case;
+
 //*****************************************************************************
 //
 //*****************************************************************************
@@ -351,6 +355,7 @@ long CaptureAndStore_Image()
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
+
 	//
 	// Open the file for Write Operation
 	//
@@ -360,10 +365,10 @@ long CaptureAndStore_Image()
 					   &lFileHandle);
 	if(lRetVal < 0)
 	{
-	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+	   sl_FsClose(lFileHandle, 0, 0, 0);
+	   ASSERT_ON_ERROR(lRetVal);
+	   //ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
-
 
 	//fxos_main();
 
@@ -388,12 +393,16 @@ long CaptureAndStore_Image()
 
 	// Wait for Imaging Position of door
 	angleCheck_Initializations();
-	int i;
-	for(i=0; i<100; i++)
-	{
-		get_angle();
-	}
+//	int i;
+//	for(i=0; i<100; i++)
+//	{
+//		get_angle();
+//	}
 	start_100mSecTimer();
+	//DBG - Remove - Hibernate to DoorAngle Time Profile
+	//sensorsTriggerSetup();
+	print_count = 0;
+	valid_case = 0;
 	while(1)
 	{
 		angleCheck();

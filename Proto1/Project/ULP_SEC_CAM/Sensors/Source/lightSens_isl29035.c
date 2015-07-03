@@ -71,6 +71,7 @@
 //	/param[in] Trigger - LIGHTON_TRIGGER/LIGHTOFF_TRIGGER
 //	\return none
 //
+//	\Warning: HARDWARE: Having an LED glowing close-by will simulate LightOn
 ////****************************************************************************
 void configureISL29035(uint8_t ucAppMode,
 							uint16_t Lux_threshold, uint8_t Trigger)
@@ -79,6 +80,8 @@ void configureISL29035(uint8_t ucAppMode,
 	uint8_t ucConfigArray[20];
 	uint8_t ucHeader;
 	uint8_t ucNoOfConfgs;
+
+	int32_t lRetVal;
 
 	Lux_threshold = (ADC_RANGE / LUX_RANGE) * Lux_threshold;
 
@@ -141,10 +144,11 @@ void configureISL29035(uint8_t ucAppMode,
 
 	for (i = 0; i < ucNoOfConfgs; i++)
 	{
-		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
+		lRetVal = i2cWriteRegisters(ISL29035_I2C_ADDRESS,
 							ucConfigArray[i*2],
 							1,
 							&ucConfigArray[i*2 + 1]);
+		PRINT_ON_ERROR(lRetVal);
 	}
 
 	return;
@@ -171,13 +175,15 @@ void setThreshold_lightsensor(uint16_t upper_threshold,
 								INT_LT_MSB_REG, low_MSB,
 								INT_HT_LSB_REG, upper_LSB,
 								INT_HT_MSB_REG, upper_MSB};
+	int32_t lRetVal;
 
 	for (i = 0; i < (sizeof(ucConfigArray))/2; i++)
 	{
-		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
+		lRetVal = i2cWriteRegisters(ISL29035_I2C_ADDRESS,
 							ucConfigArray[i*2],
 							1,
 							&ucConfigArray[i*2 + 1]);
+		PRINT_ON_ERROR(lRetVal);
 	}
 
 	return;
@@ -198,6 +204,7 @@ uint16_t getLightsensor_data(void)
 	uint8_t databyte[2];
 	uint16_t data = 0;
 	uint16_t lux_reading = 0;
+	int32_t lRetVal;
 
 //	uint8_t i;
 //	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
@@ -215,7 +222,8 @@ uint16_t getLightsensor_data(void)
 //	}
 //
 //	UtilsDelay(.002*80000000/6);
-	i2cReadRegisters(ISL29035_I2C_ADDRESS, DATA_LSB_REG,2, databyte);
+	lRetVal = i2cReadRegisters(ISL29035_I2C_ADDRESS, DATA_LSB_REG, 2, databyte);
+	PRINT_ON_ERROR(lRetVal);
 	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];
 	//data = (uint16_t)((databyte[1]<<8) | databyte[0]);
 	//UART_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
@@ -241,8 +249,10 @@ uint16_t getLightsensor_data(void)
 uint16_t getLightsensor_intrptStatus(void)
 {
 	uint8_t ucStatus;
+	int32_t lRetVal;
 
-	i2cReadRegisters(ISL29035_I2C_ADDRESS, CMD_1_REG, 1, &ucStatus);
+	lRetVal = i2cReadRegisters(ISL29035_I2C_ADDRESS, CMD_1_REG, 1, &ucStatus);
+	PRINT_ON_ERROR(lRetVal);
 
 	return ucStatus;
 }
@@ -260,8 +270,11 @@ uint16_t getLightsensor_intrptStatus(void)
 uint16_t verifyISL29035(void)
 {
 	uint8_t data = 0x00;
+	int32_t lRetVal;
 
-	i2cReadRegisters(ISL29035_I2C_ADDRESS, DEVICE_ID_REG, 1, &data);
+	lRetVal = i2cReadRegisters(ISL29035_I2C_ADDRESS, DEVICE_ID_REG, 1, &data);
+	PRINT_ON_ERROR(lRetVal);
+
 	UART_PRINT("LightSensor Device ID: %x\n\r", data);
 
 	if((data & DEVICE_ID_MASK) == DEVICE_ID)

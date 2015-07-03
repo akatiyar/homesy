@@ -161,6 +161,9 @@ float_t get_angle()
 			// call the sensor fusion algorithms
 			Fusion_Run();
 			//UART_PRINT("f\n\r");
+			//UART_PRINT("CompassVal(rho):%f, phi:%f, psi:%f, theta:%f\n\r",
+			//				thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPPhi,
+			//				thisSV_6DOF_GB_BASIC.fLPPsi, thisSV_6DOF_GB_BASIC.fLPThe);
 			return thisSV_6DOF_GB_BASIC.fLPRho;
 		}
 	}
