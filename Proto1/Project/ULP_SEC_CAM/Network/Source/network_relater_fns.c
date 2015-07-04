@@ -571,10 +571,10 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 				{
 					UART_PRINT("Reason: SL_FOUR_WAY_HANDSHAKE_TIMEOUT\n\r");
 				}
-                else if (SL_ROAMING_TRIGGER_BSS_LOSS == pEventData->reason_code)
-				{
-					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
-				}
+//                else if (SL_ROAMING_TRIGGER_BSS_LOSS == pEventData->reason_code)
+//				{
+//					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
+//				}
 
             }
             memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
@@ -675,18 +675,18 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
     switch( pSock->Event )
     {
         case SL_SOCKET_TX_FAILED_EVENT:
-            switch( pSock->EventData.status )
+            switch( pSock->socketAsyncEvent.SockTxFailData.status )
             {
                 case SL_ECLOSE:
                     UART_PRINT("\n[SOCK ERROR] - close socket (%d) operation "
                     "failed to transmit all queued packets\n",
-                           pSock->EventData.sd);
+					pSock->socketAsyncEvent.SockTxFailData.sd);
                     break;
                 default:
                     UART_PRINT("\n[SOCK ERROR] - TX FAILED : socket %d , reason"
                         "(%d) \n",
-                           pSock->EventData.sd, pSock->EventData.status);
-                    if(SL_ENOTCONN == pSock->EventData.status)
+						pSock->socketAsyncEvent.SockTxFailData.sd, pSock->socketAsyncEvent.SockTxFailData.status);
+                    if(SL_ENOTCONN == pSock->socketAsyncEvent.SockTxFailData.status)
                     {
                     	UART_PRINT("-107 = SL_ENOTCONN = "
                     			"Transport endpoint is not connected\n\r");

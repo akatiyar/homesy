@@ -688,7 +688,7 @@ static void DMAConfig()
     //
     // Setup ping-pong transfer
     //
-    DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
+    UDMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32,
                      UDMA_ARB_8,(void *)CAM_BUFFER_ADDR,
                      //UDMA_SRC_INC_32,
@@ -698,7 +698,7 @@ static void DMAConfig()
     //  Pong Buffer
     // 
     p_buffer += TOTAL_DMA_ELEMENTS;
-    DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,UDMA_MODE_PINGPONG,
+    UDMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,UDMA_MODE_PINGPONG,
                      TOTAL_DMA_ELEMENTS,
                      UDMA_SIZE_32, UDMA_ARB_8,(void *)CAM_BUFFER_ADDR,
                      //UDMA_SRC_INC_32,
@@ -813,7 +813,7 @@ static void CameraIntHandler()
             {
 //            	if(g_image_buffer[10]==0x0FF80FF8)
 //            		while(1);
-            	DMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,
+            	UDMASetupTransfer(UDMA_CH22_CAMERA,UDMA_MODE_PINGPONG,
                                  TOTAL_DMA_ELEMENTS,UDMA_SIZE_32,
                                  UDMA_ARB_8,(void *)CAM_BUFFER_ADDR, 
                                  //UDMA_SRC_INC_32,
@@ -825,7 +825,7 @@ static void CameraIntHandler()
             }
             else
             {
-            	DMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,
+            	UDMASetupTransfer(UDMA_CH22_CAMERA|UDMA_ALT_SELECT,
                                  UDMA_MODE_PINGPONG,TOTAL_DMA_ELEMENTS,
                                  UDMA_SIZE_32, UDMA_ARB_8,
                                  (void *)CAM_BUFFER_ADDR,
