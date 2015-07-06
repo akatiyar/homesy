@@ -107,6 +107,7 @@
 #include "app_common.h"
 #include "timer_fns.h"
 #include "wifi_provisioing_thruAPmode.h"
+#include "ota.h"
 
 #include "test_modules.h"
 #include "test_fns.h"
@@ -432,6 +433,8 @@ void Main_Task_withHibernate(void *pvParameters)
 {
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
+    	//Print the Purose of changing to this firmware here
+    	UART_PRINT("********* Firmware 7**********\n\r");
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
@@ -458,15 +461,16 @@ void Main_Task_withHibernate(void *pvParameters)
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
+		UART_PRINT("********* Firmware 7**********\n\r");
 		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
 
-		if(IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
+		if(!IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
 		{
-			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
+			CollectTxit_ImgTempRH();
 		}
 
-		CollectTxit_ImgTempRH();
+		OTA_CommitImage();	//Need to check this every time, unfortunately. May be we can commit on downloading itself!!
 		LED_Off();
 		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
 	}

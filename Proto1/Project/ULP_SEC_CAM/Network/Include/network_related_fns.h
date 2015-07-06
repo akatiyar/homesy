@@ -51,7 +51,7 @@ unsigned char g_ucAngle40;
 unsigned char g_ucConfig;
 unsigned char g_ucCalibration;
 unsigned char g_ucExitButton;
-
+unsigned char g_ucPushButtonPressedTwice;
 
 extern unsigned char g_ucConnectedToConfAP, g_ucProvisioningDone;
 extern unsigned char g_ucPriority;

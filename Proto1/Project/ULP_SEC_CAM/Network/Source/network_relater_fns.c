@@ -34,6 +34,7 @@ void InitializeUserConfigVariables()
 	g_ucExitButton = BUTTON_NOT_PRESSED;
 	g_ucConfig= BUTTON_NOT_PRESSED;
 	g_ucCalibration= BUTTON_NOT_PRESSED;
+	g_ucPushButtonPressedTwice = BUTTON_NOT_PRESSED;
 }
 
 //*****************************************************************************

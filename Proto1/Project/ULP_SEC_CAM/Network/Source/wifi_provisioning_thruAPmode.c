@@ -6,6 +6,7 @@
 #include "simplejson.h"
 #include "camera_app.h"
 #include "stdbool.h"
+#include "ota.h"
 static long WlanConnect();
 
 extern int gdoor_90deg_angle;//290
@@ -559,6 +560,17 @@ int32_t User_Configure()
 //			UART_PRINT("\n\nAngle40 = %3.2f\n\r",fAngle);
 			run_flag = false;
 			break;
+		}
+		if(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))	//Take this to GPIO Interrupt
+		{
+			UART_PRINT("Button Pressed for second time\n\r");
+			g_ucPushButtonPressedTwice = BUTTON_PRESSED;
+		}
+		if(g_ucPushButtonPressedTwice == BUTTON_PRESSED)
+		{
+			//sl_Stop(0xFF);
+			UART_PRINT("Entering OTA update\n\r");
+			OTA_Update();
 		}
 		osi_Sleep(10);
     }
