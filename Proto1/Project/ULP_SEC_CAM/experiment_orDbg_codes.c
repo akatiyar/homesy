@@ -5,6 +5,11 @@
  *      Author: Chrysolin
  */
 
+//		sl_Start(0,0,0);
+//		sl_extlib_BootImg2();
+//		sl_Stop(0xFFFF);
+
+
 // Slow Clk ctr working
 uint64_t ullSlowCounterReturnVal1, ullSlowCounterReturnVal2;
 while(1)

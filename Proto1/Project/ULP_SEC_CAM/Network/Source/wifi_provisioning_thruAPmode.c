@@ -576,6 +576,7 @@ int32_t User_Configure()
 			//sl_Stop(0xFF);
 			UART_PRINT("Entering OTA update\n\r");
 			OTA_Update();
+			break;
 			//OTA_Update_2();
 		}
 		osi_Sleep(10);

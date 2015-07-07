@@ -168,6 +168,7 @@ int32_t OTA_Run()
     if(OptionVal == true)
     {
     	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
+    	UART_PRINT("OTA: Older firmware commit Pending. Press button for next OTA update on next reset\n\r");
     	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
     	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
         //RebootMCU();
@@ -197,8 +198,9 @@ int32_t OTA_Run()
     		lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_TEST, sizeof(int), (_u8 *)&SetCommitInt);
     		UART_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
     		UART_PRINT("Rebooting...\n\r");
-    		//PRCMSOCReset();
-    		RebootMCU();
+    		UtilsDelay(12*80000/6);	//12 milli sec
+    		PRCMSOCReset();
+    		//RebootMCU();
     	}
     }
 	return 0;
