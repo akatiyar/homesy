@@ -341,7 +341,8 @@ int32_t CollectAngle(uint8_t ucAngle)
 	float_t fAngleTemp;
 	int32_t lFileHandle;
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
-
+	uint32_t ulToken = 0;
+	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	angleCheck_Initializations();
@@ -355,7 +356,17 @@ int32_t CollectAngle(uint8_t ucAngle)
 
 	lRetVal = CreateFile_Flash(FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
 	ASSERT_ON_ERROR(lRetVal);
-	ReadFile_FromFlash((uint8_t*)g_image_buffer, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
+
+	sl_FsGetInfo(FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(FileInfo.FileLen)
+	{
+		UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
+	}
+	else
+	{
+		UART_PRINT("Filelen is 0 :(\n\r");
+	}
 
 //	float fAnglet[2];
 //	ReadFile_FromFlash((uint8_t*)fAnglet, (uint8_t*)FILENAME_ANGLE_VALS, (sizeof(float)*2), 0);
@@ -392,14 +403,28 @@ int32_t CalibrateMagSensor()
 	int32_t lFileHandle;
 	uint8_t tmpCnt=0;
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
+	uint32_t ulToken = 0;
+	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	fxosDefault_Initializations();
 
-	lRetVal = CreateFile_Flash(FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
-	ASSERT_ON_ERROR(lRetVal);
+//	lRetVal = sl_FsDel((uint8_t *)FILENAME_ANGLE_VALS, ulToken);
+//	UART_PRINT("Del %f", lRetVal);
 
-	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
+//	lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+//	ASSERT_ON_ERROR(lRetVal);
+
+	sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(FileInfo.FileLen)
+	{
+		UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
+	}
+	else
+	{
+		UART_PRINT("Filelen is 0 :(\n\r");
+	}
 
 	g_ucMagCalb = 0;
 	while(g_ucMagCalb < MAG_SENSOR_CALIBCOUNT)
@@ -429,6 +454,7 @@ int32_t CalibrateMagSensor()
 							(uint8_t*)FILENAME_ANGLE_VALS,
 							MAX_FILESIZE_ANGLE_VALS, 0,
 							SINGLE_WRITE, &lFileHandle);
+	UART_PRINT("Write lRet %d", lRetVal);
 	ASSERT_ON_ERROR(lRetVal);
 
 	return 0;
@@ -565,19 +591,6 @@ int32_t User_Configure()
 //			UART_PRINT("\n\nAngle40 = %3.2f\n\r",fAngle);
 			run_flag = false;
 			break;
-		}
-		if(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))	//Take this to GPIO Interrupt
-		{
-			UART_PRINT("Button Pressed for second time\n\r");
-			g_ucPushButtonPressedTwice = BUTTON_PRESSED;
-		}
-		if(g_ucPushButtonPressedTwice == BUTTON_PRESSED)
-		{
-			//sl_Stop(0xFF);
-			UART_PRINT("Entering OTA update\n\r");
-			OTA_Update();
-			break;
-			//OTA_Update_2();
 		}
 		osi_Sleep(10);
     }

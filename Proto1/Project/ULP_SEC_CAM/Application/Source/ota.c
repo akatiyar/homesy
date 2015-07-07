@@ -273,78 +273,78 @@ int32_t OTA_CommitImage()
 //    return 0;
 //}
 
-int32_t OTA_Update_2()
-{
-	UART_PRINT("Entered OTA_Update_2()\n\r");
-
-	int32_t lRetVal;
-
-	//
-	//	Connect cc3200 to wifi AP
-	//
-	ConfigureSimpleLinkToDefaultState();
-	sl_Start(0, 0, 0);
-	ConnectToNetwork_STA();
-
-	//Tag:OTA
-	int SetCommitInt;
-	unsigned char ucVendorStr[20];
-	long OptionLen;
-	unsigned char OptionVal;
-
-    //
-	// Initialize OTA
-	//
-	pvOtaApp = sl_extLib_OtaInit(RUN_MODE_NONE_OS | RUN_MODE_BLOCKING,0);
-	//
-	// Initializa OTA service
-	//
-	strcpy((char *)ucVendorStr,OTA_VENDOR_STRING);
-    OTAServerInfoSet(&pvOtaApp,(char *)ucVendorStr);
-
-    //
-    //	Check if this image is booted in test mode
-    //
-    sl_extLib_OtaGet(pvOtaApp, EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT, &OptionLen,(_u8*)&OptionVal);
-    UART_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
-    if(OptionVal == true)
-    {
-    	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
-    	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
-    	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
-    }
-    else
-    {
-    	UART_PRINT("Starting OTA\n\r");
-    	lRetVal = 0;
-
-    	while(!lRetVal)
-    	{
-    		lRetVal = sl_extLib_OtaRun(pvOtaApp);
-    		UART_PRINT("%d\n\r", lRetVal);
-    	}
-
-    	UART_PRINT("OTA run = %d\n\r", lRetVal);
-    	if(lRetVal < 0)
-    	{
-    		UART_PRINT("OTA:Error with OTA Server\n\r");
-    	}
-    	else if(lRetVal == RUN_STAT_NO_UPDATES)
-    	{
-    		UART_PRINT("OTA: RUN_STAT_NO_UPDATES");
-    	}
-    	else if((lRetVal & RUN_STAT_DOWNLOAD_DONE))
-    	{
-    		//
-    		//	Set OTA File for testing
-    		//
-    		lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_TEST, sizeof(int), (_u8 *)&SetCommitInt);
-    		UART_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
-    		UART_PRINT("Rebooting...\n\r");
-    		RebootMCU();
-    	}
-    }
-    sl_Stop(0xFF);
-
-    return 0;
-}
+//int32_t OTA_Update_2()
+//{
+//	UART_PRINT("Entered OTA_Update_2()\n\r");
+//
+//	int32_t lRetVal;
+//
+//	//
+//	//	Connect cc3200 to wifi AP
+//	//
+//	ConfigureSimpleLinkToDefaultState();
+//	sl_Start(0, 0, 0);
+//	ConnectToNetwork_STA();
+//
+//	//Tag:OTA
+//	int SetCommitInt;
+//	unsigned char ucVendorStr[20];
+//	long OptionLen;
+//	unsigned char OptionVal;
+//
+//    //
+//	// Initialize OTA
+//	//
+//	pvOtaApp = sl_extLib_OtaInit(RUN_MODE_NONE_OS | RUN_MODE_BLOCKING,0);
+//	//
+//	// Initializa OTA service
+//	//
+//	strcpy((char *)ucVendorStr,OTA_VENDOR_STRING);
+//    OTAServerInfoSet(&pvOtaApp,(char *)ucVendorStr);
+//
+//    //
+//    //	Check if this image is booted in test mode
+//    //
+//    sl_extLib_OtaGet(pvOtaApp, EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT, &OptionLen,(_u8*)&OptionVal);
+//    UART_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
+//    if(OptionVal == true)
+//    {
+//    	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
+//    	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
+//    	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
+//    }
+//    else
+//    {
+//    	UART_PRINT("Starting OTA\n\r");
+//    	lRetVal = 0;
+//
+//    	while(!lRetVal)
+//    	{
+//    		lRetVal = sl_extLib_OtaRun(pvOtaApp);
+//    		UART_PRINT("%d\n\r", lRetVal);
+//    	}
+//
+//    	UART_PRINT("OTA run = %d\n\r", lRetVal);
+//    	if(lRetVal < 0)
+//    	{
+//    		UART_PRINT("OTA:Error with OTA Server\n\r");
+//    	}
+//    	else if(lRetVal == RUN_STAT_NO_UPDATES)
+//    	{
+//    		UART_PRINT("OTA: RUN_STAT_NO_UPDATES");
+//    	}
+//    	else if((lRetVal & RUN_STAT_DOWNLOAD_DONE))
+//    	{
+//    		//
+//    		//	Set OTA File for testing
+//    		//
+//    		lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_TEST, sizeof(int), (_u8 *)&SetCommitInt);
+//    		UART_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
+//    		UART_PRINT("Rebooting...\n\r");
+//    		RebootMCU();
+//    	}
+//    }
+//    sl_Stop(0xFF);
+//
+//    return 0;
+//}

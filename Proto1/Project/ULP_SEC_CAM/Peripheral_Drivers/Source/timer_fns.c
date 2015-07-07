@@ -11,15 +11,31 @@
 #include "timer_fns.h"
 #include "math.h"
 
+#include "app_common.h"
+#include <stdbool.h>
 #define APP_PROFILING_TIMER_BASE		TIMERA0_BASE
 
 #define RELOADVAL_100MILLISEC			0x007A11FF	//(100m*80,000,000-1)
 
+//bool g_stat=0x00;
 void IntHandler_100mSecTimer(void)
 {
 	Timer_IF_InterruptClear(TIMERA0_BASE);
 	Elapsed_100MilliSecs++;
 	checkForLight_Flag = 1;
+//	UART_PRINT("%d ",Elapsed_100MilliSecs);
+
+//	if(g_stat)
+//	{
+//		LED_On();
+//		g_stat =0;
+//	}
+//	else
+//	{
+//		LED_Off();
+//		g_stat = 1;
+//	}
+
 }
 
 int32_t start_100mSecTimer()
