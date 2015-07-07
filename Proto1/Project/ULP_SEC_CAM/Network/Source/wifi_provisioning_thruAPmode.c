@@ -353,6 +353,8 @@ int32_t CollectAngle(uint8_t ucAngle)
 		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
+	lRetVal = CreateFile_Flash(FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+	ASSERT_ON_ERROR(lRetVal);
 	ReadFile_FromFlash((uint8_t*)g_image_buffer, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
 
 //	float fAnglet[2];
@@ -393,6 +395,9 @@ int32_t CalibrateMagSensor()
 
 	//Collect the readings
 	fxosDefault_Initializations();
+
+	lRetVal = CreateFile_Flash(FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+	ASSERT_ON_ERROR(lRetVal);
 
 	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
 
@@ -571,6 +576,7 @@ int32_t User_Configure()
 			//sl_Stop(0xFF);
 			UART_PRINT("Entering OTA update\n\r");
 			OTA_Update();
+			//OTA_Update_2();
 		}
 		osi_Sleep(10);
     }

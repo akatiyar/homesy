@@ -21,5 +21,6 @@ typedef enum
 
 int32_t OTA_Update();
 int32_t OTA_CommitImage();
+int32_t OTA_Update_2();
 
 #endif /* APPLICATION_INCLUDE_OTA_H_ */

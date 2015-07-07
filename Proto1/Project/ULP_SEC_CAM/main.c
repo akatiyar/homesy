@@ -114,6 +114,8 @@
 
 #include "appFns.h"
 #include "dbgFns.h"
+
+#include "flc_api.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -277,6 +279,8 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
+	UART_PRINT("Firmware 2\n\r");
+	OTA_Update_2();
 	//LED_Blink(30, 1);
 
 	LED_On();
@@ -431,10 +435,13 @@ void UserConfigure_Task(void *pvParameters)
 
 void Main_Task_withHibernate(void *pvParameters)
 {
+	//OTA_Update_2();
+
+
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
     	//Print the Purose of changing to this firmware here
-    	UART_PRINT("********* Firmware 7**********\n\r");
+    	UART_PRINT("*** F4 ***\n\r");
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
@@ -456,12 +463,13 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Config_And_Start_CameraCapture();
 
+		//OTA_CommitImage();	//Need to check this every time, unfortunately. May be we can commit on downloading itself!!
 		LED_Off();
 		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_OFF, NULL);
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		UART_PRINT("********* Firmware 7**********\n\r");
+		UART_PRINT("*** F4 HIB ***\n\r");
 		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
 
@@ -469,6 +477,10 @@ void Main_Task_withHibernate(void *pvParameters)
 		{
 			CollectTxit_ImgTempRH();
 		}
+
+//		sl_Start(0,0,0);
+//		sl_extlib_BootImg2();
+//		sl_Stop(0xFFFF);
 
 		OTA_CommitImage();	//Need to check this every time, unfortunately. May be we can commit on downloading itself!!
 		LED_Off();
