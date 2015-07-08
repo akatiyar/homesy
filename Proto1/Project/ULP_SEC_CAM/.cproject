@@ -98,11 +98,11 @@
 									<listOptionValue builtIn="false" value="free_rtos.a"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.linkerID.SEARCH_PATH.464377815" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.linkerID.SEARCH_PATH" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/flc/ccs/Release&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/ota/ccs/Release&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\Projects\Vcognition\GIT Clone\ws\flc\Release\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}\parse\release\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PARSE_SDK_ROOT}/Release/&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\Projects\Vcognition\GIT Clone\ws\ota\Release\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/example/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/driverlib/ccs/Release&quot;"/>

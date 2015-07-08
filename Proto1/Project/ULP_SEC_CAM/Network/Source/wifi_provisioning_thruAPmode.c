@@ -354,18 +354,24 @@ int32_t CollectAngle(uint8_t ucAngle)
 		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
-	lRetVal = CreateFile_Flash(FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
-	ASSERT_ON_ERROR(lRetVal);
+	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
+	{
+		UART_PRINT("Creating fresh file\n\r");
+		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+		ASSERT_ON_ERROR(lRetVal);
 
-	sl_FsGetInfo(FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+		sl_FsGetInfo(FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	}
+
 	if(FileInfo.FileLen)
 	{
-		UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
 		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
 	}
 	else
 	{
-		UART_PRINT("Filelen is 0 :(\n\r");
+		UART_PRINT("Filelen 0 :(\n\r");
 	}
 
 //	float fAnglet[2];
@@ -409,21 +415,23 @@ int32_t CalibrateMagSensor()
 	//Collect the readings
 	fxosDefault_Initializations();
 
-//	lRetVal = sl_FsDel((uint8_t *)FILENAME_ANGLE_VALS, ulToken);
-//	UART_PRINT("Del %f", lRetVal);
+	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
+	{
+		UART_PRINT("Creating fresh file\n\r");
+		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+		ASSERT_ON_ERROR(lRetVal);
+		sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	}
 
-//	lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
-//	ASSERT_ON_ERROR(lRetVal);
-
-	sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
 	if(FileInfo.FileLen)
 	{
-		UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
 		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
 	}
 	else
 	{
-		UART_PRINT("Filelen is 0 :(\n\r");
+		UART_PRINT("Filelen 0\n\r");
 	}
 
 	g_ucMagCalb = 0;
@@ -454,7 +462,7 @@ int32_t CalibrateMagSensor()
 							(uint8_t*)FILENAME_ANGLE_VALS,
 							MAX_FILESIZE_ANGLE_VALS, 0,
 							SINGLE_WRITE, &lFileHandle);
-	UART_PRINT("Write lRet %d", lRetVal);
+	//UART_PRINT("Write lRet %d", lRetVal);
 	ASSERT_ON_ERROR(lRetVal);
 
 	return 0;
@@ -534,6 +542,7 @@ int32_t User_Configure()
 {
 	long lRetVal = -1;
 	bool run_flag=true;
+	float fAngle;
 
 //	CreateFile_Flash((uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
 
@@ -588,7 +597,16 @@ int32_t User_Configure()
 //
 //			fAngle = 0;
 //			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), sizeof(float));
-//			UART_PRINT("\n\nAngle40 = %3.2f\n\r",fAngle);
+//			UART_PRINT("Angle40 = %3.2f\n\r",fAngle);
+
+			uint8_t i;
+			for(i=0;i<14;i++)
+			{
+				fAngle = 0;
+				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), (i)*sizeof(float));
+				UART_PRINT("%d:%3.2f\n\r",i,fAngle);
+			}
+
 			run_flag = false;
 			break;
 		}

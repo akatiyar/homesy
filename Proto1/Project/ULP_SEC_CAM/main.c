@@ -484,7 +484,7 @@ void Main_Task_withHibernate(void *pvParameters)
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
     	//Print the Purose of changing to this firmware here
-    	UART_PRINT("*** F12 ***\n\r");
+    	UART_PRINT("*** F15 ***\n\r");
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
@@ -510,7 +510,7 @@ void Main_Task_withHibernate(void *pvParameters)
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		UART_PRINT("*** F12 HIB ***\n\r");
+		UART_PRINT("*** F15 HIB ***\n\r");
 		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
 
