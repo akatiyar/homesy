@@ -67,6 +67,7 @@ int32_t i2cReadRegisters(uint8_t ucDevI2CAddr,
 							LENGTH_IS_ONE,
 							ZERO_STOP_BIT);
 	PRINT_ON_ERROR(lRetVal);
+
 	if(lRetVal == SUCCESS)
 	{
 		lRetVal = I2C_IF_Read(ucDevI2CAddr,
@@ -74,6 +75,7 @@ int32_t i2cReadRegisters(uint8_t ucDevI2CAddr,
 								ucLen);
 	}
 	PRINT_ON_ERROR(lRetVal);
+	MAP_UtilsDelay((5*80)/6);	//5uSec
 
 	return lRetVal;
 }
@@ -134,6 +136,7 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 
 	PRINT_ON_ERROR(lRetVal);
 
+	MAP_UtilsDelay((5*80)/6);	//5uSec
 	return lRetVal;
 }
 
@@ -180,6 +183,7 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 							//LENGTH_IS_ONE,
 							ZERO_STOP_BIT);
 	PRINT_ON_ERROR(lRetVal);
+
 	if(lRetVal == SUCCESS)
 	{
 		lRetVal = I2C_IF_Read(ucDevI2CAddr,
@@ -187,6 +191,7 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 								ucLen);
 	}
 	PRINT_ON_ERROR(lRetVal);
+	MAP_UtilsDelay((5*80)/6);	//5uSec
 
 	return lRetVal;
 }

@@ -29,6 +29,7 @@ extern int16_t IsLightOff(uint16_t usThresholdLux);
 //							PRCM_HIB_FALL_EDGE
 //							PRCM_HIB_RISE_EDGE
 //	param[in]	ucGPIOWakeCondition	- Can use WAKEON_LIGHT_ON or WAKEON_LIGHT_OFF
+//									- but presently not used
 //	param[in]	fHibIntervalInMinutes-Hibernation interval before the Slow Clock
 //						counter wakes the device up fom Hibernate
 //

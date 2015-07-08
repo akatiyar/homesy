@@ -6,6 +6,7 @@
 #include "simplejson.h"
 #include "camera_app.h"
 #include "stdbool.h"
+#include "ota.h"
 static long WlanConnect();
 
 extern int gdoor_90deg_angle;//290
@@ -340,7 +341,8 @@ int32_t CollectAngle(uint8_t ucAngle)
 	float_t fAngleTemp;
 	int32_t lFileHandle;
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
-
+	uint32_t ulToken = 0;
+	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	angleCheck_Initializations();
@@ -352,7 +354,25 @@ int32_t CollectAngle(uint8_t ucAngle)
 		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
-	ReadFile_FromFlash((uint8_t*)g_image_buffer, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
+	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
+	{
+		UART_PRINT("Creating fresh file\n\r");
+		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+		ASSERT_ON_ERROR(lRetVal);
+
+		sl_FsGetInfo(FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	}
+
+	if(FileInfo.FileLen)
+	{
+		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
+	}
+	else
+	{
+		UART_PRINT("Filelen 0 :(\n\r");
+	}
 
 //	float fAnglet[2];
 //	ReadFile_FromFlash((uint8_t*)fAnglet, (uint8_t*)FILENAME_ANGLE_VALS, (sizeof(float)*2), 0);
@@ -389,11 +409,30 @@ int32_t CalibrateMagSensor()
 	int32_t lFileHandle;
 	uint8_t tmpCnt=0;
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
+	uint32_t ulToken = 0;
+	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	fxosDefault_Initializations();
 
-	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
+	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
+	{
+		UART_PRINT("Creating fresh file\n\r");
+		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+		ASSERT_ON_ERROR(lRetVal);
+		sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	}
+
+	if(FileInfo.FileLen)
+	{
+		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
+	}
+	else
+	{
+		UART_PRINT("Filelen 0\n\r");
+	}
 
 	g_ucMagCalb = 0;
 	while(g_ucMagCalb < MAG_SENSOR_CALIBCOUNT)
@@ -423,6 +462,7 @@ int32_t CalibrateMagSensor()
 							(uint8_t*)FILENAME_ANGLE_VALS,
 							MAX_FILESIZE_ANGLE_VALS, 0,
 							SINGLE_WRITE, &lFileHandle);
+	//UART_PRINT("Write lRet %d", lRetVal);
 	ASSERT_ON_ERROR(lRetVal);
 
 	return 0;
@@ -502,6 +542,7 @@ int32_t User_Configure()
 {
 	long lRetVal = -1;
 	bool run_flag=true;
+	float fAngle;
 
 //	CreateFile_Flash((uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
 
@@ -556,7 +597,16 @@ int32_t User_Configure()
 //
 //			fAngle = 0;
 //			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), sizeof(float));
-//			UART_PRINT("\n\nAngle40 = %3.2f\n\r",fAngle);
+//			UART_PRINT("Angle40 = %3.2f\n\r",fAngle);
+
+			uint8_t i;
+			for(i=0;i<14;i++)
+			{
+				fAngle = 0;
+				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), (i)*sizeof(float));
+				UART_PRINT("%d:%3.2f\n\r",i,fAngle);
+			}
+
 			run_flag = false;
 			break;
 		}

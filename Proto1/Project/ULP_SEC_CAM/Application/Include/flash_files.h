@@ -19,8 +19,8 @@
 //#define IMAGE_DATA_FILE_NAME			"www/images/jpeg_image.jpg"
 #define IMAGE_DATA_FILE_NAME			"www/images/cc3200_camera_capture.jpg"	//Rename as "data/jpeg_image"
 
-#define FILENAME_ANGLE_VALS			"angleValues.txt"	//Merge to "config/user_config"
-#define MAX_FILESIZE_ANGLE_VALS		100	//Bytes
+#define FILENAME_ANGLE_VALS			"angle_values"	//Merge to "config/user_config"
+#define MAX_FILESIZE_ANGLE_VALS		1024	//Bytes
 											//File created for this size
 											//Can be used when more fields
 											//are needed in the file

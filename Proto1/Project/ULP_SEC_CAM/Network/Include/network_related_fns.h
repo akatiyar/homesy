@@ -12,7 +12,7 @@
 #define ROLE_INVALID            (-5)
 
 //#define CONNECTION_TIMEOUT_COUNT  5000  /* 5sec when while loop has osi_Sleep(1)*/
-#define CONNECTION_TIMEOUT_COUNT  3000  /* 30sec when while loop has osi_Sleep(10)*/
+#define CONNECTION_TIMEOUT_COUNT  6000  /* 30sec when while loop has osi_Sleep(10)*/
 #define TOKEN_ARRAY_SIZE          6
 //#define TOKEN_ARRAY_SIZE          1
 #define STRING_TOKEN_SIZE         10
@@ -51,7 +51,7 @@ unsigned char g_ucAngle40;
 unsigned char g_ucConfig;
 unsigned char g_ucCalibration;
 unsigned char g_ucExitButton;
-
+unsigned char g_ucPushButtonPressedTwice;
 
 extern unsigned char g_ucConnectedToConfAP, g_ucProvisioningDone;
 extern unsigned char g_ucPriority;

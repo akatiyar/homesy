@@ -107,12 +107,15 @@
 #include "app_common.h"
 #include "timer_fns.h"
 #include "wifi_provisioing_thruAPmode.h"
+#include "ota.h"
 
 #include "test_modules.h"
 #include "test_fns.h"
 
 #include "appFns.h"
 #include "dbgFns.h"
+
+#include "flc_api.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -276,6 +279,8 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 //*****************************************************************************
 void Main_Task(void *pvParameters)
 {
+	UART_PRINT("Firmware 2\n\r");
+	OTA_Update_2();
 	//LED_Blink(30, 1);
 
 	LED_On();
@@ -410,15 +415,60 @@ void UserConfigure_Task(void *pvParameters)
 	UtilsDelay(1000000);
 	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON) ||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
-		UART_PRINT("***PRESS BUTTON TO CONFIGURE THROUGH PHONE APP***\n\r");
+		UART_PRINT("***SHORT PRESS-CONFIGURE THRU PHONE APP***\n\r"
+						"***LONG PRESS-OTA***\n\r");
 		while(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
 		{
 			osi_Sleep(20);
 		}
-		g_ulAppStatus = USER_CONFIG_TAKING_PLACE;
-		UART_PRINT("Switch Pressed\n\r");
-		User_Configure();
-		UART_PRINT("User Cofig Mode EXIT\n\r");
+		g_ulAppStatus = USER_CONFIG_TAKING_PLACE;	//includes OTA also for now
+		//UART_PRINT("Switch Pressed\n\r");
+		start_100mSecTimer();
+		//while(1);
+#define TIMEOUT_LONGPRESS		(30/6)	//3 sec press is defined as long press. Remove /6 if sys clk issue is resolved
+
+		while(1)
+		{
+			if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
+			{
+				UART_PRINT("Time out\n\r");
+				break;
+			}
+			uint8_t i;
+			for(i = 0; i < 3; i++)
+			{
+				if(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
+				{
+					UART_PRINT("pinhigh%d\n\r", i);
+					UtilsDelay(12*80000/6);	//12 millisec delay
+					//osi_Sleep(100);
+				}
+				else
+				{
+					//UART_PRINT("pinlow\n\r");
+					break;
+				}
+			}
+			if (i>=3)
+			{
+				UART_PRINT("pin high... short press\n\r");
+				break;
+			}
+
+			//UtilsDelay(12*80000/6);	//12 millisec delay
+		}
+		stop_100mSecTimer();
+		if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
+		{
+			UART_PRINT("long press : %d\n\r", Elapsed_100MilliSecs);
+			OTA_Update();
+		}
+		else if (Elapsed_100MilliSecs < TIMEOUT_LONGPRESS)
+		{
+			UART_PRINT("short press : %d\n\r", Elapsed_100MilliSecs);
+			User_Configure();
+			UART_PRINT("User Cofig Mode EXIT\n\r");
+		}
 		g_ulAppStatus = USER_CONFIG_DONE;
 		while(1);
 	}
@@ -430,12 +480,15 @@ void UserConfigure_Task(void *pvParameters)
 
 void Main_Task_withHibernate(void *pvParameters)
 {
+
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
+    	//Print the Purose of changing to this firmware here
+    	UART_PRINT("*** F15 ***\n\r");
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
-		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
+		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)	//Will exit if UserConfig is over or UserConfig was never entered
 		{
 			osi_Sleep(100);	//Wait if User Config is happening presently
 		}
@@ -453,23 +506,21 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Config_And_Start_CameraCapture();
 
-		LED_Off();
-		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_OFF, NULL);
+		OTA_CommitImage();
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
+		UART_PRINT("*** F15 HIB ***\n\r");
 		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
 
-		if(IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
+		if(!IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
 		{
-			HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
+			CollectTxit_ImgTempRH();
 		}
-
-		CollectTxit_ImgTempRH();
-		LED_Off();
-		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, WAKEON_LIGHT_ON, NULL);
 	}
+	LED_Off();
+	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
 }
 int32_t Config_And_Start_CameraCapture()
 {

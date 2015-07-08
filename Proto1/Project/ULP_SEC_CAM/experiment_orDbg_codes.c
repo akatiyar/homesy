@@ -5,6 +5,24 @@
  *      Author: Chrysolin
  */
 
+//		sl_Start(0,0,0);
+//		sl_extlib_BootImg2();
+//		sl_Stop(0xFFFF);
+
+
+
+	lRetVal = sl_FsDel((uint8_t *)FILENAME_ANGLE_VALS, ulToken);
+	UART_PRINT("Del %f", lRetVal);
+
+	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
+	{
+		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+		ASSERT_ON_ERROR(lRetVal);
+	}
+
+
+
 // Slow Clk ctr working
 uint64_t ullSlowCounterReturnVal1, ullSlowCounterReturnVal2;
 while(1)
