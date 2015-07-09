@@ -9,5 +9,6 @@
 #define DBG_FNS_H_
 
 extern int32_t Check_I2CDevices();
+extern int32_t Check_FlashFiles();
 
 #endif /* DBG_FNS_H_ */

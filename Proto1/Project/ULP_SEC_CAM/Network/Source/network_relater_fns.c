@@ -342,7 +342,7 @@ long ConnectToNetwork()
 int32_t ConnectToNetwork_STA()
 {
 	int32_t lRetVal;
-	uint8_t ucWifiConfigFileData[CONTENTSIZE_FILE_USERWIFI];
+	uint8_t ucWifiConfigFileData[WIFI_DATA_SIZE];
 	int8_t ssid[AP_SSID_LEN_MAX];
 	int8_t ucWifiPassword[AP_PASSWORD_LEN_MAX];
 	uint8_t ucWifiSecType[AP_SECTYPE_LEN_MAX];
@@ -350,8 +350,8 @@ int32_t ConnectToNetwork_STA()
 	SlSecParams_t keyParams;
 
 	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
-									(uint8_t*)FILENAME_USERWIFI,
-									CONTENTSIZE_FILE_USERWIFI, 0);
+									(uint8_t*)USER_CONFIGS_FILENAME,
+									WIFI_DATA_SIZE, WIFI_DATA_OFFSET);
 
 	pucWifiConfigFileData = &ucWifiConfigFileData[0];
 	ASSERT_ON_ERROR(lRetVal);
@@ -445,6 +445,8 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->KeyLen = sizeof("cfuclcxjfdi");
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 
+	UART_PRINT("WiFi\n\r");
+	//UART_PRINT("%s\n\r%s\n\r%s", ssid, keyParams->Key, keyParams->Type);
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	if (status < 0) {
 		sl_Stop(SL_STOP_TIMEOUT);

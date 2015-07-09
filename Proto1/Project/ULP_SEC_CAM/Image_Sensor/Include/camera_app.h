@@ -76,7 +76,7 @@ extern "C"
 
 		//#define NUM_OF_1KB_BUFFERS      150
 		//#define NUM_OF_1KB_BUFFERS      120
-		#define MAX_IMAGE_SIZE_BYTES	(150*ONE_KB)		//Expected Val
+		//#define MAX_IMAGE_SIZE_BYTES	(150*ONE_KB)		//Expected Val
 
 #elif XGA_FRAME
         #define PIXELS_IN_X_AXIS        (1024)
@@ -115,7 +115,6 @@ extern "C"
 #define MAX_EMAIL_ID_LENGTH         	34
 #define SMTP_BUF_LEN                	1024
 
-#define MAX_IMAGE_HEADER_SIZE_BYTES		1024
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header
@@ -161,6 +160,7 @@ int32_t Standby_ImageSensor();
 int32_t Wakeup_ImageSensor();
 int32_t createAndWrite_ImageHeaderFile();
 int32_t create_JpegImageFile();
+int32_t Write_JPEGHeader();
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

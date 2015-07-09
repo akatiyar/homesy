@@ -308,6 +308,28 @@ void Main_Task(void *pvParameters)
 
 void Test_Task(void *pvParameters)
 {
+	uint32_t ulToken = 0;
+	SlFsFileInfo_t FileInfo;
+	int32_t lRetVal;
+
+	sl_Start(0,0,0);
+	sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &FileInfo);
+	lRetVal = ReadFile_FromFlash((uint8_t*)g_image_buffer, JPEG_HEADER_FILE_NAME, FileInfo.FileLen, 0);
+	UART_PRINT("%d\n\r%d\n\r", FileInfo.FileLen, lRetVal);
+	for(lRetVal = 0; lRetVal<(650/4);lRetVal++)
+	{
+		UART_PRINT("%x ", g_image_buffer[lRetVal]);
+	}
+	sl_Stop(0xFFFF);
+
+	User_Configure();
+	Config_And_Start_CameraCapture();
+	CollectTxit_ImgTempRH();
+
+	while(1);
+
+	Check_FlashFiles();
+
 	Check_I2CDevices();
 	while(1)
 	{
@@ -434,12 +456,14 @@ void UserConfigure_Task(void *pvParameters)
 				UART_PRINT("Time out\n\r");
 				break;
 			}
+
+			// This code is for avoiding debounce
 			uint8_t i;
 			for(i = 0; i < 3; i++)
 			{
 				if(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
 				{
-					UART_PRINT("pinhigh%d\n\r", i);
+					UART_PRINT("pinhigh DB %d\n\r", i);
 					UtilsDelay(12*80000/6);	//12 millisec delay
 					//osi_Sleep(100);
 				}
@@ -460,12 +484,12 @@ void UserConfigure_Task(void *pvParameters)
 		stop_100mSecTimer();
 		if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
 		{
-			UART_PRINT("long press : %d\n\r", Elapsed_100MilliSecs);
+			UART_PRINT("Long press : %d\n\r", Elapsed_100MilliSecs);
 			OTA_Update();
 		}
 		else if (Elapsed_100MilliSecs < TIMEOUT_LONGPRESS)
 		{
-			UART_PRINT("short press : %d\n\r", Elapsed_100MilliSecs);
+			UART_PRINT("Short press : %d\n\r", Elapsed_100MilliSecs);
 			User_Configure();
 			UART_PRINT("User Cofig Mode EXIT\n\r");
 		}
@@ -480,11 +504,10 @@ void UserConfigure_Task(void *pvParameters)
 
 void Main_Task_withHibernate(void *pvParameters)
 {
-
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
     	//Print the Purose of changing to this firmware here
-    	UART_PRINT("*** F15 ***\n\r");
+    	UART_PRINT("*** F17 ***\n\r");
     	LED_Blink(30, 1);
 		//LED_Blink(10, 1);
 		LED_On();
@@ -501,8 +524,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		softResetTempRHSensor();
 		configureTempRHSensor();
 
-		createAndWrite_ImageHeaderFile();
-		create_JpegImageFile();
+		//Write_JPEGHeader();	//Should be taken to the .USF
 
 		Config_And_Start_CameraCapture();
 
@@ -510,7 +532,7 @@ void Main_Task_withHibernate(void *pvParameters)
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		UART_PRINT("*** F15 HIB ***\n\r");
+		UART_PRINT("*** F17 WakeHIB ***\n\r");
 		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
 
@@ -519,8 +541,12 @@ void Main_Task_withHibernate(void *pvParameters)
 			CollectTxit_ImgTempRH();
 		}
 	}
+
 	LED_Off();
 	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
+
+	//PC never gets here
+	while(1);
 }
 int32_t Config_And_Start_CameraCapture()
 {

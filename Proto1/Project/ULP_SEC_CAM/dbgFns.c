@@ -13,6 +13,8 @@
 #include "mt9d111.h"
 #include "camera_app.h"
 
+#include "flash_files.h"
+#include "fs.h"
 
 int32_t Check_I2CDevices()
 {
@@ -36,6 +38,29 @@ int32_t Check_I2CDevices()
 	Get_BatteryPercent();
 
 	UART_PRINT("\nAll I2C devices READs successful\n\r");
+
+	return 0;
+}
+
+
+int32_t Check_FlashFiles()
+{
+	uint32_t ulToken = 0;
+	SlFsFileInfo_t FileInfo;
+	int32_t lRetVal;
+
+	sl_Start(0,0,0);
+	UART_PRINT("%s\n\r", (uint8_t *)JPEG_IMAGE_FILE_NAME);
+	lRetVal = sl_FsGetInfo((uint8_t *)JPEG_IMAGE_FILE_NAME, ulToken, &FileInfo);
+	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
+	{
+		UART_PRINT("Doesn't Exist");
+	}
+	else
+	{
+		UART_PRINT("%d\n\r%d\n\r", FileInfo.AllocatedLen, FileInfo.FileLen);
+	}
+	sl_Stop(0xffff);
 
 	return 0;
 }

@@ -36,206 +36,12 @@ int16_t fxosDefault_Initializations();
 //! \return None.
 //
 //****************************************************************************
-int32_t ProvisioningAP()
-{
-   long lRetVal = -1;
-
-    InitializeUserConfigVariables();
-
-    //
-    // Following function configure the device to default state by cleaning
-    // the persistent settings stored in NVMEM (viz. connection profiles &
-    // policies, power policy etc)
-    //
-    // Applications may choose to skip this step if the developer is sure
-    // that the device is in its default state at start of applicaton
-    //
-    // Note that all profiles and persistent settings that were done on the
-    // device will be lost
-    //
-   lRetVal = ConfigureSimpleLinkToDefaultState();
-   if(lRetVal < 0)
-   {
-       if (DEVICE_NOT_IN_STATION_MODE == lRetVal)
-       {
-           UART_PRINT("Failed to configure the device in its default state\n\r");
-       }
-
-       LOOP_FOREVER();
-   }
-    UART_PRINT("Device is configured in default state \n\r");
-
-	//	Start NWP
-	lRetVal = sl_Start(0, 0, 0);
-	if (lRetVal < 0)
-	{
-	   UART_PRINT("Failed to start the device \n\r");
-	   LOOP_FOREVER();
-	}
-
-	while(!g_ucProvisioningDone)
-    {
-    	UART_PRINT("Top of while()\n\r");
-
-        //
-        // Configure to AP Mode
-        //
-        if(ConfigureMode(ROLE_AP) !=ROLE_AP)
-        {
-            UART_PRINT("Unable to set AP mode...\n\r");
-            lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-            CLR_STATUS_BIT_ALL(g_ulStatus);
-            LOOP_FOREVER();
-        }
-        while(!IS_IP_ACQUIRED(g_ulStatus));	//looping till ip is acquired
-        UART_PRINT("Configd APmode\n\r");
-
-        //Stop Internal HTTP Server
-        lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
-        if(lRetVal < 0)
-        {
-            ERR_PRINT(lRetVal);
-            LOOP_FOREVER();
-        }
-        //Start Internal HTTP Server
-        lRetVal = sl_NetAppStart(SL_NET_APP_HTTP_SERVER_ID);
-        if(lRetVal < 0)
-        {
-            ERR_PRINT(lRetVal);
-            LOOP_FOREVER();
-        }
-        UART_PRINT("HTTPSrvr Strtd\n\r");
-
-        //
-		// Wait for AP Configuraiton, Open Browser and Configure AP
-		//
-		while(!g_ucProfileAdded)
-		{
-			MAP_UtilsDelay(100);
-			//UART_PRINT("w");
-		}
-		UART_PRINT("\n\rwhile exit\n\r");
-
-		g_ucProfileAdded = 0;
-
-		//
-		//	Test connection
-		//
-        // Configure to STA Mode
-        if(ConfigureMode(ROLE_STA) !=ROLE_STA)
-        {
-            UART_PRINT("Unable to set STA mode...\n\r");
-            lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-            CLR_STATUS_BIT_ALL(g_ulStatus);
-            LOOP_FOREVER();
-        }
-        // Connect to the Configured Access Point
-        lRetVal = WlanConnect();
-		if(lRetVal == SUCCESS)
-		{
-			g_ucProvisioningDone = 1;	//Set the global variable
-			g_ucConnectedToConfAP = IS_CONNECTED(g_ulStatus);
-
-			//Disconnect back
-			UART_PRINT("WLAN Connect Done\n\r");
-			lRetVal = sl_WlanDisconnect();
-			if(0 == lRetVal)
-			{
-				while(IS_CONNECTED(g_ulStatus));
-			}
-			UART_PRINT("WLAN Disconnected back\n\r");
-
-			//Write to Flash file
-			lRetVal = CreateFile_Flash(FILENAME_USERWIFI, MAX_FILESIZE_USERWIFI);
-			ASSERT_ON_ERROR(lRetVal);
-			uint8_t ucConfigFileData[CONTENTSIZE_FILE_USERWIFI];
-			uint8_t* pucConfigFileData = &ucConfigFileData[0];
-
-			strcpy((char*)pucConfigFileData, (const char*)g_cWlanSSID);
-			pucConfigFileData += strlen((const char*)pucConfigFileData)+1;
-
-			strcpy((char*)pucConfigFileData, (const char*)g_cWlanSecurityType);
-			pucConfigFileData += strlen((const char*)pucConfigFileData)+1;
-
-			strcpy((char*)pucConfigFileData, (const char*)g_cWlanSecurityKey);
-
-			int32_t lFileHandle;
-			lRetVal = WriteFile_ToFlash((uint8_t*)&ucConfigFileData[0],
-										(uint8_t*)FILENAME_USERWIFI,
-										CONTENTSIZE_FILE_USERWIFI,
-										0, 1, &lFileHandle);
-			ASSERT_ON_ERROR(lRetVal);
-
-			// For verification - DBG
-			lRetVal = ReadFile_FromFlash((ucConfigFileData+3),
-											(uint8_t*)FILENAME_USERWIFI,
-											CONTENTSIZE_FILE_USERWIFI-3,
-											0);
-			ASSERT_ON_ERROR(lRetVal);
-
-			/*lRetVal = WriteFile_ToFlash((uint8_t*)&g_cWlanSSID[0], (uint8_t*)FILENAME_USERWIFI,
-										AP_SSID_LEN_MAX, 0);
-			lRetVal = WriteFile_ToFlash((uint8_t*)(&(g_SecParams.Type)), (uint8_t*)FILENAME_USERWIFI,
-										AP_SECTYPE_LEN_MAX, AP_SSID_LEN_MAX);
-			lRetVal = WriteFile_ToFlash((uint8_t*)g_SecParams.Key, (uint8_t*)FILENAME_USERWIFI,
-										AP_PASSWORD_LEN_MAX,
-										AP_SSID_LEN_MAX + AP_SECTYPE_LEN_MAX);*/
-
-			/*uint8_t ucConfigFileData[FILE_SIZE_USER_CONFIG];
-			uint8_t ucSSID[33];
-			uint8_t uc[33];
-			ReadFile_FromFlash(ucConfigFileData, FILE_NAME_USER_CONFIG, FILE_SIZE_USER_CONFIG, 0);
-			simpleJsonProcessor(ucConfigFileData, "SSID", ucSSID, SSID_LEN_MAX+1);*/
-		}
-
-		//
-		// Configure to AP Mode to display message
-		//
-		if(ConfigureMode(ROLE_AP) !=ROLE_AP)
-		{
-			UART_PRINT("Unable to set AP mode...\n\r");
-			lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-			CLR_STATUS_BIT_ALL(g_ulStatus);
-			LOOP_FOREVER();
-		}
-		while(!IS_IP_ACQUIRED(g_ulStatus));	//looping till ip is acquired
-		UART_PRINT("Configd APmode\n\r");
-
-		//Stop Internal HTTP Server
-		lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
-		if(lRetVal < 0)
-		{
-			ERR_PRINT(lRetVal);
-			LOOP_FOREVER();
-		}
-		//Start Internal HTTP Server
-		lRetVal = sl_NetAppStart(SL_NET_APP_HTTP_SERVER_ID);
-		if(lRetVal < 0)
-		{
-			ERR_PRINT(lRetVal);
-			LOOP_FOREVER();
-		}
-		UART_PRINT("HTTPSrvr Strtd again\n\r");
-		MAP_UtilsDelay(80000000);	//Wait for some time to let http msgs txit
-    }
-
-	//Stop Internal HTTP Server
-	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
-	if(lRetVal < 0)
-	{
-		ERR_PRINT(lRetVal);
-		LOOP_FOREVER();
-	}
-
-	lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-	CLR_STATUS_BIT_ALL(g_ulStatus);
-
-    return SUCCESS;
-}
-
 int32_t WiFiProvisioning()
 {
 	int32_t lRetVal;
+	uint8_t ucConfigFileData[CONTENT_LENGTH_USER_CONFIGS];
+	int32_t lFileHandle;
+	uint8_t* pucConfigFileData = &ucConfigFileData[WIFI_DATA_OFFSET];
 
 	g_ucProfileAdded = 0;
 
@@ -267,10 +73,10 @@ int32_t WiFiProvisioning()
 		//UART_PRINT("WLAN Disconnected back\n\r");
 
 		//Write to Flash file
-		lRetVal = CreateFile_Flash(FILENAME_USERWIFI, MAX_FILESIZE_USERWIFI);
-		ASSERT_ON_ERROR(lRetVal);
-		uint8_t ucConfigFileData[CONTENTSIZE_FILE_USERWIFI];
-		uint8_t* pucConfigFileData = &ucConfigFileData[0];
+		lRetVal = ReadFile_FromFlash(ucConfigFileData,
+										(uint8_t*)USER_CONFIGS_FILENAME,
+										CONTENT_LENGTH_USER_CONFIGS,
+										0);
 
 		strcpy((char*)pucConfigFileData, (const char*)g_cWlanSSID);
 		pucConfigFileData += strlen((const char*)pucConfigFileData)+1;
@@ -280,18 +86,18 @@ int32_t WiFiProvisioning()
 
 		strcpy((char*)pucConfigFileData, (const char*)g_cWlanSecurityKey);
 
-		int32_t lFileHandle;
+
 		lRetVal = WriteFile_ToFlash((uint8_t*)&ucConfigFileData[0],
-									(uint8_t*)FILENAME_USERWIFI,
-									CONTENTSIZE_FILE_USERWIFI,
+									(uint8_t*)USER_CONFIGS_FILENAME,
+									CONTENT_LENGTH_USER_CONFIGS,
 									0, 1, &lFileHandle);
 		ASSERT_ON_ERROR(lRetVal);
 
 		// For verification - DBG
 		lRetVal = ReadFile_FromFlash((ucConfigFileData+3),
-										(uint8_t*)FILENAME_USERWIFI,
-										CONTENTSIZE_FILE_USERWIFI-3,
-										0);
+										(uint8_t*)USER_CONFIGS_FILENAME,
+										WIFI_DATA_SIZE-3,
+										WIFI_DATA_OFFSET);
 		ASSERT_ON_ERROR(lRetVal);
 	}
 	else
@@ -341,8 +147,8 @@ int32_t CollectAngle(uint8_t ucAngle)
 	float_t fAngleTemp;
 	int32_t lFileHandle;
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
-	uint32_t ulToken = 0;
-	SlFsFileInfo_t FileInfo;
+//	uint32_t ulToken = 0;
+//	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	angleCheck_Initializations();
@@ -354,38 +160,27 @@ int32_t CollectAngle(uint8_t ucAngle)
 		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
-	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
-	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
-	{
-		UART_PRINT("Creating fresh file\n\r");
-		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
-		ASSERT_ON_ERROR(lRetVal);
+//	lRetVal = sl_FsGetInfo((uint8_t *)USER_CONFIGS_FILENAME, ulToken, &FileInfo);
+//	if(FileInfo.FileLen)
+//	{
+//		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
+//		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, FileInfo.FileLen, 0);
+//	}
+//	else
+//	{
+//		UART_PRINT("Filelen 0 :(\n\r");
+//	}
 
-		sl_FsGetInfo(FILENAME_ANGLE_VALS, ulToken, &FileInfo);
-	}
-
-	if(FileInfo.FileLen)
-	{
-		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
-		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
-	}
-	else
-	{
-		UART_PRINT("Filelen 0 :(\n\r");
-	}
-
-//	float fAnglet[2];
-//	ReadFile_FromFlash((uint8_t*)fAnglet, (uint8_t*)FILENAME_ANGLE_VALS, (sizeof(float)*2), 0);
+	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, CONTENT_LENGTH_USER_CONFIGS, 0);
 
 	//Save it in flash in the right place
-	//create_AngleValuesFile();
 	if(ucAngle == ANGLE_90)
 	{
 		UART_PRINT("90deg: %f\n\r",fAngleTemp);
 		Mag_Calb_Value[0] = fAngleTemp;
 		lRetVal = WriteFile_ToFlash((uint8_t*)g_image_buffer,
-								(uint8_t*)FILENAME_ANGLE_VALS,
-								MAX_FILESIZE_ANGLE_VALS, 0,
+								(uint8_t*)USER_CONFIGS_FILENAME,
+								CONTENT_LENGTH_USER_CONFIGS, 0,
 								SINGLE_WRITE, &lFileHandle);
 		ASSERT_ON_ERROR(lRetVal);
 	}
@@ -394,8 +189,8 @@ int32_t CollectAngle(uint8_t ucAngle)
 		UART_PRINT("40deg: %f\n\r",fAngleTemp);
 		Mag_Calb_Value[1] = fAngleTemp;
 		lRetVal = WriteFile_ToFlash((uint8_t*)g_image_buffer,
-								(uint8_t*)FILENAME_ANGLE_VALS,
-								MAX_FILESIZE_ANGLE_VALS, 0,
+								(uint8_t*)USER_CONFIGS_FILENAME,
+								CONTENT_LENGTH_USER_CONFIGS, 0,
 								SINGLE_WRITE, &lFileHandle);
 		ASSERT_ON_ERROR(lRetVal);
 	}
@@ -409,32 +204,19 @@ int32_t CalibrateMagSensor()
 	int32_t lFileHandle;
 	uint8_t tmpCnt=0;
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
-	uint32_t ulToken = 0;
-	SlFsFileInfo_t FileInfo;
+//	uint32_t ulToken = 0;
+//	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	fxosDefault_Initializations();
 
-	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
-	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
-	{
-		UART_PRINT("Creating fresh file\n\r");
-		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
-		ASSERT_ON_ERROR(lRetVal);
-		sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
-	}
 
-	if(FileInfo.FileLen)
-	{
-		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
-		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, FileInfo.FileLen, 0);
-	}
-	else
-	{
-		UART_PRINT("Filelen 0\n\r");
-	}
+	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, CONTENT_LENGTH_USER_CONFIGS, 0);
 
 	g_ucMagCalb = 0;
+#define MAG_SENSOR_CALIBCOUNT		1
+//#define MAG_SENSOR_CALIBCOUNT		3
+//#define MAG_SENSOR_CALIBCOUNT		2
 	while(g_ucMagCalb < MAG_SENSOR_CALIBCOUNT)
 	{
 		fxos_Calibration();
@@ -459,8 +241,8 @@ int32_t CalibrateMagSensor()
 //		UART_PRINT("%f\n",Mag_Calb_Value[i]);
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)Mag_Calb_Value,
-							(uint8_t*)FILENAME_ANGLE_VALS,
-							MAX_FILESIZE_ANGLE_VALS, 0,
+							(uint8_t*)USER_CONFIGS_FILENAME,
+							CONTENT_LENGTH_USER_CONFIGS, 0,
 							SINGLE_WRITE, &lFileHandle);
 	//UART_PRINT("Write lRet %d", lRetVal);
 	ASSERT_ON_ERROR(lRetVal);
@@ -544,16 +326,7 @@ int32_t User_Configure()
 	bool run_flag=true;
 	float fAngle;
 
-//	CreateFile_Flash((uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
-
 	AccessPtMode_HTTPServer_Start();
-
-//
-//	ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), 0);
-//
-//	float fAnglet[2];
-//	ReadFile_FromFlash((uint8_t*)fAnglet, (uint8_t*)FILENAME_ANGLE_VALS, (sizeof(float)*2), 0);
-
 
 	while(run_flag == true)
     {
@@ -591,19 +364,11 @@ int32_t User_Configure()
 
 		if(g_ucExitButton == BUTTON_PRESSED)
 		{
-//			fAngle = 0;
-//			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), 0);
-//			UART_PRINT("Angle90 = %3.2f\n\r",fAngle);
-//
-//			fAngle = 0;
-//			ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), sizeof(float));
-//			UART_PRINT("Angle40 = %3.2f\n\r",fAngle);
-
 			uint8_t i;
 			for(i=0;i<14;i++)
 			{
 				fAngle = 0;
-				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)FILENAME_ANGLE_VALS, sizeof(float), (i)*sizeof(float));
+				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)USER_CONFIGS_FILENAME, sizeof(float), (i)*sizeof(float));
 				UART_PRINT("%d:%3.2f\n\r",i,fAngle);
 			}
 
@@ -632,38 +397,38 @@ int32_t User_Configure()
     return SUCCESS;
 }
 
-int32_t create_AngleValuesFile()
-{
-	long lFileHandle;
-	unsigned long ulToken = NULL;
-	long lRetVal;
-
-	lRetVal = sl_Start(0,0,0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	//
-	// NVMEM File Open to write to SFLASH
-	//
-	lRetVal = sl_FsOpen((unsigned char *)FILENAME_ANGLE_VALS,//0x00212001,
-						FS_MODE_OPEN_CREATE(MAX_FILESIZE_ANGLE_VALS,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-						&ulToken,
-						&lFileHandle);
-	if(lRetVal < 0)
-	{
-		UART_PRINT("File Open Error: %i", lRetVal);
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-
-	// Close the created file
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = sl_Stop(0xFFFF);
-	ASSERT_ON_ERROR(lRetVal);
-
-	return lRetVal;
-}
+//int32_t create_AngleValuesFile()
+//{
+//	long lFileHandle;
+//	unsigned long ulToken = NULL;
+//	long lRetVal;
+//
+//	lRetVal = sl_Start(0,0,0);
+//	ASSERT_ON_ERROR(lRetVal);
+//
+//	//
+//	// NVMEM File Open to write to SFLASH
+//	//
+//	lRetVal = sl_FsOpen((unsigned char *)USER_CONFIGS_FILENAME,//0x00212001,
+//						FS_MODE_OPEN_CREATE(CONTENT_LENGTH_USER_CONFIGS,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+//						&ulToken,
+//						&lFileHandle);
+//	if(lRetVal < 0)
+//	{
+//		UART_PRINT("File Open Error: %i", lRetVal);
+//		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+//		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+//	}
+//
+//	// Close the created file
+//	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+//	ASSERT_ON_ERROR(lRetVal);
+//
+//	lRetVal = sl_Stop(0xFFFF);
+//	ASSERT_ON_ERROR(lRetVal);
+//
+//	return lRetVal;
+//}
 //******************************************************************************
 //
 //! \brief Connecting to a WLAN Accesspoint

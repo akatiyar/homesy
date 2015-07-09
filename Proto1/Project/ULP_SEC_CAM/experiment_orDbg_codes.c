@@ -11,13 +11,13 @@
 
 
 
-	lRetVal = sl_FsDel((uint8_t *)FILENAME_ANGLE_VALS, ulToken);
+	lRetVal = sl_FsDel((uint8_t *)USER_CONFIGS_FILENAME, ulToken);
 	UART_PRINT("Del %f", lRetVal);
 
-	lRetVal = sl_FsGetInfo((uint8_t *)FILENAME_ANGLE_VALS, ulToken, &FileInfo);
+	lRetVal = sl_FsGetInfo((uint8_t *)USER_CONFIGS_FILENAME, ulToken, &FileInfo);
 	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
 	{
-		lRetVal = CreateFile_Flash((uint8_t *)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS);
+		lRetVal = CreateFile_Flash((uint8_t *)USER_CONFIGS_FILENAME, CONTENT_LENGTH_USER_CONFIGS);
 		ASSERT_ON_ERROR(lRetVal);
 	}
 

@@ -14,8 +14,8 @@ int32_t createAndWrite_ImageHeaderFile()
 	//
 	// NVMEM File Open to write to SFLASH
 	//
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_HEADER_FILE_NAME,//0x00212001,
-						FS_MODE_OPEN_CREATE(MAX_IMAGE_HEADER_SIZE_BYTES,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,//0x00212001,
+						FS_MODE_OPEN_CREATE(JPEG_HEADER_MAX_FILESIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
 						&ulToken,
 						&lFileHandle);
 	if(lRetVal < 0)
@@ -33,7 +33,7 @@ int32_t createAndWrite_ImageHeaderFile()
 	// JPEG Header - create and write to Flash
 	//
 	// Open the file for Write Operation
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_HEADER_FILE_NAME,
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,
 						FS_MODE_OPEN_WRITE,
 						&ulToken,
 						&lFileHandle);

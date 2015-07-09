@@ -417,13 +417,13 @@ long CameraSensorInit()
 long CameraSensorInit_SettingsFromFlash()
 {
 	long lRetVal = -1;
-	uint8_t ucFileContent[CONTENTSIZE_FILE_IMAGESENS_CONFIG];
+	uint8_t ucFileContent[CONTENT_LENGTH_SENSORS_CONFIGS];
 	uint8_t* puc;
 
 	lRetVal = ReadFile_FromFlash(ucFileContent,
-									FILENAME_IMAGESENS_CONFIG,
-									CONTENTSIZE_FILE_IMAGESENS_CONFIG,
-									0);
+									FILENAME_SENSORCONFIGS,
+									CONTENT_LENGTH_SENSORS_CONFIGS,
+									OFFSET_MT9D111);
 
 	puc = ucFileContent + 2;
 	lRetVal = RegLstWrite((s_RegList*)puc, ucFileContent[0]);
@@ -435,13 +435,13 @@ long CameraSensorInit_SettingsFromFlash()
 long StartCapture_SettingsFromFlash()
 {
 	long lRetVal = -1;
-	uint8_t ucFileContent[CONTENTSIZE_FILE_IMAGESENS_CONFIG];
+	uint8_t ucFileContent[CONTENT_LENGTH_SENSORS_CONFIGS];
 	uint8_t* puc;
 
 	lRetVal = ReadFile_FromFlash(ucFileContent,
-									FILENAME_IMAGESENS_CONFIG,
-									CONTENTSIZE_FILE_IMAGESENS_CONFIG,
-									0);
+									FILENAME_SENSORCONFIGS,
+									CONTENT_LENGTH_SENSORS_CONFIGS,
+									OFFSET_MT9D111);
 
 	puc = ucFileContent + 2 + (ucFileContent[0] * sizeof(s_RegList));
 	lRetVal = RegLstWrite((s_RegList*)puc, ucFileContent[1]);
@@ -456,16 +456,16 @@ long WriteConfigRegFile_toFlash()
 	long lRetVal = -1;
 	int32_t lFileHandle;
 	uint8_t ucHeader[2];
-	uint16_t offset = 0;
+	uint16_t offset = OFFSET_MT9D111;
 
 	ucHeader[0] = sizeof(init_cmds_list)/sizeof(s_RegList);
 	ucHeader[1] = sizeof(capture_cmds_list)/sizeof(s_RegList);
 
-	lRetVal = CreateFile_Flash(FILENAME_IMAGESENS_CONFIG, MAX_FILESIZE_IMAGESENS_CONFIG);
+	lRetVal = CreateFile_Flash(FILENAME_SENSORCONFIGS, MAX_FILESIZE_SENSORCONFIGS);
 	ASSERT_ON_ERROR(lRetVal);
 
 	lRetVal = WriteFile_ToFlash(ucHeader,
-								FILENAME_IMAGESENS_CONFIG,
+								FILENAME_SENSORCONFIGS,
 								sizeof(ucHeader),
 								offset,
 								MULTIPLE_WRITE_FIRST,
@@ -474,7 +474,7 @@ long WriteConfigRegFile_toFlash()
 	offset += lRetVal;
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)&init_cmds_list[0],
-									FILENAME_IMAGESENS_CONFIG,
+									FILENAME_SENSORCONFIGS,
 									sizeof(init_cmds_list),
 									offset,
 									MULTIPLE_WRITE_MIDDLE,
@@ -483,7 +483,7 @@ long WriteConfigRegFile_toFlash()
 	offset += lRetVal;
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)&capture_cmds_list[0],
-										FILENAME_IMAGESENS_CONFIG,
+										FILENAME_SENSORCONFIGS,
 										sizeof(capture_cmds_list),
 										offset,
 										MULTIPLE_WRITE_LAST,
@@ -502,9 +502,9 @@ long WriteConfigRegFilefromUser_toFlash(uint8_t* pFileContent,
 	int32_t lFileHandle;
 
 	lRetVal = WriteFile_ToFlash(pFileContent,
-								FILENAME_IMAGESENS_CONFIG,
+								FILENAME_SENSORCONFIGS,
 								uiDataSize,
-								0,
+								OFFSET_MT9D111,
 								SINGLE_WRITE,
 								&lFileHandle);
 	ASSERT_ON_ERROR(lRetVal);

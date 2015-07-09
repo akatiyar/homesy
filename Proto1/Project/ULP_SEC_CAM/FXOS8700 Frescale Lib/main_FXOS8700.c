@@ -58,7 +58,7 @@ int16_t angleCheck_Initializations()
 	// initialize the sensor fusion algorithms
 	Fusion_Init();
 
-	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)FILENAME_ANGLE_VALS, MAX_FILESIZE_ANGLE_VALS, 0);
+	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, MAGNETOMETER_DATA_SIZE, 0);
 
 	gdoor_90deg_angle = Mag_Calb_Value[tmpCnt++];
 	gdoor_40deg_angle  = Mag_Calb_Value[tmpCnt++];

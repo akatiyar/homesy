@@ -73,7 +73,7 @@ int32_t CollectTxit_ImgTempRH()
 	memset(ucParseImageUrl, NULL, 100);
 	do{
 		lRetVal = UploadImageToParse(clientHandle,
-										(unsigned char*) IMAGE_DATA_FILE_NAME,
+										(unsigned char*) JPEG_IMAGE_FILE_NAME,
 										ucParseImageUrl);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );

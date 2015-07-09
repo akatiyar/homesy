@@ -308,8 +308,8 @@ int payloadSend( const char *httpRequestBody,
 		SlFsFileInfo_t fileInfo;
 
 		//	Header
-		sl_FsGetInfo((_u8*)IMAGE_HEADER_FILE_NAME, ulToken, &fileInfo);
-		status = ReadFile_FromFlash((uint8_t*)dataBuffer, IMAGE_HEADER_FILE_NAME, fileInfo.FileLen, 0);
+		sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &fileInfo);
+		status = ReadFile_FromFlash((uint8_t*)dataBuffer, JPEG_HEADER_FILE_NAME, fileInfo.FileLen, 0);
 		if (status >= 0)
 		{
 			long temp = status;

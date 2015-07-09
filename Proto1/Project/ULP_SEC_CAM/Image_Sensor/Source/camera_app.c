@@ -359,7 +359,7 @@ long CaptureAndStore_Image()
 	//
 	// Open the file for Write Operation
 	//
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_DATA_FILE_NAME,
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
 					   FS_MODE_OPEN_WRITE,
 					   &ulToken,
 					   &lFileHandle);
@@ -558,7 +558,7 @@ long CaptureAndStore_Image()
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
     //UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
 
-    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)IMAGE_DATA_FILE_NAME, uiImageFile_Offset, 0);
+    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
     lRetVal = sl_Stop(0xFFFF);
 	ASSERT_ON_ERROR(lRetVal);
 
@@ -629,7 +629,7 @@ long CaptureinRAM_StoreAfterCapture_Image()
 	//
 	// Open the file for Write Operation
 	//
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_DATA_FILE_NAME,
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
 					   FS_MODE_OPEN_WRITE,
 					   &ulToken,
 					   &lFileHandle);
@@ -807,7 +807,7 @@ static void CameraIntHandler()
 
         g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
         if(g_frame_size_in_bytes < FRAME_SIZE_IN_BYTES && 
-                                    g_frame_size_in_bytes < MAX_IMAGE_SIZE_BYTES)
+                                    g_frame_size_in_bytes < JPEG_IMAGE_MAX_FILESIZE)
         {
             if(g_dma_txn_done == 0)
             {
@@ -1440,8 +1440,8 @@ int32_t createAndWrite_ImageHeaderFile()
 	//
 	// NVMEM File Open to write to SFLASH
 	//
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_HEADER_FILE_NAME,//0x00212001,
-						FS_MODE_OPEN_CREATE(MAX_IMAGE_HEADER_SIZE_BYTES,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,//0x00212001,
+						FS_MODE_OPEN_CREATE(JPEG_HEADER_MAX_FILESIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
 						&ulToken,
 						&lFileHandle);
 	if(lRetVal < 0)
@@ -1459,7 +1459,7 @@ int32_t createAndWrite_ImageHeaderFile()
 	// JPEG Header - create and write to Flash
 	//
 	// Open the file for Write Operation
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_HEADER_FILE_NAME,
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,
 						FS_MODE_OPEN_WRITE,
 						&ulToken,
 						&lFileHandle);
@@ -1491,7 +1491,7 @@ int32_t createAndWrite_ImageHeaderFile()
 	ASSERT_ON_ERROR(lRetVal);
 
 	SlFsFileInfo_t fileInfo;
-	sl_FsGetInfo((unsigned char *)IMAGE_HEADER_FILE_NAME, ulToken, &fileInfo);
+	sl_FsGetInfo((unsigned char *)JPEG_HEADER_FILE_NAME, ulToken, &fileInfo);
 
 	sl_Stop(0xFFFF);
 
@@ -1510,8 +1510,8 @@ int32_t create_JpegImageFile()
 	//
 	// NVMEM File Open to write to SFLASH
 	//
-	lRetVal = sl_FsOpen((unsigned char *)IMAGE_DATA_FILE_NAME,//0x00212001,
-						FS_MODE_OPEN_CREATE(MAX_IMAGE_SIZE_BYTES,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,//0x00212001,
+						FS_MODE_OPEN_CREATE(JPEG_IMAGE_MAX_FILESIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
 						&ulToken,
 						&lFileHandle);
 	if(lRetVal < 0)
@@ -1522,6 +1522,51 @@ int32_t create_JpegImageFile()
 	}
 
 	// Close the created file
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = sl_Stop(0xFFFF);
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+
+int32_t Write_JPEGHeader()
+{
+	long lFileHandle;
+	unsigned long ulToken = NULL;
+	long lRetVal;
+
+	// Create Header
+	memset(g_header, '\0', sizeof(g_header));
+	g_header_length = CreateJpegHeader((char *)&g_header[0],
+										PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
+										0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
+
+	lRetVal = sl_Start(0,0,0);
+	ASSERT_ON_ERROR(lRetVal);
+
+	// Open the file for Write Operation
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,
+						FS_MODE_OPEN_WRITE,
+						&ulToken,
+						&lFileHandle);
+	if(lRetVal < 0)
+	{
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(lRetVal);
+	}
+
+	// Write
+	lRetVal = sl_FsWrite(lFileHandle, 0, (unsigned char*)g_header, g_header_length - 1);
+	if(lRetVal < 0)
+	{
+		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+		ASSERT_ON_ERROR(lRetVal);
+	}
+
+	// Close the file post writing the image
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	ASSERT_ON_ERROR(lRetVal);
 
