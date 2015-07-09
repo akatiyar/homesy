@@ -545,6 +545,11 @@ void ApplyAccelHAL(struct AccelSensor *pthisAccel)
 	thisAccel.iGpFast[Z] = -thisAccel.iGpFast[Z];
 #endif // Win8
 
+//	//Tag:Chry
+//	thisAccel.iGpFast[X] = -thisAccel.iGpFast[X];
+//	thisAccel.iGpFast[Y] = -thisAccel.iGpFast[Y];
+//	thisAccel.iGpFast[Z] = -thisAccel.iGpFast[Z];
+
 	return;
 }
 
@@ -566,6 +571,9 @@ void ApplyMagHAL(struct MagSensor *pthisMag)
 	thisMag.iBpFast[X] = -thisMag.iBpFast[X];
 	thisMag.iBpFast[Y] = -thisMag.iBpFast[Y];
 #endif
+//	thisMag.iBpFast[X] = -thisMag.iBpFast[X];
+//	thisMag.iBpFast[Y] = -thisMag.iBpFast[Y];
+//	thisMag.iBpFast[Z] = -thisMag.iBpFast[Y];
 
 	// finally correct for the left handed magnetic coordinate system in MAG3110
 #if defined USE_MAG3110

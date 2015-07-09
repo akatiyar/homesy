@@ -57,6 +57,9 @@ void check_doorpos()
 	if(print_count==20)
 	{
 	UART_PRINT("ANGLE=%3.2f\n", angle_reg);
+//	UART_PRINT("phi = %3.2f, theta = %3.2f, psi = %3.2f, rho = %3.2f, chi = %3.2f\n",
+//			thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe, thisSV_6DOF_GB_BASIC.fLPPsi,
+//			thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPChi);
 	print_count=0;
 
 	}

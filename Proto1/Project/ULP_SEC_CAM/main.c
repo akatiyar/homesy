@@ -444,11 +444,10 @@ void UserConfigure_Task(void *pvParameters)
 			osi_Sleep(20);
 		}
 		g_ulAppStatus = USER_CONFIG_TAKING_PLACE;	//includes OTA also for now
-		//UART_PRINT("Switch Pressed\n\r");
-		start_100mSecTimer();
-		//while(1);
-#define TIMEOUT_LONGPRESS		(30/6)	//3 sec press is defined as long press. Remove /6 if sys clk issue is resolved
 
+		start_100mSecTimer();
+
+#define TIMEOUT_LONGPRESS		(30/6)	//3 sec press is defined as long press. Remove /6 if sys clk issue is resolved
 		while(1)
 		{
 			if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
@@ -507,9 +506,9 @@ void Main_Task_withHibernate(void *pvParameters)
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
     	//Print the Purose of changing to this firmware here
-    	UART_PRINT("*** F17 ***\n\r");
-    	LED_Blink(30, 1);
-		//LED_Blink(10, 1);
+    	UART_PRINT("*** F18 ***\n\r");
+    	//LED_Blink(30, 1);
+		LED_Blink(10, 1);
 		LED_On();
 		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)	//Will exit if UserConfig is over or UserConfig was never entered
 		{
@@ -524,15 +523,13 @@ void Main_Task_withHibernate(void *pvParameters)
 		softResetTempRHSensor();
 		configureTempRHSensor();
 
-		//Write_JPEGHeader();	//Should be taken to the .USF
-
 		Config_And_Start_CameraCapture();
 
 		OTA_CommitImage();
 	}
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		UART_PRINT("*** F17 WakeHIB ***\n\r");
+		UART_PRINT("*** F18 WakeHIB ***\n\r");
 		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
 
