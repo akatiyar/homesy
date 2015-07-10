@@ -24,7 +24,7 @@ void IntHandler_100mSecTimer(void)
 	Timer_IF_InterruptClear(TIMERA0_BASE);
 	Elapsed_100MilliSecs++;
 	checkForLight_Flag = 1;
-	UART_PRINT("%d ",Elapsed_100MilliSecs);
+	//UART_PRINT("%d ",Elapsed_100MilliSecs);
 
 //	if(Elapsed_100MilliSecs%2)
 //	{
@@ -54,6 +54,18 @@ int32_t stop_100mSecTimer()
 	return 0;
 }
 
+//	Use this function along with 100 milli sec timer only. Before stopping timer
+uint32_t get_timeDuration()
+{
+	uint32_t ulCounter;
+	uint32_t ulDurationMilliSec;
+
+	ulCounter = MAP_TimerValueGet(APP_PROFILING_TIMER_BASE, TIMER_A);
+	ulCounter = MILLISECONDS_TO_TICKS(RELOADVAL_100MILLISEC) - ulCounter;
+	ulDurationMilliSec = ((float_t)Elapsed_100MilliSecs * 100.0) + ((float_t)ulCounter / 80000.0); //in milli sec
+
+	return ulDurationMilliSec;
+}
 //void TimerBaseIntHandler(void)
 //{
 //    Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);

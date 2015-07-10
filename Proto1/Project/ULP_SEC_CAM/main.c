@@ -116,6 +116,8 @@
 #include "dbgFns.h"
 
 #include "flc_api.h"
+
+#include "parse_uploads.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -308,6 +310,24 @@ void Main_Task(void *pvParameters)
 
 void Test_Task(void *pvParameters)
 {
+#ifdef COMPIL_THIS
+	sl_Start(0,0,0);
+
+	uint8_t FridgeCamID[FRIDGECAM_ID_SIZE];
+	Get_FridgeCamID(FridgeCamID);
+	UART_PRINT("%s\n\r",FridgeCamID);
+#endif
+#ifdef COMPILE_THIS
+	uint32_t ulTimeDuration_ms;
+	start_100mSecTimer();
+	MAP_UtilsDelay(0.3*80000000/6);
+	//osi_Sleep(100);
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("%d ms\n\r", ulTimeDuration_ms);
+#endif
+
+#ifdef COMPILE_THIS
 	uint32_t ulToken = 0;
 	SlFsFileInfo_t FileInfo;
 	int32_t lRetVal;
@@ -327,15 +347,18 @@ void Test_Task(void *pvParameters)
 	CollectTxit_ImgTempRH();
 
 	while(1);
-
+#endif
+#ifdef COMPILE_THIS
 	Check_FlashFiles();
-
+#endif
+#ifdef COMPILE_THIS
 	Check_I2CDevices();
 	while(1)
 	{
 		UART_PRINT("%d\n\r", Get_BatteryPercent());
 		UtilsDelay(80000000);
 	}
+#endif
 #ifdef COMPILE_I2CDEVICE_CHECK
 	Check_I2CDevices();
 #endif
@@ -447,7 +470,7 @@ void UserConfigure_Task(void *pvParameters)
 
 		start_100mSecTimer();
 
-#define TIMEOUT_LONGPRESS		(30/6)	//3 sec press is defined as long press. Remove /6 if sys clk issue is resolved
+#define TIMEOUT_LONGPRESS		(30)	//3 sec press is defined as long press.
 		while(1)
 		{
 			if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
@@ -456,15 +479,15 @@ void UserConfigure_Task(void *pvParameters)
 				break;
 			}
 
-			// This code is for avoiding debounce
+			// This code is for avoiding debounce. If pin is found to be high, it is checked again after 10 sec. It is repeatedly checked 3 times.
 			uint8_t i;
 			for(i = 0; i < 3; i++)
 			{
 				if(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
 				{
 					UART_PRINT("pinhigh DB %d\n\r", i);
-					UtilsDelay(12*80000/6);	//12 millisec delay
-					//osi_Sleep(100);
+					//UtilsDelay(12*80000/6);	//12 millisec delay
+					osi_Sleep(100);	//suspend the task for 10milli sec
 				}
 				else
 				{
@@ -503,43 +526,47 @@ void UserConfigure_Task(void *pvParameters)
 
 void Main_Task_withHibernate(void *pvParameters)
 {
-    if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
-	{
-    	//Print the Purose of changing to this firmware here
-    	UART_PRINT("*** F18 ***\n\r");
-    	//LED_Blink(30, 1);
-		LED_Blink(10, 1);
-		LED_On();
-		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)	//Will exit if UserConfig is over or UserConfig was never entered
-		{
-			osi_Sleep(100);	//Wait if User Config is happening presently
-		}
-		osi_TaskDelete(&g_UserConfigTaskHandle);
-		UART_PRINT("!!Application running!!\n\r");
-
-		Check_I2CDevices();
-
-		configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);	//Configures for reading Lux and wakeup interrupt
-		softResetTempRHSensor();
-		configureTempRHSensor();
-
-		Config_And_Start_CameraCapture();
-
-		OTA_CommitImage();
-	}
+	//This branch is entered only on wake up from hibernate
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		UART_PRINT("*** F18 WakeHIB ***\n\r");
-		UART_PRINT("\n\rI'm up\n\r");
 		LED_On();
+		UART_PRINT("\n\rI'm up\n\r");
 
-		if(!IsLightOff(LUX_THRESHOLD))	//If condition met, it indicates that device was hibernated while light was on
+		//Condition NOT met indicates that device hibernated while light was on
+		if(!IsLightOff(LUX_THRESHOLD))
 		{
 			CollectTxit_ImgTempRH();
 		}
 	}
+	//This branch is entered on power on (Battery insert) or soc RST(OTA reboot)
+    if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
+    		(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
+	{
+    	//Print the Purose of changing to this firmware here
+    	UART_PRINT("*** F18 ***\n\r");
+		LED_Blink(10, 1);
+		LED_On();
 
-	LED_Off();
+		//Wait if User Config is happening presently
+		//Will exit if UserConfig is over or UserConfig was never entered
+		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
+		{
+			osi_Sleep(100);
+		}
+		osi_TaskDelete(&g_UserConfigTaskHandle);
+		UART_PRINT("!!Application running!!\n\r");
+
+		Check_I2CDevices();		//Remove once I2C issues are resolved
+
+		//Configures for reading Lux and wakeup interrupt
+		configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
+		softResetTempRHSensor();
+		configureTempRHSensor();
+		Config_And_Start_CameraCapture();
+
+		OTA_CommitImage();
+	}
+
 	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
 
 	//PC never gets here
@@ -676,7 +703,7 @@ void main()
 	UDMAInit();
 
 	//
-    // Start the SimpleLink Host
+    // Start the SimpleLink Host - SpawnTask is needed for NWP asynch events
     //
     lRetVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
     if(lRetVal < 0)

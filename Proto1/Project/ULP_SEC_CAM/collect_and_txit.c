@@ -35,11 +35,10 @@ int32_t CollectTxit_ImgTempRH()
 	uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	ParseClient clientHandle;
 	uint8_t ucParseImageUrl[100];
-	//uint8_t ucParseImageUrl[] = "tfss-cdf82004-4241-425f-96ce-3f68092bebce-myPic1.jpg";
 	uint8_t ucTryNum = 0;
 	float_t fTemp = 12.34, fRH = 56.78;
-	//float_t fBatteryLvl = 80;
 	uint8_t ucBatteryLvl = 80;
+	uint8_t ucFridgeCamID[FRIDGECAM_ID_SIZE];
 
 #ifndef NO_CAMERA
 	//
@@ -48,6 +47,7 @@ int32_t CollectTxit_ImgTempRH()
 	lRetVal = CaptureAndStore_Image();
 	if((lRetVal == LIGHT_IS_OFF_BEFORE_IMAGING)||(lRetVal == TIMEOUT_BEFORE_IMAGING))
 	{
+		g_ulAppStatus = lRetVal;
 		return lRetVal;
 	}
 	//CaptureinRAM_StoreAfterCapture_Image();
@@ -79,29 +79,31 @@ int32_t CollectTxit_ImgTempRH()
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	PRINT_ON_ERROR(lRetVal);
 
+	//
+	//	Collect and Upload sensor data to Parse
+	//
 	if (lRetVal >= 0)	//Check whether image upload was successful
 	{
 		//
 		//	Collect Temperature and RH values from Si7020 IC
 		//
-		//softResetTempRHSensor();
-		//configureTempRHSensor();
-		//UtilsDelay(80000000/);
 		getTempRH(&fTemp, &fRH);
 		UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
 
-		//	Get_BatteryVoltageLevel_ADC081C021(&fBatteryLvl);
 		ucBatteryLvl = Get_BatteryPercent();
+
+		Get_FridgeCamID(ucFridgeCamID);
+		UART_PRINT("FridgeCam ID: %s\n\r",ucFridgeCamID);
 
 		//
 		// Construct the JSON object string
 		//
 		memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
-		ConstructDeviceStateObject(ucParseImageUrl, fTemp, fRH, ucBatteryLvl, ucSensorDataTxt);
+		ConstructDeviceStateObject(&ucFridgeCamID[0], &ucParseImageUrl[0], fTemp, fRH, ucBatteryLvl, &ucSensorDataTxt[0]);
 		UART_PRINT("OBJECT: %s\n", ucSensorDataTxt);
 
 		//
-		//	Upload sensor data to Parse
+		//	Collect and Upload sensor data to Parse
 		//
 		ucTryNum = 0;
 		do{

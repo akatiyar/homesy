@@ -352,11 +352,19 @@ long CaptureAndStore_Image()
 	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
 	//g_image_buffer[0] = 0xFFFFFFFF;
 
+	uint32_t ulTimeDuration_ms;
+
+	start_100mSecTimer();	//Remove once delay after wake up is accepted
+
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
 
-	//
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
+
+   	//
 	// Open the file for Write Operation
 	//
 	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
@@ -370,8 +378,6 @@ long CaptureAndStore_Image()
 	   //ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
 
-	//fxos_main();
-
 	//
 	// Initialize camera controller
 	//
@@ -382,17 +388,9 @@ long CaptureAndStore_Image()
 	//
 	DMAConfig();
 
-	//LED_Off();
-//	fxos_main();
-//	if(!g_flag_door_closing_45degree)	//Case where we have to abort
-//	{
-//		lRetVal = sl_Stop(0xFFFF);
-//		ASSERT_ON_ERROR(lRetVal);
-//		return LIGHT_IS_OFF_BEFORE_IMAGING;
-//	}
-
 	// Wait for Imaging Position of door
 	angleCheck_Initializations();
+
 //	int i;
 //	for(i=0; i<100; i++)
 //	{
@@ -412,14 +410,16 @@ long CaptureAndStore_Image()
 			break;
 		}
 
+		//Cases where we have to abort and hibernate
 		if(checkForLight_Flag)	//Flag Goes up once every 100mSec
 		{
+			//Light is off
 			if(IsLightOff(LUX_THRESHOLD))
 			{
 				lRetVal = LIGHT_IS_OFF_BEFORE_IMAGING;
 				break;
 			}
-			//Timeout also happens only on 100ms
+			//Timeout
 			if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
 			{
 				lRetVal = TIMEOUT_BEFORE_IMAGING;

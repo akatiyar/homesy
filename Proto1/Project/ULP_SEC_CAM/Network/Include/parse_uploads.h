@@ -13,14 +13,18 @@
 
 #define DEVICE_STATE_OBJECT_SIZE	500
 
+#define FRIDGECAM_ID_SIZE			20		//in Bytes; 12 characters for MAC ID + extra
+
 ParseClient InitialiseParse();
 int32_t UploadImageToParse(ParseClient client,
 							uint8_t* ucImageDirName,
 							uint8_t* ucParseImageName);
 int32_t UploadSensorDataToParse(ParseClient client,
 								uint8_t* sensorDataDirName);
-int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
+int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
+									uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
 									uint8_t ucBatteryLevel,
 									uint8_t* pucSensorDataTxt);
+int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID);

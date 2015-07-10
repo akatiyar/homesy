@@ -16,6 +16,7 @@ volatile uint8_t checkForLight_Flag;
 
 int32_t start_100mSecTimer();
 int32_t stop_100mSecTimer();
+uint32_t get_timeDuration();
 
 //volatile uint32_t v_TimerOverflows;
 //volatile uint32_t v_OneSecFlag;

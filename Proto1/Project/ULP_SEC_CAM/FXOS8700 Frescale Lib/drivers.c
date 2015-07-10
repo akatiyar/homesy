@@ -172,7 +172,7 @@ void FXOS8700_Init(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 //							ucConfigArray[i*2 + 1],
 //							0b11111111);
 	}
-	UtilsDelay(80000000*.3);
+	//MAP_UtilsDelay(80000000*.3/6);
 
 	// store the gain terms in the accelerometer and magnetometer sensor structures
 #define FXOS8700_UTPERCOUNT 0.1F      				// fixed range for FXOS8700 magnetometer

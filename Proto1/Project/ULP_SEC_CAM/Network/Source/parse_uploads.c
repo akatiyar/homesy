@@ -3,6 +3,7 @@
 #include "camera_app.h"
 #include "string.h"
 #include "app_common.h"
+#include "netcfg.h"
 
 extern char* dataBuffer;
 
@@ -148,6 +149,62 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 	return 0;
 }
 
+//******************************************************************************
+//	This function constructs and returns the Unique ID of the fridge cam
+//
+//	param[out]	pucFridgeCamID	- pointer to the variable where the DeviceID is
+//								placed
+//
+//	return SUCCESS or FAILURE
+//
+//	The MAC ID of the device concatenated to 'Cam' is the device ID
+//
+//	Note: The function involves a NWP call. So ensure NWP is on.
+//******************************************************************************
+int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID)
+{
+	int32_t lRetVal;
+	uint8_t i;
+	uint8_t* pucTemp;
+	uint8_t macAddressVal[SL_MAC_ADDR_LEN];
+	uint8_t macAddressLen = SL_MAC_ADDR_LEN;
+
+	memset(pucFridgeCamID, '\0', FRIDGECAM_ID_SIZE);
+	strcpy((char*)pucFridgeCamID, "Cam_");
+	pucFridgeCamID += strlen((const char*)pucFridgeCamID);
+	pucTemp = pucFridgeCamID;
+
+	lRetVal = sl_NetCfgGet(SL_MAC_ADDRESS_GET,NULL,&macAddressLen,(uint8_t *)macAddressVal);
+
+	for(i=0; i<SL_MAC_ADDR_LEN; i++)
+	{
+		//Left Nibble
+		*pucFridgeCamID = (macAddressVal[i] & 0xF0) >> 4;	//4-nibble size.
+		pucFridgeCamID++;
+
+		//RightNibble
+		*pucFridgeCamID = (macAddressVal[i] & 0x0F);
+		pucFridgeCamID++;
+	}
+
+	pucFridgeCamID = pucTemp;
+	for(i=0; i<(SL_MAC_ADDR_LEN*2); i++)
+	{
+		//0-9
+		if(*pucFridgeCamID <= 9)
+		{
+			*pucFridgeCamID = *pucFridgeCamID + 0x30; 		// 0(Char) = 0x30(ASCII)
+		}
+		//A-F
+		else
+		{
+			*pucFridgeCamID = (*pucFridgeCamID-0x0A) + 0x41; // A(Char) = 0x41(ASCII)
+		}
+		pucFridgeCamID++;
+	}
+
+    return lRetVal;
+}
 
 //******************************************************************************
 //
@@ -165,8 +222,8 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 //	String functions are used
 //
 //******************************************************************************
-
-int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
+int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
+									uint8_t* pucParseImageUrl,
 									float_t fTemp,
 									float_t fRH,
 									uint8_t ucBatteryLevel,
@@ -179,9 +236,11 @@ int32_t ConstructDeviceStateObject(uint8_t* pucParseImageUrl,
 	memset(ucCharConv, '0', 20);
 	strncat((char*)pucSensorDataTxt, "{\"deviceId\":\"",
 					sizeof("{\"deviceId\":\""));
-	strncat((char*)pucSensorDataTxt,
-					VCOGNITION_DEVICE_ID,
-					sizeof("VCOGNITION_DEVICE_ID"));
+//	strncat((char*)pucSensorDataTxt,
+//					VCOGNITION_DEVICE_ID,
+//					sizeof("VCOGNITION_DEVICE_ID"));
+	strncat((char*)pucSensorDataTxt, (const char*)pucFridgeCamID,
+					strlen((char*)pucFridgeCamID));
 	strncat((char*)pucSensorDataTxt,
 					"\",\"photo\":{\"name\":\"",
 					sizeof("\",\"photo\":{\"name\":\""));
