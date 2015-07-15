@@ -131,5 +131,9 @@ typedef enum
 
 //Global variable used through out the app
 uint32_t g_ulAppStatus;
+int8_t g_I2CPeripheral_inUse_Flag;
 
+#define NO		0
+#define YES		1
+#define NEVER	-1	//This is used only for the current fix for reducing set up time
 #endif /* GENERAL_INCLUDES_H_ */

@@ -78,6 +78,7 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod);
 #define HARD_STANDBY				2
 
 int32_t Refresh_mt9d111Firmware();
+int32_t BeginCapture_MT9D111();
 
 int32_t Read_AllRegisters();
 //*****************************************************************************

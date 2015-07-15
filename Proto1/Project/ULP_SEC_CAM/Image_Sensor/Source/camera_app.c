@@ -428,9 +428,10 @@ int32_t Start_CameraCapture()
 	ASSERT_ON_ERROR(lRetVal);
 	Refresh_mt9d111Firmware();
 	ASSERT_ON_ERROR(lRetVal);
+//	BeginCapture_MT9D111();
+//	ASSERT_ON_ERROR(lRetVal);
 
 	return lRetVal;
-
 }
 int32_t Config_CameraCapture()
 {
@@ -477,20 +478,24 @@ long CaptureAndStore_Image()
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
 	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
+	memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
 	//g_image_buffer[0] = 0xFFFFFFFF;
 
 	uint32_t ulTimeDuration_ms;
 
-//	start_100mSecTimer();	//Remove once delay after wake up is accepted
+	//start_100mSecTimer();	//Remove once delay after wake up is accepted
 
+	UART_PRINT("b sl_start\n\r");
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
-   	ASSERT_ON_ERROR(lRetVal);
+    UART_PRINT("a sl_start\n\r");
+    ASSERT_ON_ERROR(lRetVal);
 
 //	ulTimeDuration_ms = get_timeDuration();
 //	stop_100mSecTimer();
 //	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
 
+   	UART_PRINT("b Fileopen\n\r");
    	//
 	// Open the file for Write Operation
 	//
@@ -498,6 +503,7 @@ long CaptureAndStore_Image()
 					   FS_MODE_OPEN_WRITE,
 					   &ulToken,
 					   &lFileHandle);
+	UART_PRINT("a Fileopen\n\r");
 	if(lRetVal < 0)
 	{
 	   sl_FsClose(lFileHandle, 0, 0, 0);
@@ -533,10 +539,21 @@ long CaptureAndStore_Image()
 	stop_100mSecTimer();
 	UART_PRINT("*2* - %d ms *2*\n\r", ulTimeDuration_ms);
 */
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("main - over - %d ms\n\r", ulTimeDuration_ms);
 
-//		ulTimeDuration_ms = get_timeDuration();
-//		stop_100mSecTimer();
-//		UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
+	start_100mSecTimer();
+
+	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
+	{
+		UART_PRINT("{");
+		osi_Sleep(10);
+	}
+
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
 //	int i;
 //	for(i=0; i<100; i++)

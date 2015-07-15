@@ -284,6 +284,7 @@ void main()
 	long lRetVal = -1;
 
 	g_ulAppStatus = START;
+	g_I2CPeripheral_inUse_Flag = NEVER;
 
     //
     // Initialize Board configurations
@@ -359,18 +360,18 @@ void main()
 		LOOP_FOREVER();
 	}
 
-//    lRetVal = osi_TaskCreate(
-//    				ImageSensor_CaptureConfigs_Task,
-//					(const signed char *)"Collect And Txit ImgTempRM",
-//					OSI_STACK_SIZE,
-//					NULL,
-//					1,
-//					&g_ImageCaptureConfigs_TaskHandle );
-//	if(lRetVal < 0)
-//	{
-//		ERR_PRINT(lRetVal);
-//		LOOP_FOREVER();
-//	}
+    lRetVal = osi_TaskCreate(
+    				ImageSensor_CaptureConfigs_Task,
+					(const signed char *)"Collect And Txit ImgTempRM",
+					OSI_STACK_SIZE,
+					NULL,
+					1,
+					&g_ImageCaptureConfigs_TaskHandle );
+	if(lRetVal < 0)
+	{
+		ERR_PRINT(lRetVal);
+		LOOP_FOREVER();
+	}
 
     //
     // Start the task scheduler

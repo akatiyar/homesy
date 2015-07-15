@@ -33,11 +33,19 @@ void Main_Task_withHibernate(void *pvParameters)
 		LED_On();
 		UART_PRINT("\n\rI'm up\n\r");
 
+		//This flag is necessary since parallel task also needs to access the I2C peripheral
+		g_I2CPeripheral_inUse_Flag = YES;
 		//Condition NOT met indicates that device hibernated while light was on
 		if(!IsLightOff(LUX_THRESHOLD))
 		{
-			Wakeup_ImageSensor();
-			Start_CameraCapture();
+			g_I2CPeripheral_inUse_Flag = NO;
+			//Flag is not switched back in case where the if condition is not
+			// met since the device hibernates anyways
+
+			start_100mSecTimer();
+
+//			Wakeup_ImageSensor();
+//			Start_CameraCapture();
 
 			CollectTxit_ImgTempRH();
 		}
@@ -67,10 +75,37 @@ void Main_Task_withHibernate(void *pvParameters)
 		softResetTempRHSensor();
 		configureTempRHSensor();
 
-		//Config_And_Start_CameraCapture();
+//		//Config_And_Start_CameraCapture();
+//		uint32_t ulTimeDuration_ms;
+//		start_100mSecTimer();
+//		Config_And_Start_CameraCapture();
+//		ulTimeDuration_ms = get_timeDuration();
+//		stop_100mSecTimer();
+//		UART_PRINT("cam configs - %d ms\n\r", ulTimeDuration_ms);
 
+
+		//start_100mSecTimer();
 		Config_CameraCapture();
+//		Start_CameraCapture();
+//		while(1)
+//		{
+//			CollectTxit_ImgTempRH();
+//		}
+//
 		Standby_ImageSensor();
+
+//		//Tag:Remove after blank image DBG
+//		start_100mSecTimer();
+//		while(1)
+//		{
+//			Wakeup_ImageSensor();
+//			Start_CameraCapture();
+//			CollectTxit_ImgTempRH();
+//			Standby_ImageSensor();
+//		}
+//		ulTimeDuration_ms = get_timeDuration();
+//		stop_100mSecTimer();
+//		UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
 		OTA_CommitImage();
 	}

@@ -57,6 +57,8 @@
 
 #include "flash_files.h"
 
+#include "osi.h"
+
 #define RET_OK                  0
 #define RET_ERROR               -1
 #define SENSOR_PAGE_REG         0xF0
@@ -354,7 +356,20 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0x273B    },  // MODE_CROP_Y1_B
     {1, 0xC8, 1200      },
     //{1, 0xC8, 820      },
-    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
+/*
+// Tag:CS to solve the bent images after stanby issue
+	{1, 0xC6, 0xA361    }, // AWB_TG_MIN0
+	{1, 0xC8, 0x00E2    }, // AWB_TG_MIN0
+	{1, 0xC6, 0xA10F    }, // SEQ_RESET_LEVEL_TH
+	{1, 0xC8, 0x0042    }, // SEQ_RESET_LEVEL_TH
+	{1, 0xC6, 0xAB04    }, // HG_MAX_DLEVEL
+	{1, 0xC8, 0x0008    }, // HG_MAX_DLEVEL
+	{1, 0xC6, 0xA103    }, // SEQ_CMD
+	{1, 0xC8, 0x0005    }, // SEQ_CMD
+	{1, 0xC6, 0xA104    }, // SEQ_CMD
+	{111, 0xC8,0x0003   },
+*/
+    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
     {100, 0x00, 0x01F4  },  // Delay =500ms
 };
@@ -686,8 +701,9 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
     		UART_PRINT("1");
     		// PageAddr == 100, insret a delay equal to reg value
             //MT9D111Delay(pRegLst->usValue * 80000/3);
-    		MT9D111Delay(pRegLst->usValue * 80000/6);	//Change this based on no of clocks onclycle in MT9D111Delay takes
+    		//MT9D111Delay(pRegLst->usValue * 80000/6);	//Change this based on no of clocks onclycle in MT9D111Delay takes
     		//MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
+    		osi_Sleep(pRegLst->usValue);
         }
         else if(pRegLst->ucPageAddr == 111)
         {
@@ -1321,6 +1337,20 @@ int32_t Refresh_mt9d111Firmware()
 	return lRetVal;
 }
 
+int32_t BeginCapture_MT9D111()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = 	{
+//									{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
+//									{1, 0xC8, 0x0002    },
+									{100, 0x00, 0x01F4  },  // Delay =500ms
+								};
+
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
+
+	return lRetVal;
+}
 //******************************************************************************
 //	Variable_Read(): Reads value of one register in MT9D111
 //
@@ -1415,38 +1445,29 @@ int32_t EnterStandby_mt9d111(uint8_t ucMethod)
 	int32_t lRetVal;
 
 	s_RegList stndby_cmds_list[] = {
-			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
-			{1, 0xC8, 0x0001},
-			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
-			{111, 0xC8, 0x0003},
+			{1, 0xC6, 0xA103},{1, 0xC8, 0x0001},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+			{1, 0xC6, 0xA104},{111, 0xC8, 0x0003},	//Wait till in A; seq.state = 3(preview state)
+			{100, 0x00, 0x0064},//100ms delay
 
-//			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
-//			{1, 0xC8, 0x0001},
-//			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
-//			{111, 0xC8, 0x0003},
-
-			{1, 0xC6, 0xA103},	//Standby firmware; seq.cmd = 3(standby cmd)
-			{1, 0xC8, 0x0003},
+			{1, 0xC6, 0xA103},{1, 0xC8, 0x0003},	//Standby firmware; seq.cmd = 3(standby cmd)
 			{100, 0x00, 0x01F4},//500ms delay
-			{1, 0xC6, 0xA104},	//Wait till stanby; seq.state = 9(standby state)
-			{111, 0xC8, 0x0009},
-			{0, 0x65, 0xA000},  //Bypass PLL
-			//{0, 0x65, 0xE000},  // Power DOWN PLL. Added additionally. Doesnt seem to have an effect
+			//{100, 0x00, 0x0064},//100ms delay - doesnt always work
+			{1, 0xC6, 0xA104},{111, 0xC8, 0x0009},	//Wait till stanby; seq.state = 9(standby state)
+
+			{0, 0x65, 0xA000},  	//Bypass PLL
+			//{0, 0x65, 0xE000},  	// Power DOWN PLL. Added additionally. Doesnt seem to have an effect
 
 			//{1, 0x0A, 0x0488},	//I/O pad input clamp during standby
-			{1, 0x0A, 0x0080},	//I/O pad input clamp during standby
-			{0, 0x0D, 0x0040},	//high-impedance outputs when in standby state
+			{1, 0x0A, 0x0080},		//I/O pad input clamp during standby
+			{0, 0x0D, 0x0040},		//high-impedance outputs when in standby state
 
-			{1, 0xC6, 0x9078},
-			{1, 0xC8, 0x0000},
-			{1, 0xC6, 0x9079},
-			{1, 0xC8, 0x0000},
-			{1, 0xC6, 0x9070},
-			{1, 0xC8, 0x0000},
-			{1, 0xC6, 0x9071},
-			{1, 0xC8, 0x0000},
-
-				};
+			//Configure direction of GPIO pads as Output
+			{1, 0xC6, 0x9078},{1, 0xC8, 0x0000},	//Pins 11:8
+			{1, 0xC6, 0x9079},{1, 0xC8, 0x0000},	//Pins 7:0
+			//Make the state of GPIO pins as 0
+			{1, 0xC6, 0x9070},{1, 0xC8, 0x0000},	//Pins 11:8
+			{1, 0xC6, 0x9071},{1, 0xC8, 0x0000},	//Pins 7:0
+									};
 	s_RegList stndby_cmds = {0, 0x0D, 0x0044};	//Sensor standby - use for soft standby
 
 	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
@@ -1483,13 +1504,11 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 
 	s_RegList stndby_cmds = {0, 0x0D, 0x0040};	//Sensor wake - soft
 
-	s_RegList stndby_cmds_list[] = {
-
-				{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
-				{1, 0xC8, 0x0001},
-				{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
-				{111, 0xC8, 0x0003}
-										};
+	s_RegList stndby_cmds_list[] =	{
+				{1, 0xC6, 0xA103},{1, 0xC8, 0x0001},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+				{100, 0, 0x0064	},						//100ms delay
+				{1, 0xC6, 0xA104},{111, 0xC8, 0x0003}	//Wait till in A; seq.state = 3(preview state)
+									};
 
 	MT9D111Delay(SYSTEM_CLOCK/MT9D111_CLKIN_MIN * 24 + 100);
 									//Wait after turning ON Clock to Cam (XCLK)
