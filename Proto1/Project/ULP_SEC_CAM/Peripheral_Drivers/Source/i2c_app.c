@@ -26,6 +26,7 @@
 #define ONE_STOP_BIT 			1
 #define ZERO_STOP_BIT 			0
 
+#define SYS_CLK                 80000000
 //******************************************************************************
 //
 //  This function reads values of one or more registers in FXOS8700, ISL29035
@@ -60,6 +61,7 @@ int32_t i2cReadRegisters(uint8_t ucDevI2CAddr,
 	    MAP_UtilsDelay(1);
 	    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
 	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
+	    MAP_I2CMasterInitExpClk(I2CA0_BASE,SYS_CLK,false);	//100k only. Change if 400k is also to be used
 	}
 
 	lRetVal = I2C_IF_Write(ucDevI2CAddr,
@@ -118,6 +120,7 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 	    MAP_UtilsDelay(1);
 	    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
 	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
+	    MAP_I2CMasterInitExpClk(I2CA0_BASE,SYS_CLK,false);	//100k only. Change if 400k is also to be used
 	}
 
 	//
@@ -175,6 +178,7 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 	    MAP_UtilsDelay(1);
 	    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
 	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
+	    MAP_I2CMasterInitExpClk(I2CA0_BASE,SYS_CLK,false);	//100k only. Change if 400k is also to be used
 	}
 
 	lRetVal = I2C_IF_Write(ucDevI2CAddr,

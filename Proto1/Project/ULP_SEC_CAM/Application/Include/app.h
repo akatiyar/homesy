@@ -93,13 +93,16 @@ typedef enum
 }e_AppErrorOrReturnCodes;
 
 // Application specific status codes. Assign this to g_lAppStatus variable
+//These are used for inter task communication
 typedef enum
 {
 	START = 0,
 	USER_CONFIG_TAKING_PLACE,
 	USER_CONFIG_DONE,
 	LIGHT_IS_OFF_BEFORE_IMAGING,
-	TIMEOUT_BEFORE_IMAGING
+	TIMEOUT_BEFORE_IMAGING,
+	IMAGESENSOR_CAPTURECONFIGS_HAPPENING,
+	IMAGESENSOR_CAPTURECONFIGS_DONE
 }e_AppStatusCodes;
 
 #define STOPHERE_ON_ERROR(error_code)\

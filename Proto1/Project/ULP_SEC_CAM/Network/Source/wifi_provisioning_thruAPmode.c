@@ -320,6 +320,7 @@ int32_t AccessPtMode_HTTPServer_Start()
 	return lRetVal;
 }
 
+//Tag:Refine. Move this funtion to an appropriate place
 int32_t User_Configure()
 {
 	long lRetVal = -1;

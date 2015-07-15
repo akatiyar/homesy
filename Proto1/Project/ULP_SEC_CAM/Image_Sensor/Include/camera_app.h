@@ -161,6 +161,11 @@ int32_t Wakeup_ImageSensor();
 int32_t createAndWrite_ImageHeaderFile();
 int32_t create_JpegImageFile();
 int32_t Write_JPEGHeader();
+int32_t Config_And_Start_CameraCapture();
+int32_t Start_CameraCapture();
+int32_t Config_CameraCapture();
+
+int32_t toggle_standby();//Tag:Remove later
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

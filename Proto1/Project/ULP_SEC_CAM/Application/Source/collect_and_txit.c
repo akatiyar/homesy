@@ -19,7 +19,7 @@
 #include "appFns.h"
 
 extern uint8_t g_ucMagCalb;
-extern int32_t CollectTxit_ImgTempRH();
+int32_t CollectTxit_ImgTempRH();
 //*****************************************************************************
 //
 //	The function captures image and sensor data and uploads to Parse
@@ -50,6 +50,8 @@ int32_t CollectTxit_ImgTempRH()
 		g_ulAppStatus = lRetVal;
 		return lRetVal;
 	}
+	//SoftReset_ImageSensor();	//Including this since we are unable to standby image sensor while it is still running at times(?)
+	Standby_ImageSensor();
 	//CaptureinRAM_StoreAfterCapture_Image();
 #endif
 

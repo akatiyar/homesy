@@ -9,7 +9,9 @@
 #define APPFNS_H_
 
 extern uint8_t Get_BatteryPercent();
-
+extern int16_t IsLightOff(uint16_t usThresholdLux);
+extern int32_t CollectTxit_ImgTempRH();
+extern int32_t User_Configure();
 
 
 #endif /* APPFNS_H_ */

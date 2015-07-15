@@ -366,7 +366,7 @@ int payloadSend( const char *httpRequestBody,
 			}
 			UtilsDelay(80000);
 		}
-		//DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
+		DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
 		if(0 != fileInfo.FileLen%SIZE_SOCK_WRITE_DATA)
 		{
 			status = sl_FsRead(lFileHandle,
@@ -381,6 +381,7 @@ int payloadSend( const char *httpRequestBody,
 				 for( ;; );
 			 }
 			 size_readBytes += status;
+			 DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
 		}
 
 
@@ -421,6 +422,7 @@ int payloadSend( const char *httpRequestBody,
 			DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
 			while(1);
 		}
+		UtilsDelay(80000);
 	}
 
 	return status;

@@ -5,6 +5,31 @@
  *      Author: Chrysolin
  */
 
+		Config_CameraCapture();
+		Standby_ImageSensor();
+		Wakeup_ImageSensor();
+		Start_CameraCapture();
+
+//		while(1)
+//		{
+//			toggle_standby();
+//		}
+
+		while(1)
+		{
+			//Config_CameraCapture();
+			//Standby_ImageSensor();
+
+			Read_AllRegisters();
+			EnterStandby_mt9d111(1);
+			Read_AllRegisters();
+
+			Wakeup_ImageSensor();
+			Start_CameraCapture();
+
+			UtilsDelay(2*80000000/6);
+			//CollectTxit_ImgTempRH();
+		}
 
 int32_t createAndWrite_ImageHeaderFile()
 {

@@ -81,7 +81,7 @@ void MT9D111Delay(unsigned long ucDelay);
           "    bx      lr");
     }
 #endif
-#if defined(ccs)
+#if defined(ccs)	//Eac hcycle takes 6 clocks now
 
     __asm("    .sect \".text:MT9D111Delay\"\n"
           "    .clink\n"
@@ -197,7 +197,8 @@ long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
         for(ulNdx=1; ulNdx < ulSize-1; ulNdx++)
         {
         	//MT9D111Delay(10);
-            MT9D111Delay(40);
+        	MT9D111Delay(10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
+            //MT9D111Delay(40);
             MAP_I2CMasterIntClearEx(I2CA0_BASE, I2C_INT_MASTER);
 
             //

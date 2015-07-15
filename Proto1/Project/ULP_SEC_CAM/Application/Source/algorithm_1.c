@@ -47,7 +47,6 @@ float angle_reading_del2;
 float angle_reading_del3;
 float angle_reading_del4;
 
-//extern int32_t CollectTxit_ImgTempRH();
 extern uint8_t g_flag_door_closing_45degree;
 
 void check_doorpos()

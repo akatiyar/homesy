@@ -71,7 +71,7 @@
 #include "prcm.h"
 #include "rom.h"
 #include "rom_map.h"
-#include "timer.h"
+//#include "timer.h"
 #include "utils.h"
 #include "pinmux.h"
 
@@ -83,41 +83,15 @@
 
 #include "gpio_if.h"
 #include "timer_if.h"
-//#include "network_if.h"
 #include "udma_if.h"
 #include "common.h"
 
 #include "i2c_if.h"
-#include "i2cconfig.h"
+#include "i2c_app.h"
 
-#include "accelomtrMagntomtr_fxos8700.h"
-#include "tempRHSens_si7020.h"
-#include "batteryVoltLvlSens_adc081c021.h"
-#include "lightSens_isl29035.h"
-
-#include "math.h"
-
-#include "mt9d111.h"
 #include "camera_app.h"
 #include "network_related_fns.h"
-#include "parse.h"
-#include "parse_uploads.h"
-#include "hibernate_related_fns.h"
-#include "flash_files.h"
 #include "app_common.h"
-#include "timer_fns.h"
-#include "wifi_provisioing_thruAPmode.h"
-#include "ota.h"
-
-#include "test_modules.h"
-#include "test_fns.h"
-
-#include "appFns.h"
-#include "dbgFns.h"
-
-#include "flc_api.h"
-
-#include "parse_uploads.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -152,25 +126,12 @@ unsigned char g_ucConfigsDone = 0;
 
 OsiTaskHandle g_UserConfigTaskHandle = NULL ;
 OsiTaskHandle g_MainTaskHandle = NULL ;
-
-//unsigned long g_ulResetCause;
+OsiTaskHandle g_ImageCaptureConfigs_TaskHandle = NULL ;
 
 Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
                                         "__SL_G_US1", "__SL_G_US2","__SL_G_US3",
                                                     "__SL_G_US4", "__SL_G_US5"};
-extern int32_t Collect_InitMangReadings();
-extern int32_t WaitFor40Degrees();
-int32_t Config_And_Start_CameraCapture();
-extern int32_t create_AngleValuesFile();
-
-extern void fxos_main();
-
-extern int32_t fxos_get_initialYaw(float_t* pfInitYaw);
-extern int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor);
-extern int32_t fxos_calibrate();
-
-int16_t IsLightOff(uint16_t usThresholdLux);
 
 #if defined(ccs)
 extern void (* const g_pfnVectors[])(void);
@@ -188,11 +149,12 @@ extern uVectorEntry __vector_table;
 //****************************************************************************
 static void BoardInit();
 
-int32_t CollectTxit_ImgTempRH();
-void Main_Task(void *pvParameters);
-void Main_Task_withHibernate(void *pvParameters);
-void UserConfigure_Task(void *pvParameters);
-void Test_Task(void *pvParameters);
+
+extern void Main_Task(void *pvParameters);
+extern void Main_Task_withHibernate(void *pvParameters);
+extern void UserConfigure_Task(void *pvParameters);
+extern void Test_Task(void *pvParameters);
+extern void ImageSensor_CaptureConfigs_Task(void *pvParameters);
 
 #ifdef USE_FREERTOS
 //*****************************************************************************
@@ -270,353 +232,6 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
     }
 }
 #endif //USE_FREERTOS
-
-//*****************************************************************************
-//
-//	Main Task
-//
-//	Initialize and hibernate. Wake on trigger and wait for 40degree closing
-//	door condition and capture image and sensor data and upload to cloud
-//
-//*****************************************************************************
-void Main_Task(void *pvParameters)
-{
-	UART_PRINT("Firmware 2\n\r");
-	OTA_Update_2();
-	//LED_Blink(30, 1);
-
-	LED_On();
-//	while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
-//	{
-//		osi_Sleep(100);	//Wait if User Config is happening presently
-//	}
-//	osi_TaskDelete(&g_UserConfigTaskHandle);
-	UART_PRINT("!!Application running!!\n\r");
-
-	softResetTempRHSensor();
-	configureTempRHSensor();
-
-	createAndWrite_ImageHeaderFile();
-	create_JpegImageFile();
-
-	configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);	//Configures for reading Lux and wakeup interrupt
-
-	Config_And_Start_CameraCapture();
-	while(1)
-	{
-		CollectTxit_ImgTempRH();
-	}
-}
-
-void Test_Task(void *pvParameters)
-{
-#ifdef COMPIL_THIS
-	sl_Start(0,0,0);
-
-	uint8_t FridgeCamID[FRIDGECAM_ID_SIZE];
-	Get_FridgeCamID(FridgeCamID);
-	UART_PRINT("%s\n\r",FridgeCamID);
-#endif
-#ifdef COMPILE_THIS
-	uint32_t ulTimeDuration_ms;
-	start_100mSecTimer();
-	MAP_UtilsDelay(0.3*80000000/6);
-	//osi_Sleep(100);
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("%d ms\n\r", ulTimeDuration_ms);
-#endif
-
-#ifdef COMPILE_THIS
-	uint32_t ulToken = 0;
-	SlFsFileInfo_t FileInfo;
-	int32_t lRetVal;
-
-	sl_Start(0,0,0);
-	sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &FileInfo);
-	lRetVal = ReadFile_FromFlash((uint8_t*)g_image_buffer, JPEG_HEADER_FILE_NAME, FileInfo.FileLen, 0);
-	UART_PRINT("%d\n\r%d\n\r", FileInfo.FileLen, lRetVal);
-	for(lRetVal = 0; lRetVal<(650/4);lRetVal++)
-	{
-		UART_PRINT("%x ", g_image_buffer[lRetVal]);
-	}
-	sl_Stop(0xFFFF);
-
-	User_Configure();
-	Config_And_Start_CameraCapture();
-	CollectTxit_ImgTempRH();
-
-	while(1);
-#endif
-#ifdef COMPILE_THIS
-	Check_FlashFiles();
-#endif
-#ifdef COMPILE_THIS
-	Check_I2CDevices();
-	while(1)
-	{
-		UART_PRINT("%d\n\r", Get_BatteryPercent());
-		UtilsDelay(80000000);
-	}
-#endif
-#ifdef COMPILE_I2CDEVICE_CHECK
-	Check_I2CDevices();
-#endif
-
-//#define COMPILE_THIS_1
-#ifdef COMPILE_THIS_1
-	uint8_t ucADCVal;
-	while(1)
-	{
-		Get_BatteryVoltageLevel_ADC081C021(&ucADCVal);
-		UART_PRINT("%xH\n\r", ucADCVal);
-		UART_PRINT("%d\n\r", Get_BatteryPercent());
-	}
-#endif
-
-#ifdef COMPILE_THIS
-	Config_And_Start_CameraCapture();
-	while(1)
-	{
-		CollectTxit_ImgTempRH();
-	}
-#endif
-
-#ifdef COMPILE_THIS
-	UART_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
-while(1)
-{
-	configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
-	getLightsensor_intrptStatus();
-	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
-	while(GPIOPinRead(GPIOA0_BASE, 0x04));
-	UART_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
-
-	configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
-	getLightsensor_intrptStatus();
-	UART_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
-	while(GPIOPinRead(GPIOA0_BASE, 0x04));
-	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
-}
-#endif
-
-#ifdef COMPILE_THIS
-	while(1)
-	{
-		start_100mSecTimer();
-		while(!(Elapsed_100MilliSecs == 100))
-		{
-		}
-		stop_100mSecTimer();
-	}
-#endif
-
-//	while(1)
-//	{
-//		InitializeTimer();
-//		StartTimer();
-//		UtilsDelay(5*80000000/6);
-//	}
-
-#ifdef COMPILE_THIS
-	verifyISL29035();
-	configureISL29035(0);
-	uint16_t lux;
-	while(1)
-	{
-		lux = getLightsensor_data();
-		if(lux <= 5)
-		{
-			UART_PRINT("aaa\n");
-		}
-		if(IsLightOff(100))
-		{
-			UART_PRINT("ooo\n");
-		}
-	}
-#endif
-
-	//verifyISL29035();
-	//verifyTempRHSensor();
-	//verifyAccelMagnSensor();
-	//Config_And_Start_CameraCapture();
-	//Verify_ImageSensor();
-//	FXOS8700_Init();
-//	float fMagnFlux[3];
-//	while(1)
-//	{
-//		UtilsDelay(0.25*80000000/6);
-//		getMagnFlux_3axis(fMagnFlux);
-//		UART_PRINT("%f, %f, %f\n\r", fMagnFlux[0], fMagnFlux[1], fMagnFlux[2]);
-//	}
-//	while(1)
-//		fxos_main();
-}
-
-void UserConfigure_Task(void *pvParameters)
-{
-	//LED_On();
-	g_ulAppStatus  = START;
-	UtilsDelay(1000000);
-	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON) ||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
-	{
-		UART_PRINT("***SHORT PRESS-CONFIGURE THRU PHONE APP***\n\r"
-						"***LONG PRESS-OTA***\n\r");
-		while(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
-		{
-			osi_Sleep(20);
-		}
-		g_ulAppStatus = USER_CONFIG_TAKING_PLACE;	//includes OTA also for now
-
-		start_100mSecTimer();
-
-#define TIMEOUT_LONGPRESS		(30)	//3 sec press is defined as long press.
-		while(1)
-		{
-			if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
-			{
-				UART_PRINT("Time out\n\r");
-				break;
-			}
-
-			// This code is for avoiding debounce. If pin is found to be high, it is checked again after 10 sec. It is repeatedly checked 3 times.
-			uint8_t i;
-			for(i = 0; i < 3; i++)
-			{
-				if(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
-				{
-					UART_PRINT("pinhigh DB %d\n\r", i);
-					//UtilsDelay(12*80000/6);	//12 millisec delay
-					osi_Sleep(100);	//suspend the task for 10milli sec
-				}
-				else
-				{
-					//UART_PRINT("pinlow\n\r");
-					break;
-				}
-			}
-			if (i>=3)
-			{
-				UART_PRINT("pin high... short press\n\r");
-				break;
-			}
-
-			//UtilsDelay(12*80000/6);	//12 millisec delay
-		}
-		stop_100mSecTimer();
-		if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
-		{
-			UART_PRINT("Long press : %d\n\r", Elapsed_100MilliSecs);
-			OTA_Update();
-		}
-		else if (Elapsed_100MilliSecs < TIMEOUT_LONGPRESS)
-		{
-			UART_PRINT("Short press : %d\n\r", Elapsed_100MilliSecs);
-			User_Configure();
-			UART_PRINT("User Cofig Mode EXIT\n\r");
-		}
-		g_ulAppStatus = USER_CONFIG_DONE;
-		while(1);
-	}
-	else
-	{
-		osi_TaskDelete(&g_UserConfigTaskHandle);
-	}
-}
-
-void Main_Task_withHibernate(void *pvParameters)
-{
-	//This branch is entered only on wake up from hibernate
-	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
-	{
-		LED_On();
-		UART_PRINT("\n\rI'm up\n\r");
-
-		//Condition NOT met indicates that device hibernated while light was on
-		if(!IsLightOff(LUX_THRESHOLD))
-		{
-			CollectTxit_ImgTempRH();
-		}
-	}
-	//This branch is entered on power on (Battery insert) or soc RST(OTA reboot)
-    if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
-    		(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
-	{
-    	//Print the Purose of changing to this firmware here
-    	UART_PRINT("*** F18 ***\n\r");
-		LED_Blink(10, 1);
-		LED_On();
-
-		//Wait if User Config is happening presently
-		//Will exit if UserConfig is over or UserConfig was never entered
-		while(g_ulAppStatus == USER_CONFIG_TAKING_PLACE)
-		{
-			osi_Sleep(100);
-		}
-		osi_TaskDelete(&g_UserConfigTaskHandle);
-		UART_PRINT("!!Application running!!\n\r");
-
-		Check_I2CDevices();		//Remove once I2C issues are resolved
-
-		//Configures for reading Lux and wakeup interrupt
-		configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
-		softResetTempRHSensor();
-		configureTempRHSensor();
-		Config_And_Start_CameraCapture();
-
-		OTA_CommitImage();
-	}
-
-	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
-
-	//PC never gets here
-	while(1);
-}
-int32_t Config_And_Start_CameraCapture()
-{
-	int32_t lRetVal;
-
-	UART_PRINT("\n\rConfig Camera:\n\r");
-	CamControllerInit();	// Init parallel camera interface of cc3200
-							// since image sensor needs XCLK for
-							//its I2C module to work
-
-	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
-							// 10 is margin
-
-	SoftReset_ImageSensor();
-
-	//UART_PRINT("\n\rCam Sensor Init ");
-	CameraSensorInit();
-
-	// Configure Sensor in Capture Mode
-	//UART_PRINT("\n\rStart Sensor ");
-	lRetVal = StartSensorInJpegMode();
-	ASSERT_ON_ERROR(lRetVal);
-
-//	uint16_t x;
-	disableAE();
-	disableAWB();
-	WriteAllAEnAWBRegs();
-	Refresh_mt9d111Firmware();
-
-//	LL_Configs();
-
-//	Variable_Read(0xA743, &x);
-//	Variable_Read(0xA744, &x);
-//	Variable_Read(0xA115, &x);
-//	Variable_Read(0xA118, &x);
-//
-//	Variable_Read(0xA116, &x);
-//	Variable_Read(0xA117, &x);
-
-	UART_PRINT("I2C Camera config done\n\r");
-
-	MAP_PRCMPeripheralReset(PRCM_CAMERA);
-	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-
-	return lRetVal;
-}
 
 //*****************************************************************************
 //
@@ -743,6 +358,19 @@ void main()
 		ERR_PRINT(lRetVal);
 		LOOP_FOREVER();
 	}
+
+//    lRetVal = osi_TaskCreate(
+//    				ImageSensor_CaptureConfigs_Task,
+//					(const signed char *)"Collect And Txit ImgTempRM",
+//					OSI_STACK_SIZE,
+//					NULL,
+//					1,
+//					&g_ImageCaptureConfigs_TaskHandle );
+//	if(lRetVal < 0)
+//	{
+//		ERR_PRINT(lRetVal);
+//		LOOP_FOREVER();
+//	}
 
     //
     // Start the task scheduler

@@ -93,6 +93,8 @@ extern int gdoor_close_angle;
 extern int gdoor_snap_angle;
 
 extern struct MagCalibration thisMagCal;
+
+extern OsiTaskHandle g_ImageCaptureConfigs_TaskHandle;
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -306,7 +308,11 @@ int32_t Standby_ImageSensor()
 {
 	int32_t lRetVal;
 
-	lRetVal = EnterStandby_mt9d111();
+	UART_PRINT("\n\rCam Stndby\n\r");
+
+	//lRetVal = EnterStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
+	lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
+	ASSERT_ON_ERROR(lRetVal);
 
 	MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
@@ -314,17 +320,138 @@ int32_t Standby_ImageSensor()
 	return lRetVal;
 }
 
+
+
 int32_t Wakeup_ImageSensor()
 {
 	int32_t lRetVal;
 
+	UART_PRINT("\n\rCam Wake\n\r");
+
 	CamControllerInit();
 
-	lRetVal = ExitStandby_mt9d111();
+	//lRetVal = ExitStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
+	lRetVal = ExitStandby_mt9d111(SOFT_STANDBY);
+	ASSERT_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
 
+int32_t Config_And_Start_CameraCapture()
+{
+	int32_t lRetVal;
+	uint32_t ulTimeDuration_ms;
+
+	start_100mSecTimer();	//Remove once ...
+
+	UART_PRINT("\n\rConfig Camera:\n\r");
+	CamControllerInit();	// Init parallel camera interface of cc3200
+							// since image sensor needs XCLK for
+							//its I2C module to work
+
+	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+							// 10 is margin
+
+	SoftReset_ImageSensor();
+
+	//UART_PRINT("\n\rCam Sensor Init ");
+	CameraSensorInit();
+
+	Standby_ImageSensor();
+	Wakeup_ImageSensor();
+
+	// Configure Sensor in Capture Mode
+	//UART_PRINT("\n\rStart Sensor ");
+	lRetVal = StartSensorInJpegMode();
+	ASSERT_ON_ERROR(lRetVal);
+
+//	uint16_t x;
+	disableAE();
+	disableAWB();
+	WriteAllAEnAWBRegs();
+	Refresh_mt9d111Firmware();
+
+
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
+
+
+	Standby_ImageSensor();
+	Wakeup_ImageSensor();
+
+	lRetVal = StartSensorInJpegMode();
+	ASSERT_ON_ERROR(lRetVal);
+
+//	uint16_t x;
+	disableAE();
+	disableAWB();
+	WriteAllAEnAWBRegs();
+	Refresh_mt9d111Firmware();
+
+//	LL_Configs();
+
+//	Variable_Read(0xA743, &x);
+//	Variable_Read(0xA744, &x);
+//	Variable_Read(0xA115, &x);
+//	Variable_Read(0xA118, &x);
+//
+//	Variable_Read(0xA116, &x);
+//	Variable_Read(0xA117, &x);
+
+	UART_PRINT("I2C Camera config done\n\r");
+
+	MAP_PRCMPeripheralReset(PRCM_CAMERA);
+	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+
+	return lRetVal;
+}
+//******************************************************************************
+//	This function begins the stream of image captures by writing into MT9D111
+//	registers through I2C
+//******************************************************************************
+int32_t Start_CameraCapture()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("\n\rCam Start\n\r");
+
+	lRetVal = StartSensorInJpegMode();
+	ASSERT_ON_ERROR(lRetVal);
+
+//	uint16_t x;
+	disableAE();
+	ASSERT_ON_ERROR(lRetVal);
+	disableAWB();
+	ASSERT_ON_ERROR(lRetVal);
+	WriteAllAEnAWBRegs();
+	ASSERT_ON_ERROR(lRetVal);
+	Refresh_mt9d111Firmware();
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+
+}
+int32_t Config_CameraCapture()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("\n\rCam Config\n\r");
+	CamControllerInit();	// Init parallel camera interface of cc3200
+							// since image sensor needs XCLK for
+							//its I2C module to work
+
+	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+							// 10 is margin
+
+	lRetVal = SoftReset_ImageSensor();
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = CameraSensorInit();	//Initial configurations
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
 //*****************************************************************************
 //
 //!     CaptureAndStore_Image
@@ -354,15 +481,15 @@ long CaptureAndStore_Image()
 
 	uint32_t ulTimeDuration_ms;
 
-	start_100mSecTimer();	//Remove once delay after wake up is accepted
+//	start_100mSecTimer();	//Remove once delay after wake up is accepted
 
 	// Start SimpleLink
     lRetVal = sl_Start(0, 0, 0);
    	ASSERT_ON_ERROR(lRetVal);
 
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
 
    	//
 	// Open the file for Write Operation
@@ -390,6 +517,26 @@ long CaptureAndStore_Image()
 
 	// Wait for Imaging Position of door
 	angleCheck_Initializations();
+
+/*
+// Tag:Remove this section when done with parallel task testing
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("*1* - %d ms *1*\n\r", ulTimeDuration_ms);
+	start_100mSecTimer();	//Remove once delay after wake up is accepted
+	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
+	{
+		osi_Sleep(10);
+		UART_PRINT("^");
+	}
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("*2* - %d ms *2*\n\r", ulTimeDuration_ms);
+*/
+
+//		ulTimeDuration_ms = get_timeDuration();
+//		stop_100mSecTimer();
+//		UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
 
 //	int i;
 //	for(i=0; i<100; i++)
@@ -433,11 +580,21 @@ long CaptureAndStore_Image()
 	stop_100mSecTimer();
 	if(!g_flag_door_closing_45degree)
 	{
+		Standby_ImageSensor();
 		sl_Stop(0xFFFF);
 		return lRetVal;
 	}
 
 	LED_On();
+
+/*
+	// Wait in case imagesensor capture configs in not over yet
+	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
+	{
+		UART_PRINT("{");
+	}
+	osi_TaskDelete(&g_ImageCaptureConfigs_TaskHandle);
+*/
 
 //	float_t fTemp = 12.34, fRH = 56.78;
 //	verifyTempRHSensor();

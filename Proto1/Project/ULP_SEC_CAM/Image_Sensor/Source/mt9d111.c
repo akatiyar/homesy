@@ -535,6 +535,125 @@ long StartSensorInJpegMode()
     return 0;
 }
 
+//Teg:Remove later
+int32_t toggle_standby()
+{
+	int32_t lRetVal;
+
+	s_RegList stndby_cmds_list[] = {
+			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+			{1, 0xC8, 0x0001},
+			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+			{111, 0xC8, 0x0003},
+
+//			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+//			{1, 0xC8, 0x0001},
+//			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+//			{111, 0xC8, 0x0003}
+
+			{1, 0xC6, 0xA103},	//Standby firmware; seq.cmd = 3(standby cmd)
+			{1, 0xC8, 0x0003},
+			{1, 0xC6, 0xA104},	//Wait till stanby; seq.state = 9(standby state)
+			{111, 0xC8, 0x0009}
+
+				};
+
+	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+//Teg:Remove later
+int32_t Read_AllRegisters()
+{
+	uint16_t i;
+	uint16_t regVal;
+
+	s_RegList reg_list[] = {
+				{0, 0x33, 0xBADD},
+				{0, 0x38, 0xBADD},
+				{2, 0x80, 0xBADD}, // LENS_CORRECTION_CONTROL
+			    {2, 0x81, 0xBADD}, // ZONE_BOUNDS_X1_X2
+			    {2, 0x82, 0xBADD}, // ZONE_BOUNDS_X0_X3
+			    {2, 0x83, 0xBADD}, // ZONE_BOUNDS_X4_X5
+			    {2, 0x84, 0xBADD}, // ZONE_BOUNDS_Y1_Y2
+			    {2, 0x85, 0xBADD}, // ZONE_BOUNDS_Y0_Y3
+			    {2, 0x86, 0xBADD}, // ZONE_BOUNDS_Y4_Y5
+			    {2, 0x87, 0xBADD}, // CENTER_OFFSET
+			    {2, 0x88, 0xBADD}, // FX_RED
+			    {2, 0x89, 0xBADD}, // FX_GREEN
+			    {2, 0x8A, 0xBADD}, // FX_BLUE
+			    {2, 0x8B, 0xBADD}, // FY_RED
+			    {2, 0x8C, 0xBADD}, // FY_GREEN
+			    {2, 0x8D, 0xBADD}, // FY_BLUE
+			    {2, 0x8E, 0xBADD}, // DF_DX_RED
+			    {2, 0x8F, 0xBADD}, // DF_DX_GREEN
+			    {2, 0x90, 0xBADD}, // DF_DX_BLUE
+			    {2, 0x91, 0xBADD}, // DF_DY_RED
+			    {2, 0x92, 0xBADD}, // DF_DY_GREEN
+			    {2, 0x93, 0xBADD}, // DF_DY_BLUE
+			    {2, 0x94, 0xBADD}, // SECOND_DERIV_ZONE_0_RED
+			    {2, 0x95, 0xBADD}, // SECOND_DERIV_ZONE_0_GREEN
+			    {2, 0x96, 0xBADD}, // SECOND_DERIV_ZONE_0_BLUE
+			    {2, 0x97, 0xBADD}, // SECOND_DERIV_ZONE_1_RED
+			    {2, 0x98, 0xBADD}, // SECOND_DERIV_ZONE_1_GREEN
+			    {2, 0x99, 0xBADD}, // SECOND_DERIV_ZONE_1_BLUE
+			    {2, 0x9A, 0xBADD}, // SECOND_DERIV_ZONE_2_RED
+			    {2, 0x9B, 0xBADD}, // SECOND_DERIV_ZONE_2_GREEN
+			    {2, 0x9C, 0xBADD}, // SECOND_DERIV_ZONE_2_BLUE
+			    {2, 0x9D, 0xBADD}, // SECOND_DERIV_ZONE_3_RED
+			    {2, 0x9E, 0xBADD}, // SECOND_DERIV_ZONE_3_GREEN
+			    {2, 0x9F, 0xBADD}, // SECOND_DERIV_ZONE_3_BLUE
+			    {2, 0xA0, 0xBADD}, // SECOND_DERIV_ZONE_4_RED
+			    {2, 0xA1, 0xBADD}, // SECOND_DERIV_ZONE_4_GREEN
+			    {2, 0xA2, 0xBADD}, // SECOND_DERIV_ZONE_4_BLUE
+			    {2, 0xA3, 0xBADD}, // SECOND_DERIV_ZONE_5_RED
+			    {2, 0xA4, 0xBADD}, // SECOND_DERIV_ZONE_5_GREEN
+			    {2, 0xA5, 0xBADD}, // SECOND_DERIV_ZONE_5_BLUE
+			    {2, 0xA6, 0xBADD}, // SECOND_DERIV_ZONE_6_RED
+			    {2, 0xA7, 0xBADD}, // SECOND_DERIV_ZONE_6_GREEN
+			    {2, 0xA8, 0xBADD}, // SECOND_DERIV_ZONE_6_BLUE
+			    {2, 0xA9, 0xBADD}, // SECOND_DERIV_ZONE_7_RED
+			    {2, 0xAA, 0xBADD}, // SECOND_DERIV_ZONE_7_GREEN
+			    {2, 0xAB, 0xBADD}, // SECOND_DERIV_ZONE_7_BLUE
+			    {2, 0xAC, 0xBADD}, // X2_FACTORS
+			    {2, 0xAD, 0xBADD}, // GLOBAL_OFFSET_FXY_FUNCTION
+			    {2, 0xAE, 0xBADD}, // K_FACTOR_IN_K_FX_FY
+			    {1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+			    {1, 0x1F, 0xBADD}, // RESERVED_SOC1_1F
+			    {1, 0x51, 0xBADD}, // RESERVED_SOC1_51
+			    {0, 0x33, 0xBADD}, // RESERVED_CORE_33
+			    {0, 0x38, 0xBADD}, // RESERVED_CORE_38
+				{1, 0x1F, 0xBADD}, // RESERVED_SOC1_1F
+				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+				{1, 0x36, 0xBADD}, // APERTURE_PARAMETERS
+
+			    {0, 0x66, 0xBADD},
+				{0, 0x67, 0xBADD},
+				{0, 0x65, 0xBADD},
+			};
+
+		for (i = 0; i < (sizeof(reg_list)/sizeof(s_RegList)); i++)
+		{
+			Register_Read(&reg_list[i], &regVal);
+			UART_PRINT("%d:%x ", i, regVal);
+		}
+
+		i = 0;
+		Variable_Read(0xA115, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0x2003, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xA002, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xA361, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xAB04, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xA104, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+//		Variable_Read(0x2003, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+//		Variable_Read(0x2003, &regVal);UART_PRINT("%d:%x ", i++, regVal);
+
+		return 0;
+}
 //*****************************************************************************
 //
 //! This function implements the Register Write in MT9D111 sensor
@@ -566,12 +685,13 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         {
     		UART_PRINT("1");
     		// PageAddr == 100, insret a delay equal to reg value
-            MT9D111Delay(pRegLst->usValue * 80000/3);
+            //MT9D111Delay(pRegLst->usValue * 80000/3);
+    		MT9D111Delay(pRegLst->usValue * 80000/6);	//Change this based on no of clocks onclycle in MT9D111Delay takes
     		//MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
         }
         else if(pRegLst->ucPageAddr == 111)
         {
-        	UART_PRINT("2");
+        	UART_PRINT("2:%d ", pRegLst->usValue);
         	// PageAddr == 111, wait for specified register value
             do
             {
@@ -585,6 +705,16 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
 
                 usTemp = ucBuffer[0] << 8;
                 usTemp |= ucBuffer[1];
+
+                //UART_PRINT(".");
+//                uint8_t ucTmp;
+//                Variable_Read(0xA104, &ucTmp);
+//                UART_PRINT("3:%d\n\r",ucTmp);
+//
+//                Variable_Read(0xA104, &ucTmp);
+//                UART_PRINT("4:%d\n\r",ucTmp);
+                MT9D111Delay(10*10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
+
             }while(usTemp != pRegLst->usValue);
         }
         else
@@ -641,7 +771,8 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
 
         pRegLst++;
         //MT9D111Delay(10);
-        MT9D111Delay(40);
+        //MT9D111Delay(40);
+        MT9D111Delay(10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
     }
 
     return RET_OK;
@@ -1274,12 +1405,12 @@ static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 //******************************************************************************
 //	This function puts MT9D111 in standby
 //
-//	param none
+//	param ucMethod - can either be HARD_STANDBY or SOFT_STANDBY
 //	return SUCCESS or failure value
 //
 //	Sequence followed as per MT9D111 developer's guide
 //******************************************************************************
-int32_t EnterStandby_mt9d111()
+int32_t EnterStandby_mt9d111(uint8_t ucMethod)
 {
 	int32_t lRetVal;
 
@@ -1289,13 +1420,21 @@ int32_t EnterStandby_mt9d111()
 			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
 			{111, 0xC8, 0x0003},
 
-			{1, 0xC6, 0xA103},	//Stanby firmware; seq.cmd = 3(standby cmd)
+//			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+//			{1, 0xC8, 0x0001},
+//			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+//			{111, 0xC8, 0x0003},
+
+			{1, 0xC6, 0xA103},	//Standby firmware; seq.cmd = 3(standby cmd)
 			{1, 0xC8, 0x0003},
+			{100, 0x00, 0x01F4},//500ms delay
 			{1, 0xC6, 0xA104},	//Wait till stanby; seq.state = 9(standby state)
 			{111, 0xC8, 0x0009},
 			{0, 0x65, 0xA000},  //Bypass PLL
+			//{0, 0x65, 0xE000},  // Power DOWN PLL. Added additionally. Doesnt seem to have an effect
 
-			{1, 0x0A, 0x0488},	//I/O pad input clamp during standby
+			//{1, 0x0A, 0x0488},	//I/O pad input clamp during standby
+			{1, 0x0A, 0x0080},	//I/O pad input clamp during standby
 			{0, 0x0D, 0x0040},	//high-impedance outputs when in standby state
 
 			{1, 0xC6, 0x9078},
@@ -1307,12 +1446,21 @@ int32_t EnterStandby_mt9d111()
 			{1, 0xC6, 0x9071},
 			{1, 0xC8, 0x0000},
 
-			{0, 0x0D, 0x0044},	//Sensor standby - use for soft standby
 				};
+	s_RegList stndby_cmds = {0, 0x0D, 0x0044};	//Sensor standby - use for soft standby
 
 	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+	ASSERT_ON_ERROR(lRetVal);
 
-	//MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, GPIO_PIN_7);	//Sensor standby - use for hard standby
+	if(ucMethod == SOFT_STANDBY)
+	{
+		lRetVal = RegLstWrite(&stndby_cmds,1);
+		ASSERT_ON_ERROR(lRetVal);
+	}
+	else if(ucMethod == HARD_STANDBY)
+	{
+		MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, GPIO_PIN_7);	//Sensor standby - use for hard standby
+	}
 
 	MT9D111Delay(SYSTEM_CLOCK/MT9D111_CLKIN_MIN * 10 + 100);
 									//Wait before turning off Clock to Cam (XCLK)
@@ -1324,17 +1472,18 @@ int32_t EnterStandby_mt9d111()
 //******************************************************************************
 //	This function takes MT9D111 out of standby
 //
-//	param none
+//	param ucMethod - can either be HARD_STANDBY or SOFT_STANDBY
 //	return SUCCESS or failure value
 //
 //	Sequence followed as per MT9D111 developer's guide
 //******************************************************************************
-int32_t ExitStandby_mt9d111()
+int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 {
 	int32_t lRetVal;
 
+	s_RegList stndby_cmds = {0, 0x0D, 0x0040};	//Sensor wake - soft
+
 	s_RegList stndby_cmds_list[] = {
-				{0, 0x0D, 0x0040},	//Sensor wake - soft
 
 				{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
 				{1, 0xC8, 0x0001},
@@ -1345,11 +1494,20 @@ int32_t ExitStandby_mt9d111()
 	MT9D111Delay(SYSTEM_CLOCK/MT9D111_CLKIN_MIN * 24 + 100);
 									//Wait after turning ON Clock to Cam (XCLK)
 									//Calcs in doc
-	//MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, 0);
 
+	if(ucMethod == SOFT_STANDBY)
+	{
+		lRetVal = RegLstWrite(&stndby_cmds,1);
+		ASSERT_ON_ERROR(lRetVal);
+	}
+	else if(ucMethod == HARD_STANDBY)
+	{
+		MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, 0);
+	}
 
-
-	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+	lRetVal = RegLstWrite(stndby_cmds_list,
+							(sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+	ASSERT_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
