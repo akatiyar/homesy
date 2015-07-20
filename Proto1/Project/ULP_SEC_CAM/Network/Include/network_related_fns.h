@@ -4,6 +4,7 @@
 #define NETWORK_RELATED_FNS_H_
 
 #include "simplelink.h"
+#include "app.h"
 
 #define AP_SSID_LEN_MAX         (33)
 #define AP_PASSWORD_LEN_MAX     (50)
@@ -12,13 +13,11 @@
 #define ROLE_INVALID            (-5)
 
 //#define CONNECTION_TIMEOUT_COUNT  5000  /* 5sec when while loop has osi_Sleep(1)*/
-#define CONNECTION_TIMEOUT_COUNT  6000  /* 30sec when while loop has osi_Sleep(10)*/
+#define CONNECTION_TIMEOUT_COUNT  6000  /* 60sec when while loop has osi_Sleep(10)*/
 #define TOKEN_ARRAY_SIZE          6
 //#define TOKEN_ARRAY_SIZE          1
 #define STRING_TOKEN_SIZE         10
 #define SCAN_TABLE_SIZE           20
-
-#define RETRIES_MAX_NETWORK			5
 
 #define TOK_CALIB				"__SL_P_UCB"
 #define TOK_ANGLE				"__SL_P_UAG"
@@ -66,7 +65,8 @@ long ConfigureSimpleLinkToDefaultState();
 long ConnectToNetwork();
 int ConfigureMode(int iMode);
 
-int32_t ConnectToNetwork_STA();
+//int32_t ConnectToNetwork_STA();
+int32_t WiFi_Connect();
 
 void ConnectToNetwork_STA_2();
 

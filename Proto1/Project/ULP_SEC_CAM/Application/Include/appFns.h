@@ -8,10 +8,15 @@
 #ifndef APPFNS_H_
 #define APPFNS_H_
 
-extern uint8_t Get_BatteryPercent();
-extern int16_t IsLightOff(uint16_t usThresholdLux);
-extern int32_t CollectTxit_ImgTempRH();
 extern int32_t User_Configure();
+extern int32_t application_fn();
 
+extern uint8_t Get_BatteryPercent();
+
+extern int16_t IsLightOff(uint16_t usThresholdLux);
+
+extern float_t get_angle();
+extern void check_doorpos();
+extern int16_t angleCheck_Initializations();
 
 #endif /* APPFNS_H_ */

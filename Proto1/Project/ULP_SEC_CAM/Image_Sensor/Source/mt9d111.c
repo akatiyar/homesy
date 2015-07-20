@@ -1468,14 +1468,20 @@ int32_t EnterStandby_mt9d111(uint8_t ucMethod)
 			{1, 0xC6, 0x9070},{1, 0xC8, 0x0000},	//Pins 11:8
 			{1, 0xC6, 0x9071},{1, 0xC8, 0x0000},	//Pins 7:0
 									};
-	s_RegList stndby_cmds = {0, 0x0D, 0x0044};	//Sensor standby - use for soft standby
+	//s_RegList stndby_cmds = {0, 0x0D, 0x0044};	//Sensor standby - use for soft standby
+
+	s_RegList stndby_cmds[] = 	{
+								{0, 0x0D, 0x0044},
+								{100, 0, 0x01F4},
+								};	//Sensor standby - use for soft standby
 
 	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
 	ASSERT_ON_ERROR(lRetVal);
 
 	if(ucMethod == SOFT_STANDBY)
 	{
-		lRetVal = RegLstWrite(&stndby_cmds,1);
+		//lRetVal = RegLstWrite(&stndby_cmds,1);
+		lRetVal = RegLstWrite(&stndby_cmds[0],2);
 		ASSERT_ON_ERROR(lRetVal);
 	}
 	else if(ucMethod == HARD_STANDBY)

@@ -8,7 +8,7 @@
 
 
 //Prakash all globals
-#include "FXOS8700 Frescale Lib/include_all.h"
+#include "include_all.h"
 #include "app.h"
 #include "math.h"
 #include "timer_fns.h"

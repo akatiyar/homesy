@@ -39,6 +39,8 @@
 #define IMAGE_QUANTIZ_SCALE		(0x0020)
 //#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
 
+#define RETRIES_MAX_NETWORK			5
+
 #define FN_SUCCESS	0
 #define FN_FAILED	1 //Funtion return values are uint16_t
 
@@ -99,8 +101,10 @@ typedef enum
 	START = 0,
 	USER_CONFIG_TAKING_PLACE,
 	USER_CONFIG_DONE,
+	IMAGING_POSITION_DETECTED,
 	LIGHT_IS_OFF_BEFORE_IMAGING,
 	TIMEOUT_BEFORE_IMAGING,
+	IMAGE_CAPTURED,
 	IMAGESENSOR_CAPTURECONFIGS_HAPPENING,
 	IMAGESENSOR_CAPTURECONFIGS_DONE
 }e_AppStatusCodes;
@@ -132,6 +136,7 @@ typedef enum
 //Global variable used through out the app
 uint32_t g_ulAppStatus;
 int8_t g_I2CPeripheral_inUse_Flag;
+uint8_t g_flag_door_closing_45degree;
 
 #define NO		0
 #define YES		1

@@ -164,6 +164,8 @@ int32_t getTempRH(float_t* pfTemp, float_t* pfRH)
 	*pfRH = ( (125.0 * usRHCode) / 65536 ) - 6;
 	*pfTemp = ( (175.72 * usTempCode) / 65536 ) - 46.85;
 
+	UART_PRINT("Temperature: %f\n\rRH: %f\n\r", *pfTemp, *pfRH);
+
 	return lRetVal;
 }
 

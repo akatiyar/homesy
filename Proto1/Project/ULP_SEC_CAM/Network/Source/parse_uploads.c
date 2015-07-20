@@ -48,17 +48,23 @@ int32_t UploadImageToParse(ParseClient client,
 							uint8_t* pucParseImageUrl)
 {
 	int32_t lRetVal;
+	uint8_t ucTryNum;
 
-	lRetVal = parseSendRequest(client,
-									"POST",
-									"/1/files/myPic1.jpg",
-									(const char*)pucImageFileName,
-									NULL,
-									image);
-
+	ucTryNum = 0;
+	do{
+		lRetVal = parseSendRequest(client,
+										"POST",
+										"/1/files/myPic1.jpg",
+										(const char*)pucImageFileName,
+										NULL,
+										image);
+		PRINT_ON_ERROR(lRetVal);
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
 
-	simpleJsonProcessor(dataBuffer, "name",(char*) pucParseImageUrl, IMAGE_NAME_MAX_LEN);
+	memset(pucParseImageUrl, NULL, PARSE_IMAGE_URL_SIZE);
+	simpleJsonProcessor(dataBuffer, "name",
+							(char*) pucParseImageUrl, IMAGE_NAME_MAX_LEN);
 	//retreiveImageIDfromHTTPResponse(pucParseImageUrl);
 
 	return lRetVal;
@@ -75,26 +81,37 @@ int32_t UploadImageToParse(ParseClient client,
 //	is handled within.
 //
 //*****************************************************************************
-int32_t UploadSensorDataToParse(ParseClient client,
-								uint8_t* sensorDataFileName)
+int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
+								uint8_t* pucParseImageUrl, float_t fTemp,
+								float_t fRH, uint8_t ucBatteryLvl,
+								uint8_t* sensorDataObject)
 {
 	int32_t lRetVal;
+	uint8_t ucTryNum;
 
-	lRetVal = parseSendRequest(client,
-						"POST",
-						"/1/classes/DeviceState", //DeviceState is object name
-						(const char*)sensorDataFileName,
-						NULL,
-						jsonObject);
-//	parseSendRequestInternal(client,
-//							"POST",
-//							"/1/classes/DeviceState",
-//							sensorDataFileName,
-//							NULL,
-//							1,
-//							jsonObject);
+	// Construct the JSON object string
+	ConstructDeviceStateObject(pucFridgeCamID, pucParseImageUrl, fTemp, fRH, ucBatteryLvl, sensorDataObject);
+	UART_PRINT("OBJECT: %s\n", sensorDataObject);
 
+	ucTryNum = 0;
+	do{
+		lRetVal = parseSendRequest(client,
+							"POST",
+							"/1/classes/DeviceState", //DeviceState is object name
+							(const char*)sensorDataObject,
+							NULL,
+							jsonObject);
+		PRINT_ON_ERROR(lRetVal);
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
+
+	//	parseSendRequestInternal(client,
+	//							"POST",
+	//							"/1/classes/DeviceState",
+	//							sensorDataFileName,
+	//							NULL,
+	//							1,
+	//							jsonObject);
 
 	return lRetVal;
 }
@@ -159,7 +176,8 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 //
 //	The MAC ID of the device concatenated to 'Cam' is the device ID
 //
-//	Note: The function involves a NWP call. So ensure NWP is on.
+//	Note: The function involves a simplelink call. So ensure NWP is on before
+//			calling this fn.
 //******************************************************************************
 int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID)
 {
@@ -203,6 +221,7 @@ int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID)
 		pucFridgeCamID++;
 	}
 
+	UART_PRINT("FridgeCam ID: %s\n\r",pucFridgeCamID);
     return lRetVal;
 }
 
@@ -231,6 +250,8 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 {
 	uint8_t ucLength;
 	uint8_t ucCharConv[20];
+
+	memset(pucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
 
 	pucSensorDataTxt[0] = NULL;
 	memset(ucCharConv, '0', 20);

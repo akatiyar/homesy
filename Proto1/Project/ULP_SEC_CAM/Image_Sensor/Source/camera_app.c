@@ -41,6 +41,7 @@
 //! @{
 //
 //*****************************************************************************
+#include "include_all.h"	//fxos
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -77,7 +78,6 @@
 #include "flash_files.h"
 #include "tempRHSens_si7020.h"
 #include "accelomtrMagntomtr_fxos8700.h"
-#include "include_all.h"
 extern int32_t WaitFor40Degrees();
 extern void fxos_main_waitfor40degrees();
 extern void fxos_main();
@@ -181,97 +181,97 @@ typedef enum pictureResolution{
 #define FORMAT_YCBCR420   1
 #define FORMAT_MONOCHROME 2
 
-unsigned char JPEG_StdQuantTblY[64] =
-{
-    16,  11,  10,  16,  24,  40,  51,  61,
-    12,  12,  14,  19,  26,  58,  60,  55,
-    14,  13,  16,  24,  40,  57,  69,  56,
-    14,  17,  22,  29,  51,  87,  80,  62,
-    18,  22,  37,  56,  68,  109, 103, 77,
-    24,  35,  55,  64,  81,  104, 113, 92,
-    49,  64,  78,  87, 103,  121, 120, 101,
-    72,  92,  95,  98, 112,  100, 103,  99
-};
-
-unsigned char JPEG_StdQuantTblC[64] =
-{
-    17,  18,  24,  47,  99,  99,  99,  99,
-    18,  21,  26,  66,  99,  99,  99,  99,
-    24,  26,  56,  99,  99,  99,  99,  99,
-    47,  66,  99,  99,  99,  99,  99,  99,
-    99,  99,  99,  99,  99,  99,  99,  99,
-    99,  99,  99,  99,  99,  99,  99,  99,
-    99,  99,  99,  99,  99,  99,  99,  99,
-    99,  99,  99,  99,  99,  99,  99,  99
-};
+//unsigned char JPEG_StdQuantTblY[64] =
+//{
+//    16,  11,  10,  16,  24,  40,  51,  61,
+//    12,  12,  14,  19,  26,  58,  60,  55,
+//    14,  13,  16,  24,  40,  57,  69,  56,
+//    14,  17,  22,  29,  51,  87,  80,  62,
+//    18,  22,  37,  56,  68,  109, 103, 77,
+//    24,  35,  55,  64,  81,  104, 113, 92,
+//    49,  64,  78,  87, 103,  121, 120, 101,
+//    72,  92,  95,  98, 112,  100, 103,  99
+//};
 //
-// This table is used for regular-position to zigzagged-position lookup
-//  This is Figure A.6 from the ISO/IEC 10918-1 1993 specification 
+//unsigned char JPEG_StdQuantTblC[64] =
+//{
+//    17,  18,  24,  47,  99,  99,  99,  99,
+//    18,  21,  26,  66,  99,  99,  99,  99,
+//    24,  26,  56,  99,  99,  99,  99,  99,
+//    47,  66,  99,  99,  99,  99,  99,  99,
+//    99,  99,  99,  99,  99,  99,  99,  99,
+//    99,  99,  99,  99,  99,  99,  99,  99,
+//    99,  99,  99,  99,  99,  99,  99,  99,
+//    99,  99,  99,  99,  99,  99,  99,  99
+//};
+////
+//// This table is used for regular-position to zigzagged-position lookup
+////  This is Figure A.6 from the ISO/IEC 10918-1 1993 specification
+////
+//static unsigned char zigzag[64] =
+//{
+//    0, 1, 5, 6,14,15,27,28,
+//    2, 4, 7,13,16,26,29,42,
+//    3, 8,12,17,25,30,41,43,
+//    9,11,18,24,31,40,44,53,
+//    10,19,23,32,39,45,52,54,
+//    20,22,33,38,46,51,55,60,
+//    21,34,37,47,50,56,59,61,
+//    35,36,48,49,57,58,62,63
+//};
 //
-static unsigned char zigzag[64] =
-{
-    0, 1, 5, 6,14,15,27,28,
-    2, 4, 7,13,16,26,29,42,
-    3, 8,12,17,25,30,41,43,
-    9,11,18,24,31,40,44,53,
-    10,19,23,32,39,45,52,54,
-    20,22,33,38,46,51,55,60,
-    21,34,37,47,50,56,59,61,
-    35,36,48,49,57,58,62,63
-};
-
-unsigned int JPEG_StdHuffmanTbl[384] =
-{
-    0x100, 0x101, 0x204, 0x30b, 0x41a, 0x678, 0x7f8, 0x9f6,
-    0xf82, 0xf83, 0x30c, 0x41b, 0x679, 0x8f6, 0xaf6, 0xf84,
-    0xf85, 0xf86, 0xf87, 0xf88, 0x41c, 0x7f9, 0x9f7, 0xbf4,
-    0xf89, 0xf8a, 0xf8b, 0xf8c, 0xf8d, 0xf8e, 0x53a, 0x8f7,
-    0xbf5, 0xf8f, 0xf90, 0xf91, 0xf92, 0xf93, 0xf94, 0xf95,
-    0x53b, 0x9f8, 0xf96, 0xf97, 0xf98, 0xf99, 0xf9a, 0xf9b,
-    0xf9c, 0xf9d, 0x67a, 0xaf7, 0xf9e, 0xf9f, 0xfa0, 0xfa1,
-    0xfa2, 0xfa3, 0xfa4, 0xfa5, 0x67b, 0xbf6, 0xfa6, 0xfa7,
-    0xfa8, 0xfa9, 0xfaa, 0xfab, 0xfac, 0xfad, 0x7fa, 0xbf7,
-    0xfae, 0xfaf, 0xfb0, 0xfb1, 0xfb2, 0xfb3, 0xfb4, 0xfb5,
-    0x8f8, 0xec0, 0xfb6, 0xfb7, 0xfb8, 0xfb9, 0xfba, 0xfbb,
-    0xfbc, 0xfbd, 0x8f9, 0xfbe, 0xfbf, 0xfc0, 0xfc1, 0xfc2,
-    0xfc3, 0xfc4, 0xfc5, 0xfc6, 0x8fa, 0xfc7, 0xfc8, 0xfc9,
-    0xfca, 0xfcb, 0xfcc, 0xfcd, 0xfce, 0xfcf, 0x9f9, 0xfd0,
-    0xfd1, 0xfd2, 0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7, 0xfd8,
-    0x9fa, 0xfd9, 0xfda, 0xfdb, 0xfdc, 0xfdd, 0xfde, 0xfdf,
-    0xfe0, 0xfe1, 0xaf8, 0xfe2, 0xfe3, 0xfe4, 0xfe5, 0xfe6,
-    0xfe7, 0xfe8, 0xfe9, 0xfea, 0xfeb, 0xfec, 0xfed, 0xfee,
-    0xfef, 0xff0, 0xff1, 0xff2, 0xff3, 0xff4, 0xff5, 0xff6,
-    0xff7, 0xff8, 0xff9, 0xffa, 0xffb, 0xffc, 0xffd, 0xffe,
-    0x30a, 0xaf9, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff,
-    0xfd0, 0xfd1, 0xfd2, 0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7,
-    0x101, 0x204, 0x30a, 0x418, 0x419, 0x538, 0x678, 0x8f4,
-    0x9f6, 0xbf4, 0x30b, 0x539, 0x7f6, 0x8f5, 0xaf6, 0xbf5,
-    0xf88, 0xf89, 0xf8a, 0xf8b, 0x41a, 0x7f7, 0x9f7, 0xbf6,
-    0xec2, 0xf8c, 0xf8d, 0xf8e, 0xf8f, 0xf90, 0x41b, 0x7f8,
-    0x9f8, 0xbf7, 0xf91, 0xf92, 0xf93, 0xf94, 0xf95, 0xf96,
-    0x53a, 0x8f6, 0xf97, 0xf98, 0xf99, 0xf9a, 0xf9b, 0xf9c,
-    0xf9d, 0xf9e, 0x53b, 0x9f9, 0xf9f, 0xfa0, 0xfa1, 0xfa2,
-    0xfa3, 0xfa4, 0xfa5, 0xfa6, 0x679, 0xaf7, 0xfa7, 0xfa8,
-    0xfa9, 0xfaa, 0xfab, 0xfac, 0xfad, 0xfae, 0x67a, 0xaf8,
-    0xfaf, 0xfb0, 0xfb1, 0xfb2, 0xfb3, 0xfb4, 0xfb5, 0xfb6,
-    0x7f9, 0xfb7, 0xfb8, 0xfb9, 0xfba, 0xfbb, 0xfbc, 0xfbd,
-    0xfbe, 0xfbf, 0x8f7, 0xfc0, 0xfc1, 0xfc2, 0xfc3, 0xfc4,
-    0xfc5, 0xfc6, 0xfc7, 0xfc8, 0x8f8, 0xfc9, 0xfca, 0xfcb,
-    0xfcc, 0xfcd, 0xfce, 0xfcf, 0xfd0, 0xfd1, 0x8f9, 0xfd2,
-    0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7, 0xfd8, 0xfd9, 0xfda,
-    0x8fa, 0xfdb, 0xfdc, 0xfdd, 0xfde, 0xfdf, 0xfe0, 0xfe1,
-    0xfe2, 0xfe3, 0xaf9, 0xfe4, 0xfe5, 0xfe6, 0xfe7, 0xfe8,
-    0xfe9, 0xfea, 0xfeb, 0xfec, 0xde0, 0xfed, 0xfee, 0xfef,
-    0xff0, 0xff1, 0xff2, 0xff3, 0xff4, 0xff5, 0xec3, 0xff6,
-    0xff7, 0xff8, 0xff9, 0xffa, 0xffb, 0xffc, 0xffd, 0xffe,
-    0x100, 0x9fa, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff,
-    0xfd0, 0xfd1, 0xfd2, 0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7,
-    0x100, 0x202, 0x203, 0x204, 0x205, 0x206, 0x30e, 0x41e,
-    0x53e, 0x67e, 0x7fe, 0x8fe, 0xfff, 0xfff, 0xfff, 0xfff,
-    0x100, 0x101, 0x102, 0x206, 0x30e, 0x41e, 0x53e, 0x67e,
-    0x7fe, 0x8fe, 0x9fe, 0xafe, 0xfff, 0xfff, 0xfff, 0xfff
-};
-#endif 
+//unsigned int JPEG_StdHuffmanTbl[384] =
+//{
+//    0x100, 0x101, 0x204, 0x30b, 0x41a, 0x678, 0x7f8, 0x9f6,
+//    0xf82, 0xf83, 0x30c, 0x41b, 0x679, 0x8f6, 0xaf6, 0xf84,
+//    0xf85, 0xf86, 0xf87, 0xf88, 0x41c, 0x7f9, 0x9f7, 0xbf4,
+//    0xf89, 0xf8a, 0xf8b, 0xf8c, 0xf8d, 0xf8e, 0x53a, 0x8f7,
+//    0xbf5, 0xf8f, 0xf90, 0xf91, 0xf92, 0xf93, 0xf94, 0xf95,
+//    0x53b, 0x9f8, 0xf96, 0xf97, 0xf98, 0xf99, 0xf9a, 0xf9b,
+//    0xf9c, 0xf9d, 0x67a, 0xaf7, 0xf9e, 0xf9f, 0xfa0, 0xfa1,
+//    0xfa2, 0xfa3, 0xfa4, 0xfa5, 0x67b, 0xbf6, 0xfa6, 0xfa7,
+//    0xfa8, 0xfa9, 0xfaa, 0xfab, 0xfac, 0xfad, 0x7fa, 0xbf7,
+//    0xfae, 0xfaf, 0xfb0, 0xfb1, 0xfb2, 0xfb3, 0xfb4, 0xfb5,
+//    0x8f8, 0xec0, 0xfb6, 0xfb7, 0xfb8, 0xfb9, 0xfba, 0xfbb,
+//    0xfbc, 0xfbd, 0x8f9, 0xfbe, 0xfbf, 0xfc0, 0xfc1, 0xfc2,
+//    0xfc3, 0xfc4, 0xfc5, 0xfc6, 0x8fa, 0xfc7, 0xfc8, 0xfc9,
+//    0xfca, 0xfcb, 0xfcc, 0xfcd, 0xfce, 0xfcf, 0x9f9, 0xfd0,
+//    0xfd1, 0xfd2, 0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7, 0xfd8,
+//    0x9fa, 0xfd9, 0xfda, 0xfdb, 0xfdc, 0xfdd, 0xfde, 0xfdf,
+//    0xfe0, 0xfe1, 0xaf8, 0xfe2, 0xfe3, 0xfe4, 0xfe5, 0xfe6,
+//    0xfe7, 0xfe8, 0xfe9, 0xfea, 0xfeb, 0xfec, 0xfed, 0xfee,
+//    0xfef, 0xff0, 0xff1, 0xff2, 0xff3, 0xff4, 0xff5, 0xff6,
+//    0xff7, 0xff8, 0xff9, 0xffa, 0xffb, 0xffc, 0xffd, 0xffe,
+//    0x30a, 0xaf9, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff,
+//    0xfd0, 0xfd1, 0xfd2, 0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7,
+//    0x101, 0x204, 0x30a, 0x418, 0x419, 0x538, 0x678, 0x8f4,
+//    0x9f6, 0xbf4, 0x30b, 0x539, 0x7f6, 0x8f5, 0xaf6, 0xbf5,
+//    0xf88, 0xf89, 0xf8a, 0xf8b, 0x41a, 0x7f7, 0x9f7, 0xbf6,
+//    0xec2, 0xf8c, 0xf8d, 0xf8e, 0xf8f, 0xf90, 0x41b, 0x7f8,
+//    0x9f8, 0xbf7, 0xf91, 0xf92, 0xf93, 0xf94, 0xf95, 0xf96,
+//    0x53a, 0x8f6, 0xf97, 0xf98, 0xf99, 0xf9a, 0xf9b, 0xf9c,
+//    0xf9d, 0xf9e, 0x53b, 0x9f9, 0xf9f, 0xfa0, 0xfa1, 0xfa2,
+//    0xfa3, 0xfa4, 0xfa5, 0xfa6, 0x679, 0xaf7, 0xfa7, 0xfa8,
+//    0xfa9, 0xfaa, 0xfab, 0xfac, 0xfad, 0xfae, 0x67a, 0xaf8,
+//    0xfaf, 0xfb0, 0xfb1, 0xfb2, 0xfb3, 0xfb4, 0xfb5, 0xfb6,
+//    0x7f9, 0xfb7, 0xfb8, 0xfb9, 0xfba, 0xfbb, 0xfbc, 0xfbd,
+//    0xfbe, 0xfbf, 0x8f7, 0xfc0, 0xfc1, 0xfc2, 0xfc3, 0xfc4,
+//    0xfc5, 0xfc6, 0xfc7, 0xfc8, 0x8f8, 0xfc9, 0xfca, 0xfcb,
+//    0xfcc, 0xfcd, 0xfce, 0xfcf, 0xfd0, 0xfd1, 0x8f9, 0xfd2,
+//    0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7, 0xfd8, 0xfd9, 0xfda,
+//    0x8fa, 0xfdb, 0xfdc, 0xfdd, 0xfde, 0xfdf, 0xfe0, 0xfe1,
+//    0xfe2, 0xfe3, 0xaf9, 0xfe4, 0xfe5, 0xfe6, 0xfe7, 0xfe8,
+//    0xfe9, 0xfea, 0xfeb, 0xfec, 0xde0, 0xfed, 0xfee, 0xfef,
+//    0xff0, 0xff1, 0xff2, 0xff3, 0xff4, 0xff5, 0xec3, 0xff6,
+//    0xff7, 0xff8, 0xff9, 0xffa, 0xffb, 0xffc, 0xffd, 0xffe,
+//    0x100, 0x9fa, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff,
+//    0xfd0, 0xfd1, 0xfd2, 0xfd3, 0xfd4, 0xfd5, 0xfd6, 0xfd7,
+//    0x100, 0x202, 0x203, 0x204, 0x205, 0x206, 0x30e, 0x41e,
+//    0x53e, 0x67e, 0x7fe, 0x8fe, 0xfff, 0xfff, 0xfff, 0xfff,
+//    0x100, 0x101, 0x102, 0x206, 0x30e, 0x41e, 0x53e, 0x67e,
+//    0x7fe, 0x8fe, 0x9fe, 0xafe, 0xfff, 0xfff, 0xfff, 0xfff
+//};
+#endif
 /****************************************************************************/
 /*                      LOCAL FUNCTION PROTOTYPES                           */
 /****************************************************************************/
@@ -282,27 +282,50 @@ static void CameraIntHandler();
 static void DMAConfig();
 
 
-#ifdef ENABLE_JPEG
-static int CreateJpegHeader(char *header, int width, int height,
-                            int format, int restart_int, int qscale);
-static int DefineRestartIntervalMarker(char *pbuf, int ri);
-static int DefineHuffmanTableMarkerAC
-                               (char *pbuf, unsigned int *htable, int class_id);
-static int DefineHuffmanTableMarkerDC
-                               (char *pbuf, unsigned int *htable, int class_id);
-static int DefineQuantizationTableMarker 
-                                  (unsigned char *pbuf, int qscale, int format);
-static int ScanHeaderMarker(char *pbuf, int format);
-static int FrameHeaderMarker(char *pbuf, int width, int height, int format);
-static int JfifApp0Marker(char *pbuf);
-#endif 
+//#ifdef ENABLE_JPEG
+//static int CreateJpegHeader(char *header, int width, int height,
+//                            int format, int restart_int, int qscale);
+//static int DefineRestartIntervalMarker(char *pbuf, int ri);
+//static int DefineHuffmanTableMarkerAC
+//                               (char *pbuf, unsigned int *htable, int class_id);
+//static int DefineHuffmanTableMarkerDC
+//                               (char *pbuf, unsigned int *htable, int class_id);
+//static int DefineQuantizationTableMarker
+//                                  (unsigned char *pbuf, int qscale, int format);
+//static int ScanHeaderMarker(char *pbuf, int format);
+//static int FrameHeaderMarker(char *pbuf, int width, int height, int format);
+//static int JfifApp0Marker(char *pbuf);
+//#endif
 
 
 extern uint8_t print_count;
 extern uint8_t valid_case;
-
 //*****************************************************************************
 //
+//*****************************************************************************
+int32_t Config_CameraCapture()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("\n\rCam Config\n\r");
+	CamControllerInit();	// Init parallel camera interface of cc3200
+							// since image sensor needs XCLK for
+							//its I2C module to work
+
+	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
+							// 10 is margin
+
+	lRetVal = SoftReset_ImageSensor();
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = CameraSensorInit();	//Initial configurations
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+//*****************************************************************************
+//	Pair it with Wakeup_ImageSensor()
 //*****************************************************************************
 int32_t Standby_ImageSensor()
 {
@@ -320,8 +343,9 @@ int32_t Standby_ImageSensor()
 	return lRetVal;
 }
 
-
-
+//*****************************************************************************
+//	Pair it with Standby_ImageSensor()
+//*****************************************************************************
 int32_t Wakeup_ImageSensor()
 {
 	int32_t lRetVal;
@@ -337,6 +361,35 @@ int32_t Wakeup_ImageSensor()
 	return lRetVal;
 }
 
+//******************************************************************************
+//	This function begins the stream of image captures by writing into MT9D111
+//	registers through I2C
+//******************************************************************************
+int32_t Start_CameraCapture()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("\n\rCam Start\n\r");
+
+	lRetVal = StartSensorInJpegMode();
+	ASSERT_ON_ERROR(lRetVal);
+
+	disableAE();
+	ASSERT_ON_ERROR(lRetVal);
+	disableAWB();
+	ASSERT_ON_ERROR(lRetVal);
+	WriteAllAEnAWBRegs();
+	ASSERT_ON_ERROR(lRetVal);
+	Refresh_mt9d111Firmware();
+	ASSERT_ON_ERROR(lRetVal);
+	//UtilsDelay(80000000/6);
+
+	return lRetVal;
+}
+
+//*****************************************************************************
+//
+//*****************************************************************************
 int32_t Config_And_Start_CameraCapture()
 {
 	int32_t lRetVal;
@@ -406,72 +459,10 @@ int32_t Config_And_Start_CameraCapture()
 
 	return lRetVal;
 }
-//******************************************************************************
-//	This function begins the stream of image captures by writing into MT9D111
-//	registers through I2C
-//******************************************************************************
-int32_t Start_CameraCapture()
+void ImagCapture_Init()
 {
-	int32_t lRetVal;
+	uint32_t ulTimeDuration_ms;
 
-	UART_PRINT("\n\rCam Start\n\r");
-
-	lRetVal = StartSensorInJpegMode();
-	ASSERT_ON_ERROR(lRetVal);
-
-//	uint16_t x;
-	disableAE();
-	ASSERT_ON_ERROR(lRetVal);
-	disableAWB();
-	ASSERT_ON_ERROR(lRetVal);
-	WriteAllAEnAWBRegs();
-	ASSERT_ON_ERROR(lRetVal);
-	Refresh_mt9d111Firmware();
-	ASSERT_ON_ERROR(lRetVal);
-//	BeginCapture_MT9D111();
-//	ASSERT_ON_ERROR(lRetVal);
-
-	return lRetVal;
-}
-int32_t Config_CameraCapture()
-{
-	int32_t lRetVal;
-
-	UART_PRINT("\n\rCam Config\n\r");
-	CamControllerInit();	// Init parallel camera interface of cc3200
-							// since image sensor needs XCLK for
-							//its I2C module to work
-
-	UtilsDelay(24/3 + 10);	// Initially, 24 clock cycles needed by MT9D111
-							// 10 is margin
-
-	lRetVal = SoftReset_ImageSensor();
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = CameraSensorInit();	//Initial configurations
-	ASSERT_ON_ERROR(lRetVal);
-
-	return lRetVal;
-}
-//*****************************************************************************
-//
-//!     CaptureAndStore_Image
-//!     Configures DMA and starts the Capture. Post Capture writes to SFLASH 
-//!    
-//!    \param                      None  
-//!     \return                     0 - Success
-//!                                   Negative - Failure
-//!                               
-//
-//*****************************************************************************
-long CaptureAndStore_Image()
-{
-    long lFileHandle;
-    unsigned long ulToken = NULL;
-    long lRetVal;
-
-    // Initial values set
-    uint32_t uiImageFile_Offset = 0;
     g_block_lastFilled = -1;
     g_position_in_block = 0;
 	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
@@ -479,37 +470,6 @@ long CaptureAndStore_Image()
 	g_flag_DataBlockFilled = 0;
 	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
 	memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
-	//g_image_buffer[0] = 0xFFFFFFFF;
-
-	uint32_t ulTimeDuration_ms;
-
-	//start_100mSecTimer();	//Remove once delay after wake up is accepted
-
-	UART_PRINT("b sl_start\n\r");
-	// Start SimpleLink
-    lRetVal = sl_Start(0, 0, 0);
-    UART_PRINT("a sl_start\n\r");
-    ASSERT_ON_ERROR(lRetVal);
-
-//	ulTimeDuration_ms = get_timeDuration();
-//	stop_100mSecTimer();
-//	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
-
-   	UART_PRINT("b Fileopen\n\r");
-   	//
-	// Open the file for Write Operation
-	//
-	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
-					   FS_MODE_OPEN_WRITE,
-					   &ulToken,
-					   &lFileHandle);
-	UART_PRINT("a Fileopen\n\r");
-	if(lRetVal < 0)
-	{
-	   sl_FsClose(lFileHandle, 0, 0, 0);
-	   ASSERT_ON_ERROR(lRetVal);
-	   //ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
 
 	//
 	// Initialize camera controller
@@ -521,108 +481,32 @@ long CaptureAndStore_Image()
 	//
 	DMAConfig();
 
-	// Wait for Imaging Position of door
-	angleCheck_Initializations();
-
-/*
-// Tag:Remove this section when done with parallel task testing
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("*1* - %d ms *1*\n\r", ulTimeDuration_ms);
-	start_100mSecTimer();	//Remove once delay after wake up is accepted
-	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
-	{
-		osi_Sleep(10);
-		UART_PRINT("^");
-	}
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("*2* - %d ms *2*\n\r", ulTimeDuration_ms);
-*/
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("main - over - %d ms\n\r", ulTimeDuration_ms);
-
-	start_100mSecTimer();
-
-	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
-	{
-		UART_PRINT("{");
-		osi_Sleep(10);
-	}
-
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
 	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
-//	int i;
-//	for(i=0; i<100; i++)
-//	{
-//		get_angle();
-//	}
 	start_100mSecTimer();
-	//DBG - Remove - Hibernate to DoorAngle Time Profile
-	//sensorsTriggerSetup();
-	print_count = 0;
-	valid_case = 0;
-	while(1)
-	{
-		angleCheck();
-
-		if(g_flag_door_closing_45degree)
-		{
-			break;
-		}
-
-		//Cases where we have to abort and hibernate
-		if(checkForLight_Flag)	//Flag Goes up once every 100mSec
-		{
-			//Light is off
-			if(IsLightOff(LUX_THRESHOLD))
-			{
-				lRetVal = LIGHT_IS_OFF_BEFORE_IMAGING;
-				break;
-			}
-			//Timeout
-			if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
-			{
-				lRetVal = TIMEOUT_BEFORE_IMAGING;
-				UART_PRINT("Timeout\n\r");
-				break;
-			}
-		}
-
-	}
-	standby_accelMagn_fxos8700();
-	stop_100mSecTimer();
-	if(!g_flag_door_closing_45degree)
-	{
-		Standby_ImageSensor();
-		sl_Stop(0xFFFF);
-		return lRetVal;
-	}
-
-	LED_On();
-
-/*
-	// Wait in case imagesensor capture configs in not over yet
 	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
 	{
 		UART_PRINT("{");
+		osi_Sleep(10);
 	}
-	osi_TaskDelete(&g_ImageCaptureConfigs_TaskHandle);
-*/
+	//Tag:Remove when waketime optimization is over
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
-//	float_t fTemp = 12.34, fRH = 56.78;
-//	verifyTempRHSensor();
-//	softResetTempRHSensor();
-//	configureTempRHSensor();
-//	UtilsDelay(80000000);
-//	getTempRH(&fTemp, &fRH);
-//	UART_PRINT("Temperature: %f\n\r", fTemp);
+	return;
+}
 
+int32_t CaptureImage(int32_t lFileHandle)
+{
+    long lRetVal;
 
-	//UtilsDelay(.25*80000000/6);
+    // Initial values set
+    uint32_t uiImageFile_Offset = 0;
+	//g_image_buffer[0] = 0xFFFFFFFF;
+
 	//
     // Perform Image Capture
     //
@@ -634,8 +518,6 @@ long CaptureAndStore_Image()
 
     while(1)
     {
-
-
     	if(g_flag_blockFull[0])
     	{
     		if((0 == g_image_buffer[0])&&(0 == g_image_buffer[10])&&(0 == g_image_buffer[20]))	//Checking three random positions in the buffer
@@ -725,123 +607,142 @@ long CaptureAndStore_Image()
         ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     }
     uiImageFile_Offset += lRetVal;
-    // Close the file post writing the image
-    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-    ASSERT_ON_ERROR(lRetVal);
 
     UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
     //UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
-
-    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
-    lRetVal = sl_Stop(0xFFFF);
-	ASSERT_ON_ERROR(lRetVal);
-
 	UART_PRINT("DONE: Image Write to Flash\n\r");
 
-    return SUCCESS;
+    return lRetVal;
 }
-long CaptureinRAM()
-{
-	// Initialize camera controller
-	//
-	CamControllerInit();
+//*****************************************************************************
+//
+//!     CaptureAndStore_Image
+//!     Configures DMA and starts the Capture. Post Capture writes to SFLASH 
+//!    
+//!    \param                      None  
+//!     \return                     0 - Success
+//!                                   Negative - Failure
+//!                               
+//
+//*****************************************************************************
+//long CaptureAndStore_Image()
+//{
+//    long lFileHandle;
+//    unsigned long ulToken = NULL;
+//
+//	uint32_t ulTimeDuration_ms;
+//
+//	//start_100mSecTimer();	//Remove once delay after wake up is accepted
+//
+//
+//
+//
+//
+//
+///*
+//// Tag:Remove this section when done with parallel task testing
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("*1* - %d ms *1*\n\r", ulTimeDuration_ms);
+//	start_100mSecTimer();	//Remove once delay after wake up is accepted
+//	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
+//	{
+//		osi_Sleep(10);
+//		UART_PRINT("^");
+//	}
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("*2* - %d ms *2*\n\r", ulTimeDuration_ms);
+//*/
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("main - over - %d ms\n\r", ulTimeDuration_ms);
+//
+//
+//
+////	int i;
+////	for(i=0; i<100; i++)
+////	{
+////		get_angle();
+////	}
+//	start_100mSecTimer();
+//	//sensorsTriggerSetup(); 	//DBG - Remove - Hibernate to DoorAngle Time Profile
+//	print_count = 0;
+//	valid_case = 0;
+//	while(1)
+//	{
+//		angleCheck();
+//
+//		if(g_flag_door_closing_45degree)
+//		{
+//			break;
+//		}
+//
+//		//Cases where we have to abort and hibernate
+//		if(checkForLight_Flag)	//Flag Goes up once every 100mSec
+//		{
+//			//Light is off
+//			if(IsLightOff(LUX_THRESHOLD))
+//			{
+//				lRetVal = LIGHT_IS_OFF_BEFORE_IMAGING;
+//				break;
+//			}
+//			//Timeout
+//			if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
+//			{
+//				lRetVal = TIMEOUT_BEFORE_IMAGING;
+//				UART_PRINT("Timeout\n\r");
+//				break;
+//			}
+//		}
+//
+//	}
+//	standby_accelMagn_fxos8700();
+//	stop_100mSecTimer();
+//	if(!g_flag_door_closing_45degree)
+//	{
+//		Standby_ImageSensor();
+//		sl_Stop(0xFFFF);
+//		return lRetVal;
+//	}
+//
+//	LED_On();
+//
+///*
+//	// Wait in case imagesensor capture configs in not over yet
+//	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
+//	{
+//		UART_PRINT("{");
+//	}
+//	osi_TaskDelete(&g_ImageCaptureConfigs_TaskHandle);
+//*/
+//
+////	float_t fTemp = 12.34, fRH = 56.78;
+////	verifyTempRHSensor();
+////	softResetTempRHSensor();
+////	configureTempRHSensor();
+////	UtilsDelay(80000000);
+////	getTempRH(&fTemp, &fRH);
+////	UART_PRINT("Temperature: %f\n\r", fTemp);
+//
+//
+//	//UtilsDelay(.25*80000000/6);
+//
+//
+//
+//	// Close the file post writing the image
+//    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+//    ASSERT_ON_ERROR(lRetVal);
+//
+//
+//    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
+//    lRetVal = sl_Stop(0xFFFF);
+//	ASSERT_ON_ERROR(lRetVal);
+//
+//
+//    return SUCCESS;
+//}
 
-	//
-	// Configure DMA in ping-pong mode
-	//
-	DMAConfig();
-
-	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
-	//WaitFor40Degrees();
-	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
-
-	//
-	// Perform Image Capture
-	//
-	UART_PRINT("sB");
-	MAP_CameraCaptureStart(CAMERA_BASE);
-	// HWREG(0x4402609C) |= 1 << 8;
-	while(g_frame_end == 0);
-	MAP_CameraCaptureStop(CAMERA_BASE, true);
-	UART_PRINT("pA");
-
-	return 0;
-}
-
-long CaptureinRAM_StoreAfterCapture_Image()
-{
-    long lFileHandle;
-    unsigned long ulToken = NULL;
-    long lRetVal;
-
-	// Initialize camera controller
-	//
-	CamControllerInit();
-
-	//
-	// Configure DMA in ping-pong mode
-	//
-	DMAConfig();
-
-	LED_On();
-	//Wait for angle condition
-	LED_Off();
-
-	//
-	// Perform Image Capture
-	//
-	UART_PRINT("sB");
-	MAP_CameraCaptureStart(CAMERA_BASE);
-	// HWREG(0x4402609C) |= 1 << 8;
-	while(g_frame_end == 0);
-	MAP_CameraCaptureStop(CAMERA_BASE, true);
-	UART_PRINT("pA");
-
-	lRetVal = sl_Start(0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	//
-	// Open the file for Write Operation
-	//
-	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
-					   FS_MODE_OPEN_WRITE,
-					   &ulToken,
-					   &lFileHandle);
-	if(lRetVal < 0)
-	{
-	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-
-	//
-	// Write the Image Buffer
-	//
-	lRetVal =  sl_FsWrite(lFileHandle, 0,
-					 (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
-	//
-	// Error handling if file operation fails
-	//
-	if (lRetVal <0)
-	{
-	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
-
-	//
-	// Close the file post writing the image
-	//
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = sl_Stop(0xFFFF);
-	//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-	ASSERT_ON_ERROR(lRetVal);
-
-	UART_PRINT("DONE: Image Write to Flash\n\r");
-
-	return lRetVal;
-}
 //*****************************************************************************
 //
 //!     DMA Config
@@ -1086,666 +987,4 @@ static void CameraIntHandler()
             //UART_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
         }
     }
-}
-
-//*****************************************************************************
-//
-//!     JfifApp0Marker 
-//!    
-//!    \param                      Pointer to the output buffer  
-//!     \return                     Length of the Marker or error code                        
-//
-//*****************************************************************************
-
-#ifdef ENABLE_JPEG
-static int JfifApp0Marker(char *pbuf)
-{
-    if(pbuf == NULL)
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
-    *pbuf++= 0xFF;                  // APP0 marker 
-    *pbuf++= 0xE0;
-    *pbuf++= 0x00;                  // length 
-    *pbuf++= 0x10;
-    *pbuf++= 0x4A;                  // JFIF identifier 
-    *pbuf++= 0x46;
-    *pbuf++= 0x49;
-    *pbuf++= 0x46;
-    *pbuf++= 0x00;
-    *pbuf++= 0x01;                  // version 
-    *pbuf++= 0x02;
-    *pbuf++= 0x00;                  // units 
-    *pbuf++= 0x00;                  // X density 
-    *pbuf++= 0x01;
-    *pbuf++= 0x00;                  // Y density 
-    *pbuf++= 0x01;
-    *pbuf++= 0x00;                  // X thumbnail 
-    *pbuf++= 0x00;                  // Y thumbnail 
-    return 18;
-}
-
-
-//*****************************************************************************
-//
-//!    FrameHeaderMarker
-//!    
-//!    \param1                      pointer to the output buffer  
-//!    \param2                      width   
-//!    \param3                      height 
-//!    \param4                      format
-//!
-//!     \return                       Length of the header marker or error code                      
-//
-//*****************************************************************************
-static int FrameHeaderMarker(char *pbuf, int width, int height, int format)
-{
-    int length;
-    if(pbuf == NULL)
-    {
-        UART_PRINT("Null pointer");
-        LOOP_FOREVER();
-    }
-    if (format == FORMAT_MONOCHROME)
-        length = 11;
-    else
-        length = 17;
-
-    *pbuf++= 0xFF;                      // start of frame: baseline DCT 
-    *pbuf++= 0xC0;
-    *pbuf++= length>>8;                 // length field 
-    *pbuf++= length&0xFF;
-    *pbuf++= 0x08;                      // sample precision 
-    *pbuf++= height>>8;                 // number of lines 
-    *pbuf++= height&0xFF;
-    *pbuf++= width>>8;                  // number of samples per line 
-    *pbuf++= width&0xFF;
-
-    if (format == FORMAT_MONOCHROME)    // monochrome 
-    {
-        *pbuf++= 0x01;              // number of image components in frame 
-        *pbuf++= 0x00;              // component identifier: Y 
-        *pbuf++= 0x11;              // horizontal | vertical sampling factor: Y 
-        *pbuf++= 0x00;              // quantization table selector: Y 
-    }
-    else if (format == FORMAT_YCBCR422) // YCbCr422
-    {
-        *pbuf++= 0x03;        // number of image components in frame 
-        *pbuf++= 0x00;        // component identifier: Y 
-        *pbuf++= 0x21;        // horizontal | vertical sampling factor: Y 
-        *pbuf++= 0x00;        // quantization table selector: Y 
-        *pbuf++= 0x01;        // component identifier: Cb 
-        *pbuf++= 0x11;        // horizontal | vertical sampling factor: Cb 
-        *pbuf++= 0x01;        // quantization table selector: Cb 
-        *pbuf++= 0x02;        // component identifier: Cr 
-        *pbuf++= 0x11;        // horizontal | vertical sampling factor: Cr 
-        *pbuf++= 0x01;        // quantization table selector: Cr 
-    }
-    else                                // YCbCr420 
-    {
-        *pbuf++= 0x03;         // number of image components in frame 
-        *pbuf++= 0x00;         // component identifier: Y 
-        *pbuf++= 0x22;         // horizontal | vertical sampling factor: Y 
-        *pbuf++= 0x00;         // quantization table selector: Y 
-        *pbuf++= 0x01;         // component identifier: Cb 
-        *pbuf++= 0x11;         // horizontal | vertical sampling factor: Cb 
-        *pbuf++= 0x01;         // quantization table selector: Cb 
-        *pbuf++= 0x02;         // component identifier: Cr 
-        *pbuf++= 0x11;         // horizontal | vertical sampling factor: Cr 
-        *pbuf++= 0x01;        // quantization table selector: Cr 
-    }
-
-    return (length+2);
-}
-
-
-//*****************************************************************************
-//
-//!     ScanHeaderMarker
-//!
-//!    \param1                     pointer to output buffer  
-//!    \param2                     Format 
-//!
-//!     \return                     Length or error code                             
-//
-//*****************************************************************************
-static int ScanHeaderMarker(char *pbuf, int format)
-{
-    int length;
-    
-    if(pbuf == NULL)
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
-    if (format == FORMAT_MONOCHROME)
-        length = 8;
-    else
-        length = 12;
-
-    *pbuf++= 0xFF;                  // start of scan 
-    *pbuf++= 0xDA;
-    *pbuf++= length>>8;             // length field 
-    *pbuf++= length&0xFF;
-    if (format == FORMAT_MONOCHROME)// monochrome 
-    {
-        *pbuf++= 0x01;              // number of image components in scan 
-        *pbuf++= 0x00;              // scan component selector: Y 
-        *pbuf++= 0x00;              // DC | AC huffman table selector: Y 
-    }
-    else                            // YCbCr
-    {
-        *pbuf++= 0x03;              // number of image components in scan 
-        *pbuf++= 0x00;              // scan component selector: Y 
-        *pbuf++= 0x00;              // DC | AC huffman table selector: Y 
-        *pbuf++= 0x01;              // scan component selector: Cb 
-        *pbuf++= 0x11;              // DC | AC huffman table selector: Cb 
-        *pbuf++= 0x02;              // scan component selector: Cr 
-        *pbuf++= 0x11;              // DC | AC huffman table selector: Cr 
-    }
-
-    *pbuf++= 0x00;         // Ss: start of predictor selector 
-    *pbuf++= 0x3F;         // Se: end of spectral selector 
-    *pbuf++= 0x00;         // Ah | Al: successive approximation bit position 
-
-    return (length+2);
-}
-
-
-//*****************************************************************************
-//
-//!     DefineQuantizationTableMarker 
-//!      Calculate and write the quantisation tables
-//! qscale is the customised scaling factor  see MT9D131 developer guide page 78 
-//!    
-//!    \param1                      pointer to the output buffer  
-//!    \param2                      Quantization Scale  
-//!    \param3                      Format 
-//!
-//!     \return                      Length of the Marker or error code                      
-//
-//*****************************************************************************
-static int DefineQuantizationTableMarker (unsigned char *pbuf, int qscale, int format)
-{
-    int i, length, temp;
-    // temp array to store scaled zigzagged quant entries 
-    unsigned char newtbl[64];
-
-    if(pbuf == NULL)
-    {
-        UART_PRINT("Null pointer");
-        LOOP_FOREVER();
-    }
-
-    if (format == FORMAT_MONOCHROME)    // monochrome 
-        length  =  67;
-    else
-        length  =  132;
-
-    *pbuf++  =  0xFF;                   // define quantization table marker 
-    *pbuf++  =  0xDB;
-    *pbuf++  =  length>>8;              // length field 
-    *pbuf++  =  length&0xFF;
-     // quantization table precision | identifier for luminance 
-    *pbuf++  =  0;                     
-
-    // calculate scaled zigzagged luminance quantisation table entries 
-    for (i=0; i<64; i++) {
-        temp = (JPEG_StdQuantTblY[i] * qscale + 16) / 32;
-        // limit the values to the valid range 
-        if (temp <= 0)
-            temp = 1;
-        if (temp > 255)
-            temp = 255;
-        newtbl[zigzag[i]] = (unsigned char) temp;
-    }
-
-    // write the resulting luminance quant table to the output buffer 
-    for (i=0; i<64; i++)
-        *pbuf++ = newtbl[i];
-
-    // if format is monochrome we're finished, 
-    // otherwise continue on, to do chrominance quant table 
-    if (format == FORMAT_MONOCHROME)
-        return (length+2);
-
-    *pbuf++ = 1;   // quantization table precision | identifier for chrominance 
-
-    // calculate scaled zigzagged chrominance quantisation table entries 
-    for (i=0; i<64; i++) {
-        temp = (JPEG_StdQuantTblC[i] * qscale + 16) / 32;
-        // limit the values to the valid range 
-        if (temp <= 0)
-            temp = 1;
-        if (temp > 255)
-            temp = 255;
-        newtbl[zigzag[i]] = (unsigned char) temp;
-    }
-
-    // write the resulting chrominance quant table to the output buffer 
-    for (i=0; i<64; i++)
-        *pbuf++ = newtbl[i];
-
-    return (length+2);
-}
-
-
-//*****************************************************************************
-//
-//!     DefineHuffmanTableMarkerDC 
-//!    
-//!    \param1                      pointer to Marker buffer  
-//!    \param2                      Huffman table  
-//!    \param3                      Class Identifier 
-//!  
-//!     \return                      Length of the marker or error code                            
-//
-//*****************************************************************************
-static int DefineHuffmanTableMarkerDC(char *pbuf, unsigned int *htable, 
-                                                                int class_id)
-{
-    int i, l, count;
-    int length;
-    char *plength;
-
-    if((pbuf == NULL) || (htable == NULL))
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
-    *pbuf++= 0xFF;                  // define huffman table marker 
-    *pbuf++= 0xC4;
-    plength = pbuf;                 // place holder for length field 
-    *pbuf++;
-    *pbuf++;
-    *pbuf++= class_id;              // huffman table class | identifier 
-
-    for (l = 0; l < 16; l++)
-    {
-        count = 0;
-        for (i = 0; i < 12; i++)
-        {
-            if ((htable[i] >> 8) == l)
-                count++;
-        }
-        *pbuf++= count;             // number of huffman codes of length l+1 
-    }
-
-    length = 19;
-    for (l = 0; l < 16; l++)
-    {
-        for (i = 0; i < 12; i++)
-        {
-            if ((htable[i] >> 8) == l)
-            {
-                *pbuf++= i;         // HUFFVAL with huffman codes of length l+1 
-                length++;
-            }
-        }
-    }
-
-    *plength++= length>>8;          // length field 
-    *plength = length&0xFF;
-
-    return (length + 2);
-}
-
-
-//*****************************************************************************
-//
-//!     DefineHuffmanTableMarkerAC 
-//!     1. Establishes connection w/ AP//
-//!     2. Initializes the camera sub-components//! GPIO Enable & Configuration
-//!     3. Listens and processes the image capture requests from user-applications
-//!    
-//!    \param1                      pointer to Marker buffer  
-//!    \param2                      Huffman table  
-//!    \param3                      Class Identifier 
-//!
-//!     \return                      Length of the Marker or error code
-//!                               
-//
-//*****************************************************************************
-static int DefineHuffmanTableMarkerAC(char *pbuf, unsigned int *htable, 
-                                                                int class_id)
-{
-    int i, l, a, b, count;
-    char *plength;
-    int length;
-
-    if((pbuf == NULL) || (htable == NULL))
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
-
-    *pbuf++= 0xFF;                      // define huffman table marker 
-    *pbuf++= 0xC4;
-    plength = pbuf;                     // place holder for length field 
-    *pbuf++;
-    *pbuf++;
-    *pbuf++= class_id;                  // huffman table class | identifier 
-
-    for (l = 0; l < 16; l++)
-    {
-        count = 0;
-        for (i = 0; i < 162; i++)
-        {
-            if ((htable[i] >> 8) == l)
-                count++;
-        }
-
-        *pbuf++= count;          // number of huffman codes of length l+1 
-    }
-
-    length = 19;
-    for (l = 0; l < 16; l++)
-    {
-        // check EOB: 0|0 
-        if ((htable[160] >> 8) == l)
-        {
-            *pbuf++= 0;         // HUFFVAL with huffman codes of length l+1 
-            length++;
-        }
-
-        // check HUFFVAL: 0|1 to E|A 
-        for (i = 0; i < 150; i++)
-        {
-            if ((htable[i] >> 8) == l)
-            {
-                a = i/10;
-                b = i%10;
-                // HUFFVAL with huffman codes of length l+1
-                *pbuf++= (a<<4)|(b+1);   
-                length++;
-            }
-        }
-
-        // check ZRL: F|0 
-        if ((htable[161] >> 8) == l)
-        {
-        // HUFFVAL with huffman codes of length l+1 
-            *pbuf++= 0xF0;              
-            length++;
-        }
-
-        // check HUFFVAL: F|1 to F|A 
-        for (i = 150; i < 160; i++)
-        {
-            if ((htable[i] >> 8) == l)
-            {
-                a = i/10;
-                b = i%10;
-                 // HUFFVAL with huffman codes of length l+1 
-                *pbuf++= (a<<4)|(b+1); 
-                length++;
-            }
-        }
-    }
-
-    *plength++= length>>8;              // length field 
-    *plength = length&0xFF;
-    return (length + 2);
-}
-
-
-//*****************************************************************************
-//
-//!     DefineRestartIntervalMarker
-//!    
-//!    \param1                      pointer to Marker buffer  
-//!    \param2                      return interval
-//!
-//!     \return                      Length or error code                                
-//
-//*****************************************************************************
-static int DefineRestartIntervalMarker(char *pbuf, int ri)
-{
-    if(pbuf == NULL)
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
-
-    *pbuf++= 0xFF;                  // define restart interval marker 
-    *pbuf++= 0xDD;
-    *pbuf++= 0x00;                  // length 
-    *pbuf++= 0x04;
-    *pbuf++= ri >> 8;               // restart interval 
-    *pbuf++= ri & 0xFF;
-    return 6;
-}
-//*****************************************************************************
-//
-//!     CreateJpegHeader
-//!     Create JPEG Header in JFIF format
-//!    
-//!    \param1                     header - pointer to JPEG header buffer  
-//!    \param2                     width - image width 
-//!    \param3                     height - image height  
-//!    \param4                     format - color format 
-//!                                 (0 = YCbCr422, 1 = YCbCr420, 2 = monochrome)  
-//!    \param5                     restart_int - restart marker interval  
-//!    \param6                     qscale - quantization table scaling factor
-//!
-//!     \return               length of JPEG header (bytes) or error code -1                             
-//
-//*****************************************************************************
-
-static int CreateJpegHeader(char *header, int width, int height,
-                            int format, int restart_int, int qscale)
-{
-    char *pbuf = header;
-    int length;
-    if(header == NULL)
-    {
-        UART_PRINT("Null pointer\n\r");
-        LOOP_FOREVER();
-    }
-
-    // SOI 
-    *pbuf++= 0xFF;
-    *pbuf++= 0xD8;
-    length = 2;
-
-    // JFIF APP0 
-    length += JfifApp0Marker(pbuf);
-
-    // Quantization Tables 
-    pbuf = header + length;
-    length += DefineQuantizationTableMarker
-                                       ((unsigned char *)pbuf, qscale, format);
-
-    // Frame Header 
-    pbuf = header + length;
-    length += FrameHeaderMarker(pbuf, width, height, format);
-
-    // Huffman Table DC 0 for Luma 
-    pbuf = header + length;
-    length += DefineHuffmanTableMarkerDC(pbuf, &JPEG_StdHuffmanTbl[352], 0x00);
-
-    // Huffman Table AC 0 for Luma 
-    pbuf = header + length;
-    length += DefineHuffmanTableMarkerAC(pbuf, &JPEG_StdHuffmanTbl[0], 0x10);
-
-    if (format != FORMAT_MONOCHROME)// YCbCr
-    {
-        // Huffman Table DC 1 for Chroma 
-        pbuf = header + length;
-        length += DefineHuffmanTableMarkerDC
-                                        (pbuf, &JPEG_StdHuffmanTbl[368], 0x01);
-
-        // Huffman Table AC 1 for Chroma 
-        pbuf = header + length;
-        length += DefineHuffmanTableMarkerAC
-                                        (pbuf, &JPEG_StdHuffmanTbl[176], 0x11);
-    }
-
-    // Restart Interval 
-    if (restart_int > 0)
-    {
-        pbuf = header + length;
-        length += DefineRestartIntervalMarker(pbuf, restart_int);
-    }
-
-    // Scan Header 
-    pbuf = header + length;
-    length += ScanHeaderMarker(pbuf, format);
-
-    return length;
-}
-#endif 
-
-//*****************************************************************************
-//
-// Close the Doxygen group.
-//! @}
-//
-//*****************************************************************************
-int32_t createAndWrite_ImageHeaderFile()
-{
-	long lFileHandle;
-	unsigned long ulToken = NULL;
-	long lRetVal;
-
-	sl_Start(0,0,0);
-
-	//
-	// NVMEM File Open to write to SFLASH
-	//
-	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,//0x00212001,
-						FS_MODE_OPEN_CREATE(JPEG_HEADER_MAX_FILESIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-						&ulToken,
-						&lFileHandle);
-	if(lRetVal < 0)
-	{
-		UART_PRINT("File Open Error: %i", lRetVal);
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-
-	// Close the created file
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	//
-	// JPEG Header - create and write to Flash
-	//
-	// Open the file for Write Operation
-	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,
-						FS_MODE_OPEN_WRITE,
-						&ulToken,
-						&lFileHandle);
-	if(lRetVal < 0)
-	{
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-
-	// Create Header
-	memset(g_header, '\0', sizeof(g_header));
-	g_header_length = CreateJpegHeader((char *)&g_header[0],
-										PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
-										0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
-	//InitializeTimer();
-	//StartTimer();
-	// Write Header to Flash
-	lRetVal = sl_FsWrite(lFileHandle, 0, (unsigned char*)g_header, g_header_length - 1);
-	//StopTimer();
-	if(lRetVal < 0)
-	{
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-	//UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
-
-	// Close the file post writing the image
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	SlFsFileInfo_t fileInfo;
-	sl_FsGetInfo((unsigned char *)JPEG_HEADER_FILE_NAME, ulToken, &fileInfo);
-
-	sl_Stop(0xFFFF);
-
-	return lRetVal;
-}
-
-int32_t create_JpegImageFile()
-{
-	long lFileHandle;
-	unsigned long ulToken = NULL;
-	long lRetVal;
-
-	lRetVal = sl_Start(0,0,0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	//
-	// NVMEM File Open to write to SFLASH
-	//
-	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,//0x00212001,
-						FS_MODE_OPEN_CREATE(JPEG_IMAGE_MAX_FILESIZE,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
-						&ulToken,
-						&lFileHandle);
-	if(lRetVal < 0)
-	{
-		UART_PRINT("File Open Error: %i", lRetVal);
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
-	}
-
-	// Close the created file
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = sl_Stop(0xFFFF);
-	ASSERT_ON_ERROR(lRetVal);
-
-	return lRetVal;
-}
-
-
-int32_t Write_JPEGHeader()
-{
-	long lFileHandle;
-	unsigned long ulToken = NULL;
-	long lRetVal;
-
-	// Create Header
-	memset(g_header, '\0', sizeof(g_header));
-	g_header_length = CreateJpegHeader((char *)&g_header[0],
-										PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
-										0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
-
-	lRetVal = sl_Start(0,0,0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	// Open the file for Write Operation
-	lRetVal = sl_FsOpen((unsigned char *)JPEG_HEADER_FILE_NAME,
-						FS_MODE_OPEN_WRITE,
-						&ulToken,
-						&lFileHandle);
-	if(lRetVal < 0)
-	{
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
-	}
-
-	// Write
-	lRetVal = sl_FsWrite(lFileHandle, 0, (unsigned char*)g_header, g_header_length - 1);
-	if(lRetVal < 0)
-	{
-		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
-	}
-
-	// Close the file post writing the image
-	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = sl_Stop(0xFFFF);
-	ASSERT_ON_ERROR(lRetVal);
-
-	return lRetVal;
 }

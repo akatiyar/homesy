@@ -166,6 +166,9 @@ int32_t Start_CameraCapture();
 int32_t Config_CameraCapture();
 
 int32_t toggle_standby();//Tag:Remove later
+
+void ImagCapture_Init();
+int32_t CaptureImage(int32_t lFileHandle);
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

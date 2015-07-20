@@ -17,10 +17,14 @@
 #include "camera_app.h"
 
 uint8_t cnt_prakz2;
-uint8_t g_flag_door_closing_45degree;
+//uint8_t g_flag_door_closing_45degree;
 extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
+
+//Tag:See if you can remove this
+extern uint8_t print_count;
+extern uint8_t valid_case;
 
 extern void check_doorpos();
 int16_t angleCheck();
@@ -74,6 +78,22 @@ int16_t angleCheck_Initializations()
 	thisMagCal.fV[0]= Mag_Calb_Value[tmpCnt++];
 	thisMagCal.fV[1]= Mag_Calb_Value[tmpCnt++];
 	thisMagCal.fV[2]= Mag_Calb_Value[tmpCnt++];
+
+	print_count = 0;
+	valid_case = 0;
+
+	//Tag:Work-around for first few invalid angle values
+	//Tag:Remove timing stuff
+	uint32_t ulTimeDuration_ms;
+	start_100mSecTimer();
+	int i;
+	for(i=0; i<50; i++)	//50 is value based on observation of ecompass readings
+	{
+		get_angle();
+	}
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	UART_PRINT("a+m init reading - %d ms\n\r", ulTimeDuration_ms);
 
 	//UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
 	//UART_PRINT("40w:%3.2f\n\r",gdoor_40deg_angle);

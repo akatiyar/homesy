@@ -29,12 +29,12 @@
 // up.
 //
 //#include "Events.h"
+#include "include_all.h"
 #include "stdio.h"
 #include "math.h"
 #include "stdlib.h"
 #include "time.h"
 #include "string.h"
-#include "include_all.h"
 
 // function resets the magnetometer buffer and magnetic calibration
 void fInitMagCalibration(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthisMagBuffer)

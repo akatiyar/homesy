@@ -10,6 +10,33 @@
 //		sl_Stop(0xFFFF);
 
 
+		/*
+		Config_CameraCapture();
+		Standby_ImageSensor();
+		while(1)
+		{
+			UART_PRINT("T3 Hib\n\r");
+			start_100mSecTimer();
+
+			g_ulAppStatus = IMAGESENSOR_CAPTURECONFIGS_HAPPENING;
+			Wakeup_ImageSensor();
+			ulTimeDuration_ms = get_timeDuration();
+			stop_100mSecTimer();
+			UART_PRINT("wake over - %d ms\n\r", ulTimeDuration_ms);
+
+			start_100mSecTimer();
+
+			Start_CameraCapture();
+			g_ulAppStatus = IMAGESENSOR_CAPTURECONFIGS_DONE;
+
+			ulTimeDuration_ms = get_timeDuration();
+			stop_100mSecTimer();
+			UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
+
+			Standby_ImageSensor();
+		}
+		*/
+
 
 	lRetVal = sl_FsDel((uint8_t *)USER_CONFIGS_FILENAME, ulToken);
 	UART_PRINT("Del %f", lRetVal);

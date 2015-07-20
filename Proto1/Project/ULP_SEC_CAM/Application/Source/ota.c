@@ -35,10 +35,10 @@ static OtaOptServerInfo_t g_otaOptServerInfo;
 static void *pvOtaApp;
 
 int OTAServerInfoSet(void **pvOtaApp, char *vendorStr);
-static void RebootMCU();
+//static void RebootMCU();
 
-int32_t OTA_Init();
-int32_t OTA_Run();
+static int32_t OTA_Init();
+static int32_t OTA_Run();
 //Tag:OTA
 //****************************************************************************
 //
@@ -90,46 +90,11 @@ int OTAServerInfoSet(void **pvOtaApp, char *vendorStr)
     return RUN_STAT_OK;
 }
 //****************************************************************************
+//	This function initializes OTA. Call this before OTA_Run
 //
-//! Reboot the MCU by requesting hibernate for a short duration
-//!
-//! \return None
-//
+//	NOTE: MWP should be on while calling this function
 //****************************************************************************
-static void RebootMCU()
-{
-
-  //
-  // Configure hibernate RTC wakeup
-  //
-  PRCMHibernateWakeupSourceEnable(PRCM_HIB_SLOW_CLK_CTR);
-
-  //
-  // Delay loop
-  //
-  MAP_UtilsDelay(8000000);
-
-  //
-  // Set wake up time
-  //
-  //PRCMHibernateIntervalSet(330);
-  PRCMHibernateIntervalSet(33000);
-
-  //
-  // Request hibernate
-  //
-  PRCMHibernateEnter();
-
-  //
-  // Control should never reach here
-  //
-  while(1)
-  {
-
-  }
-}
-
-int32_t OTA_Init()
+static int32_t OTA_Init()
 {
     unsigned char ucVendorStr[20];
 
@@ -148,7 +113,14 @@ int32_t OTA_Init()
     return 0;
 }
 
-int32_t OTA_Run()
+//****************************************************************************
+//	This function does OTA update, that is, looks for updates, downloads
+//updates (if available) and resets the device
+//
+//Note: 1. Call OTA_Init() before calling this funcitons.
+//		2. NWP has to be on while calling this fn
+//****************************************************************************
+static int32_t OTA_Run()
 {
 	int32_t lRetVal;
 	int SetCommitInt;
@@ -206,23 +178,31 @@ int32_t OTA_Run()
 	return 0;
 }
 
+//******************************************************************************
+//This function downloads any available updates from Dropbox and resets the
+//device, so it begins running the downloaded code.
+//******************************************************************************
 int32_t OTA_Update()
 {
 	UART_PRINT("Entered OTA_Update()\n\r");
 	//
 	//	Connect cc3200 to wifi AP
 	//
-	ConfigureSimpleLinkToDefaultState();
-	sl_Start(0, 0, 0);
-	ConnectToNetwork_STA();
+	//ConfigureSimpleLinkToDefaultState();
+	//sl_Start(0, 0, 0);
+	//ConnectToNetwork_STA();
+	WiFi_Connect();
 
 	OTA_Init();
 	OTA_Run();
 
-	sl_Stop(0xFF);
+	sl_Stop(0xFF);	//sl_start() is within WiFi_Connect()
 	return 0;
 }
-
+//******************************************************************************
+//This function commits the new firmware (itself) if it is running in test
+//mode (first time)
+//******************************************************************************
 int32_t OTA_CommitImage()
 {
 	int SetCommitInt;
@@ -250,101 +230,5 @@ int32_t OTA_CommitImage()
 
     sl_Stop(0xFF);
 
-
     return 0;
 }
-
-//int32_t OTA_BootImg2()
-//{
-//	int SetCommitInt;
-//	long OptionLen;
-//    unsigned char OptionVal;
-//
-//    UART_PRINT("Entered OTA_BootImg2()\n\r");
-//	sl_Start(0,0,0);
-//
-//	OTA_Init();
-//
-//	 sl_extLib_Ota_BootImg2(pvOtaApp, Option, OptionLen, pOptionVal);
-//
-//    sl_Stop(0xFF);
-//
-//
-//    return 0;
-//}
-
-//int32_t OTA_Update_2()
-//{
-//	UART_PRINT("Entered OTA_Update_2()\n\r");
-//
-//	int32_t lRetVal;
-//
-//	//
-//	//	Connect cc3200 to wifi AP
-//	//
-//	ConfigureSimpleLinkToDefaultState();
-//	sl_Start(0, 0, 0);
-//	ConnectToNetwork_STA();
-//
-//	//Tag:OTA
-//	int SetCommitInt;
-//	unsigned char ucVendorStr[20];
-//	long OptionLen;
-//	unsigned char OptionVal;
-//
-//    //
-//	// Initialize OTA
-//	//
-//	pvOtaApp = sl_extLib_OtaInit(RUN_MODE_NONE_OS | RUN_MODE_BLOCKING,0);
-//	//
-//	// Initializa OTA service
-//	//
-//	strcpy((char *)ucVendorStr,OTA_VENDOR_STRING);
-//    OTAServerInfoSet(&pvOtaApp,(char *)ucVendorStr);
-//
-//    //
-//    //	Check if this image is booted in test mode
-//    //
-//    sl_extLib_OtaGet(pvOtaApp, EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT, &OptionLen,(_u8*)&OptionVal);
-//    UART_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
-//    if(OptionVal == true)
-//    {
-//    	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
-//    	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
-//    	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
-//    }
-//    else
-//    {
-//    	UART_PRINT("Starting OTA\n\r");
-//    	lRetVal = 0;
-//
-//    	while(!lRetVal)
-//    	{
-//    		lRetVal = sl_extLib_OtaRun(pvOtaApp);
-//    		UART_PRINT("%d\n\r", lRetVal);
-//    	}
-//
-//    	UART_PRINT("OTA run = %d\n\r", lRetVal);
-//    	if(lRetVal < 0)
-//    	{
-//    		UART_PRINT("OTA:Error with OTA Server\n\r");
-//    	}
-//    	else if(lRetVal == RUN_STAT_NO_UPDATES)
-//    	{
-//    		UART_PRINT("OTA: RUN_STAT_NO_UPDATES");
-//    	}
-//    	else if((lRetVal & RUN_STAT_DOWNLOAD_DONE))
-//    	{
-//    		//
-//    		//	Set OTA File for testing
-//    		//
-//    		lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_TEST, sizeof(int), (_u8 *)&SetCommitInt);
-//    		UART_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
-//    		UART_PRINT("Rebooting...\n\r");
-//    		RebootMCU();
-//    	}
-//    }
-//    sl_Stop(0xFF);
-//
-//    return 0;
-//}

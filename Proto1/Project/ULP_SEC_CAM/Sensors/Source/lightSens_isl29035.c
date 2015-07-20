@@ -119,7 +119,7 @@ void configureISL29035(uint8_t ucAppMode,
 		ucConfigArray[i++] = INT_HT_MSB_REG;
 		ucConfigArray[i++] = (Lux_threshold & 0xFF00) >> 8;
 	}
-	else
+	else if(Trigger == LIGHTOFF_TRIGGER)
 	{
 		ucConfigArray[i++] = INT_LT_LSB_REG;
 		ucConfigArray[i++] = Lux_threshold & 0x00FF;
@@ -130,6 +130,7 @@ void configureISL29035(uint8_t ucAppMode,
 		ucConfigArray[i++] = INT_HT_MSB_REG;
 		ucConfigArray[i++] = 0xFF;
 	}
+
 	ucNoOfConfgs = (i/2);
 
 	if(FLASH_CONFIGS)

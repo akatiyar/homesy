@@ -26,16 +26,16 @@
 #ifndef INCLUDE_ALL_H
 #define INCLUDE_ALL_H
 
-#include "build.h"
-#include "magnetic.h"
-#include "drivers.h"
-#include "matrix.h"
-#include "tasks.h"
-#include "orientation.h"
-#include "fusion.h"
 #include "approximations.h"
-//#include "user_tasks.h"
+#include "build.h"
+#include "drivers.h"
+#include "tasks.h"
+#include "fusion.h"
+#include "magnetic.h"
+#include "matrix.h"
 #include "mqx_tasks.h"
+#include "orientation.h"
+
 //#include "project_globals.h"
 
 #endif   // #ifndef INCLUDE_ALL_H

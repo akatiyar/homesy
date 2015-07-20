@@ -22,8 +22,7 @@ extern OsiTaskHandle g_UserConfigTaskHandle;
 void UserConfigure_Task(void *pvParameters)
 {
 	//LED_On();
-	g_ulAppStatus  = START;
-	UtilsDelay(1000000);
+	UtilsDelay(1000000);	// To ensure Firmware title is printed first
 	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON) ||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
 	{
 		UART_PRINT("***SHORT PRESS-CONFIGURE THRU PHONE APP***\n\r"
@@ -34,8 +33,8 @@ void UserConfigure_Task(void *pvParameters)
 		}
 		g_ulAppStatus = USER_CONFIG_TAKING_PLACE;	//includes OTA also for now
 
+		// Logic for detecting press type: long(>= 3sec) or short (< 3sec)
 		start_100mSecTimer();
-
 		while(1)
 		{
 			if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
@@ -44,8 +43,10 @@ void UserConfigure_Task(void *pvParameters)
 				break;
 			}
 
-			// This code is for avoiding debounce. If pin is found to be high,
-			//it is checked again after 10 sec. It is repeatedly checked 3 times.
+			// This code is for avoiding false button release detection due to
+			//	debounce. If pin is found to be high, it is checked again after
+			//	10 sec. It is repeatedly checked 3 times. If it is high 3
+			//	consecutive times, then it is not a false release of button.
 			uint8_t i;
 			for(i = 0; i < 3; i++)
 			{
@@ -70,6 +71,7 @@ void UserConfigure_Task(void *pvParameters)
 			//UtilsDelay(12*80000/6);	//12 millisec delay
 		}
 		stop_100mSecTimer();
+
 		if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
 		{
 			UART_PRINT("Long press : %d\n\r", Elapsed_100MilliSecs);
@@ -81,12 +83,15 @@ void UserConfigure_Task(void *pvParameters)
 			User_Configure();
 			UART_PRINT("User Cofig Mode EXIT\n\r");
 		}
+
+		//Main_Task polls and waits for g_ulAppStatus to become USER_CONFIG_DONE
 		g_ulAppStatus = USER_CONFIG_DONE;
-		while(1);
+		//while(1);
 	}
 	else
 	{
-		osi_TaskDelete(&g_UserConfigTaskHandle);
+		//osi_TaskDelete(&g_UserConfigTaskHandle);
 	}
+	osi_TaskDelete(&g_UserConfigTaskHandle);
 }
 

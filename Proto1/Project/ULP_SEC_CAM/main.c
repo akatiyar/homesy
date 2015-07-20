@@ -245,25 +245,48 @@ void vApplicationStackOverflowHook( OsiTaskHandle *pxTask,
 static void
 BoardInit(void)
 {
-/* In case of TI-RTOS vector table is initialize by OS itself */
+	/* In case of TI-RTOS vector table is initialize by OS itself */
 #ifndef USE_TIRTOS
-  //
-  // Set vector table base
-  //
+	//
+	// Set vector table base
+	//
 #if defined(ccs)
-    MAP_IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
+	MAP_IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
 #endif
 #if defined(ewarm)
-    MAP_IntVTableBaseSet((unsigned long)&__vector_table);
+	MAP_IntVTableBaseSet((unsigned long)&__vector_table);
 #endif
 #endif
-  //
-  // Enable Processor
-  //
-  MAP_IntMasterEnable();
-  MAP_IntEnable(FAULT_SYSTICK);
+	//
+	// Enable Processor
+	//
+	MAP_IntMasterEnable();
+	MAP_IntEnable(FAULT_SYSTICK);
 
-  PRCMCC3200MCUInit();
+	PRCMCC3200MCUInit();
+
+	//
+	// Pinmux
+	//
+	PinMuxConfig();
+
+#ifndef NOTERM
+	//
+	// Configuring UART
+	//
+	InitTerm();
+	//UART_PRINT("Test");
+#endif
+
+	//
+	// I2C Init
+	//
+	I2C_IF_Open(I2C_APP_MODE);
+
+	//
+	// Initilalize DMA
+	//
+	UDMAInit();
 }
 
 //****************************************************************************
@@ -283,40 +306,13 @@ void main()
 {
 	long lRetVal = -1;
 
-	g_ulAppStatus = START;
-	g_I2CPeripheral_inUse_Flag = NEVER;
-
-    //
+	//
     // Initialize Board configurations
     //
     BoardInit();
 
-    //
-    // Pinmux for UART
-    //
-    PinMuxConfig();
-
-#ifndef NOTERM
-    //
-    // Configuring UART
-    //
-    InitTerm();
-    //UART_PRINT("Test");
-#endif
-
-	//Display Application Banner
-	//
-	//DisplayBanner(APP_NAME);
-
-    //
-    // I2C Init
-    //
-    I2C_IF_Open(I2C_APP_MODE);
-
-    //
-	// Initilalize DMA
-	//
-	UDMAInit();
+    g_ulAppStatus = START;
+   	g_I2CPeripheral_inUse_Flag = NEVER;
 
 	//
     // Start the SimpleLink Host - SpawnTask is needed for NWP asynch events
@@ -331,9 +327,11 @@ void main()
     //
 	// Start the tasks
 	//
+    // UserConfigure_Task - Runs the functionality for Mobile App configuration
+    //				of WiFi credentials, Magnetometer calibration, door angles'
+    //				ecompass value, etc.
 	lRetVal = osi_TaskCreate(
 					UserConfigure_Task,
-					//Test_Task,
 					(const signed char *)"User Config",
 					OSI_STACK_SIZE,
 					NULL,
@@ -345,6 +343,12 @@ void main()
 		LOOP_FOREVER();
 	}
 
+	// Main Task - Runs the major functionality of the application. It has two
+	//				branches: One is executed only once at the time of power on
+	//				(or when the firmware is loading first after the OTA). The
+	//				other branch is executed every time the device wakes from
+	//				hibernate. This branch includes angle detection, image
+	//				capture and upload.
     lRetVal = osi_TaskCreate(
 					//Main_Task,
 					Main_Task_withHibernate,
@@ -360,9 +364,12 @@ void main()
 		LOOP_FOREVER();
 	}
 
+	// ImageSensor_CaptureConfigs_Task - Runs the register configuration of
+	//				MT9D111 parallelly as the simplelink initializations are
+	//				done in the Main Task parallelly.
     lRetVal = osi_TaskCreate(
     				ImageSensor_CaptureConfigs_Task,
-					(const signed char *)"Collect And Txit ImgTempRM",
+					(const signed char *)"ImageSensor capture configs",
 					OSI_STACK_SIZE,
 					NULL,
 					1,
