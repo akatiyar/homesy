@@ -311,6 +311,9 @@ void main()
     //
     BoardInit();
 
+    //
+    // Initialize application variables
+    //
     g_ulAppStatus = START;
    	g_I2CPeripheral_inUse_Flag = NEVER;
 

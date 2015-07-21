@@ -36,10 +36,11 @@ void Main_Task_withHibernate(void *pvParameters)
 	}
 	//This branch is entered on power on (Battery insert) or soc RST(OTA reboot)
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
-    		(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
+    		(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET)||
+				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** F21 OTA***\n\r");
+    	UART_PRINT("*** F 23 ***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
 		LED_Blink(10, 1);

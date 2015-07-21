@@ -12,11 +12,15 @@
 #include "timer_if.h"
 
 volatile uint32_t Elapsed_100MilliSecs;
+volatile uint32_t Elapsed_1Secs;
 volatile uint8_t checkForLight_Flag;
 
 int32_t start_100mSecTimer();
 int32_t stop_100mSecTimer();
 uint32_t get_timeDuration();
+
+int32_t start_1Sec_TimeoutTimer();
+int32_t stop_1Sec_TimeoutTimer();
 
 //volatile uint32_t v_TimerOverflows;
 //volatile uint32_t v_OneSecFlag;

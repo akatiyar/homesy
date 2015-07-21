@@ -268,48 +268,30 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 {
 	short status;
 	unsigned int uiConnectTimeoutCnt =0;
-	//short status = sl_Start(0, 0, 0);
-	//if (status >= 0)
-	//{
-		// disable scan
-		unsigned char configOpt = SL_SCAN_POLICY(0);
-		sl_WlanPolicySet(SL_POLICY_SCAN, configOpt, NULL, 0);
 
-		// set tx power to maximum
-		unsigned char txPower = 0;
-		sl_WlanSet(SL_WLAN_CFG_GENERAL_PARAM_ID, WLAN_GENERAL_PARAM_OPT_STA_TX_POWER, 1, (unsigned char *)&txPower);
+	// disable scan
+	unsigned char configOpt = SL_SCAN_POLICY(0);
+	sl_WlanPolicySet(SL_POLICY_SCAN, configOpt, NULL, 0);
 
-		// set power policy to normal
-		sl_WlanPolicySet(SL_POLICY_PM, SL_NORMAL_POLICY, NULL, 0);
+	// set tx power to maximum
+	unsigned char txPower = 0;
+	sl_WlanSet(SL_WLAN_CFG_GENERAL_PARAM_ID, WLAN_GENERAL_PARAM_OPT_STA_TX_POWER, 1, (unsigned char *)&txPower);
 
-		// remove all rx filters
-		_WlanRxFilterOperationCommandBuff_t rxFilterIdMask;
-		memset(rxFilterIdMask.FilterIdMask, 0xFF, 8);
-		sl_WlanRxFilterSet(SL_REMOVE_RX_FILTER, (unsigned char *)&rxFilterIdMask, sizeof(_WlanRxFilterOperationCommandBuff_t));
+	// set power policy to normal
+	sl_WlanPolicySet(SL_POLICY_PM, SL_NORMAL_POLICY, NULL, 0);
 
-		status = sl_WlanPolicySet(SL_POLICY_CONNECTION, SL_CONNECTION_POLICY(1, 0, 0, 0, 0), NULL, 0);
-	//}
+	// remove all rx filters
+	_WlanRxFilterOperationCommandBuff_t rxFilterIdMask;
+	memset(rxFilterIdMask.FilterIdMask, 0xFF, 8);
+	sl_WlanRxFilterSet(SL_REMOVE_RX_FILTER, (unsigned char *)&rxFilterIdMask, sizeof(_WlanRxFilterOperationCommandBuff_t));
 
-	if (status < 0) {
-		sl_Stop(SL_STOP_TIMEOUT);
-		ERR_PRINT(status);
-		LOOP_FOREVER();
-	}
-
-	if (status < 0) {
-		sl_Stop(SL_STOP_TIMEOUT);
-		ERR_PRINT(status);
-		LOOP_FOREVER();
-	}
+	status = sl_WlanPolicySet(SL_POLICY_CONNECTION, SL_CONNECTION_POLICY(1, 0, 0, 0, 0), NULL, 0);
+	ASSERT_ON_ERROR(status);
 
 	sl_WlanDisconnect();
 
 	status = sl_WlanSetMode(ROLE_STA);
-	if (status < 0) {
-		sl_Stop(SL_STOP_TIMEOUT);
-		ERR_PRINT(status);
-		LOOP_FOREVER();
-	}
+	ASSERT_ON_ERROR(status);
 
 	//UART_PRINT("\r\n[QuickStart] Network init\r\n");
 
@@ -327,13 +309,9 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 
 	UART_PRINT("WiFi\n\r");
-	//UART_PRINT("%s\n\r%s\n\r%s", ssid, keyParams->Key, keyParams->Type);
+//	UART_PRINT("%s\n\r%s\n\r%s", ssid, keyParams->Key, keyParams->Type);
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
-	if (status < 0) {
-		sl_Stop(SL_STOP_TIMEOUT);
-		ERR_PRINT(status);
-		LOOP_FOREVER();
-	}
+	ASSERT_ON_ERROR(status);
 
     // Wait for WLAN Event
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
@@ -343,9 +321,10 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
         uiConnectTimeoutCnt++;
     }
 
-    if(uiConnectTimeoutCnt > CONNECTION_TIMEOUT_COUNT)
-
-	sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
+    if(uiConnectTimeoutCnt >= CONNECTION_TIMEOUT_COUNT)
+    {
+    	status = USER_WIFI_PROFILE_FAILED_TO_CONNECT;
+    }
 
 	return ((int32_t)status);
 }

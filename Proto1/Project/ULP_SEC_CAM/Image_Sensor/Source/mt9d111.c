@@ -709,6 +709,8 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         {
         	UART_PRINT("2:%d ", pRegLst->usValue);
         	// PageAddr == 111, wait for specified register value
+        	//start_100mSecTimer();
+        	uint32_t ulCounter = 0;
             do
             {
                 ucBuffer[0] = pRegLst->ucRegAddr;
@@ -729,9 +731,17 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
 //
 //                Variable_Read(0xA104, &ucTmp);
 //                UART_PRINT("4:%d\n\r",ucTmp);
-                MT9D111Delay(10*10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
-
+                //MT9D111Delay(10*10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
+                MT9D111Delay(.01 * 80000000 / 6);	//10m*80000000/6  = 10 milli sec
+                UART_PRINT("^");
+                ulCounter++;
+                if(ulCounter > 500)	//500*.01sec = 5 sec
+                {
+                	//stop_100mSecTimer();
+                	return MT9D111_FIRMWARE_STATE_ERROR;
+                }
             }while(usTemp != pRegLst->usValue);
+            //stop_100mSecTimer();
         }
         else
         {

@@ -335,7 +335,14 @@ int32_t Standby_ImageSensor()
 
 	//lRetVal = EnterStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
-	ASSERT_ON_ERROR(lRetVal);
+	if(lRetVal == MT9D111_FIRMWARE_STATE_ERROR)
+	{
+		UART_PRINT("retry\n");
+		SoftReset_ImageSensor();
+		CameraSensorInit();
+		EnterStandby_mt9d111(SOFT_STANDBY);
+	}
+	//ASSERT_ON_ERROR(lRetVal);
 
 	MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);

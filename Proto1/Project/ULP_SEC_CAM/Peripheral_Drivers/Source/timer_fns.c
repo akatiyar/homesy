@@ -16,8 +16,10 @@
 #define APP_PROFILING_TIMER_BASE		TIMERA0_BASE
 
 //#define RELOADVAL_100MILLISEC			0x007A11FF	//(100m*80,000,000-1)
-#define RELOADVAL_100MILLISEC			100
+#define RELOADVAL_100MILLISEC			100		//in milli sec
+#define RELOADVAL_1SEC					1000	//in milli sec
 
+#define CAMERA_CAPTURE_TIMEOUT			2		//in sec
 
 void IntHandler_100mSecTimer(void)
 {
@@ -66,59 +68,34 @@ uint32_t get_timeDuration()
 
 	return ulDurationMilliSec;
 }
-//void TimerBaseIntHandler(void)
-//{
-//    Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
-//
-//    v_TimerOverflows++;
-//
-//    if( v_TimerOverflows >= (10 * 80000000 / 65536) )
-//    {
-//    	v_OneSecFlag = 1;
-//    }
-//}
-//
-//int32_t InitializeTimer()
-//{
-//	Timer_IF_Init(PRCM_TIMERA0, APP_PROFILING_TIMER_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
-//
-//	Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
-//	//Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
-//
-//	Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
-//
-//	v_TimerOverflows = 0;
-//	v_OneSecFlag = 0;
-//	return 0;
-//}
-//
-//int32_t StartTimer()
-//{
-//	MAP_TimerLoadSet(APP_PROFILING_TIMER_BASE, TIMER_A, 0xFFFF);
-//	//
-//	// Enable the GPT
-//	//
-//	MAP_TimerEnable(APP_PROFILING_TIMER_BASE, TIMER_A);
-//
-//	return 0;
-//}
-//
-//int32_t StopTimer()
-//{
-//	MAP_TimerDisable(APP_PROFILING_TIMER_BASE, TIMER_A);
-//
-//	return 0;
-//}
-//
-//int32_t GetTimeDuration(float* pfDurationMilli)
-//{
-//	uint16_t ulCounter;
-//
-//	ulCounter = MAP_TimerValueGet(APP_PROFILING_TIMER_BASE, TIMER_A);
-//	ulCounter = 0xFFFFFFFF - ulCounter;
-//	//*pfDurationMilli = /*(v_TimerOverflows * 4294967296.0 / 80000.0) +*/ ((float_t)ulCounter / 80000.0); //in milli sec
-//	*pfDurationMilli = (v_TimerOverflows * 65536 / 80000.0) + ((float_t)ulCounter / 80000.0); //in milli sec
-//
-//	return 0;
-//}
-//
+
+
+void IntHandler_1Sec_TimeoutTimer(void)
+{
+	Timer_IF_InterruptClear(TIMERA0_BASE);
+	Elapsed_1Secs++;
+
+	if(Elapsed_1Secs == CAMERA_CAPTURE_TIMEOUT)
+	{
+		PRCMSOCReset();
+	}
+
+}
+
+int32_t start_1Sec_TimeoutTimer()
+{
+	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
+	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_1Sec_TimeoutTimer);
+	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_1SEC);
+	Elapsed_100MilliSecs = 0;
+
+	return 0;
+}
+
+int32_t stop_1Sec_TimeoutTimer()
+{
+	Timer_IF_Stop(TIMERA0_BASE, TIMER_A);
+	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
+
+	return 0;
+}

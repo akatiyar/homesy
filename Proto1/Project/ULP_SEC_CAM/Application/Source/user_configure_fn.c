@@ -345,7 +345,7 @@ static long WlanConnect()
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
 		((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
     {
-        osi_Sleep(1); //Sleep 1 millisecond
+        osi_Sleep(10); //Sleep 1 millisecond
         uiConnectTimeoutCnt++;
     }
 

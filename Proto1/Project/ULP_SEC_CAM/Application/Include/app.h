@@ -17,6 +17,8 @@
 #include "utils.h"
 #include "rom_map.h"
 #include "prcm.h"
+#include "timer_if.h"
+#include "wdt_if.h"
 
 //#define APP_SSID_NAME 			"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -90,6 +92,9 @@ typedef enum
 
 	// WiFi Provisioning through AP Mode
 	USER_WIFI_PROFILE_FAILED_TO_CONNECT = MT9D111_NOT_FOUND - 1,
+
+	MT9D111_FIRMWARE_STATE_ERROR = USER_WIFI_PROFILE_FAILED_TO_CONNECT - 1,
+	MT9D111_IMAGE_CAPTURE_FAILED = MT9D111_FIRMWARE_STATE_ERROR - 1,
 
     STATUS_CODE_MAX = -0xBB8
 }e_AppErrorOrReturnCodes;

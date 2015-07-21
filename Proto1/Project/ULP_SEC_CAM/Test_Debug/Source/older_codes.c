@@ -5,6 +5,62 @@
  *      Author: Chrysolin
  */
 
+//void TimerBaseIntHandler(void)
+//{
+//    Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
+//
+//    v_TimerOverflows++;
+//
+//    if( v_TimerOverflows >= (10 * 80000000 / 65536) )
+//    {
+//    	v_OneSecFlag = 1;
+//    }
+//}
+//
+//int32_t InitializeTimer()
+//{
+//	Timer_IF_Init(PRCM_TIMERA0, APP_PROFILING_TIMER_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
+//
+//	Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
+//	//Timer_IF_IntSetup(APP_PROFILING_TIMER_BASE, TIMER_A, TimerBaseIntHandler);
+//
+//	Timer_IF_InterruptClear(APP_PROFILING_TIMER_BASE);
+//
+//	v_TimerOverflows = 0;
+//	v_OneSecFlag = 0;
+//	return 0;
+//}
+//
+//int32_t StartTimer()
+//{
+//	MAP_TimerLoadSet(APP_PROFILING_TIMER_BASE, TIMER_A, 0xFFFF);
+//	//
+//	// Enable the GPT
+//	//
+//	MAP_TimerEnable(APP_PROFILING_TIMER_BASE, TIMER_A);
+//
+//	return 0;
+//}
+//
+//int32_t StopTimer()
+//{
+//	MAP_TimerDisable(APP_PROFILING_TIMER_BASE, TIMER_A);
+//
+//	return 0;
+//}
+//
+//int32_t GetTimeDuration(float* pfDurationMilli)
+//{
+//	uint16_t ulCounter;
+//
+//	ulCounter = MAP_TimerValueGet(APP_PROFILING_TIMER_BASE, TIMER_A);
+//	ulCounter = 0xFFFFFFFF - ulCounter;
+//	//*pfDurationMilli = /*(v_TimerOverflows * 4294967296.0 / 80000.0) +*/ ((float_t)ulCounter / 80000.0); //in milli sec
+//	*pfDurationMilli = (v_TimerOverflows * 65536 / 80000.0) + ((float_t)ulCounter / 80000.0); //in milli sec
+//
+//	return 0;
+//}
+//
 
 //*****************************************************************************
 //

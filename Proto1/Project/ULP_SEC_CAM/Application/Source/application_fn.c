@@ -1,5 +1,6 @@
 #include "app.h"
 #include "parse_uploads.h"
+#include "app_common.h"
 
 #include "stdlib.h"
 #include "math.h"
@@ -80,6 +81,7 @@ int32_t application_fn()
 			if(g_flag_door_closing_45degree)
 			{
 				g_ulAppStatus = IMAGING_POSITION_DETECTED;
+				LED_On();
 				break;
 			}
 
@@ -104,13 +106,17 @@ int32_t application_fn()
 		standby_accelMagn_fxos8700();
 		stop_100mSecTimer();
 
+		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
 		{
+			start_1Sec_TimeoutTimer();	//To timeout incase image capture is not successful
 			lRetVal = CaptureImage(lFileHandle);
+			stop_1Sec_TimeoutTimer();
+
 			g_ulAppStatus = IMAGE_CAPTURED;
 		}
 
-		// Close the file post writing the image
+		// Close the file after writing the image into it
 	    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	    ASSERT_ON_ERROR(lRetVal);
 
@@ -123,7 +129,12 @@ int32_t application_fn()
 		//Upload only if image was capture
 		if(g_ulAppStatus == IMAGE_CAPTURED)
 		{
-			WiFi_Connect();
+			lRetVal = WiFi_Connect();
+			if (lRetVal < 0)
+			{
+				sl_Stop(0xFFFF);
+				ASSERT_ON_ERROR(lRetVal);
+			}
 
 			//	Parse initialization
 			clientHandle = InitialiseParse();
