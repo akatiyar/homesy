@@ -344,9 +344,10 @@ int32_t Standby_ImageSensor()
 	}
 	//ASSERT_ON_ERROR(lRetVal);
 
+	UART_PRINT("+=+=+\n");	//Tag:Rm
 	MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-
+	UART_PRINT("-$-$-\n");	//Tag:Rm
 	return lRetVal;
 }
 

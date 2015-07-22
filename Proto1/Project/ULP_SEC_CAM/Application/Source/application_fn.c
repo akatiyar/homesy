@@ -129,6 +129,7 @@ int32_t application_fn()
 		//Upload only if image was capture
 		if(g_ulAppStatus == IMAGE_CAPTURED)
 		{
+			UART_PRINT("Inside if\n");	//Tag:Rm
 			lRetVal = WiFi_Connect();
 			if (lRetVal < 0)
 			{
@@ -166,6 +167,7 @@ int32_t application_fn()
 
 			sl_Stop(0xFFFF);	//sl_start() in WiFi_Connect()
 		}
+		UART_PRINT("After if\n");	//Tag:Rm
 	}
 
 	return lRetVal;

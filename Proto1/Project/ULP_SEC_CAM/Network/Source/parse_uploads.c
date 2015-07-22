@@ -5,6 +5,8 @@
 #include "app_common.h"
 #include "netcfg.h"
 
+#define FRIDGECAM_NAME_PREFIX		"Cam_"
+
 extern char* dataBuffer;
 
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
@@ -188,37 +190,36 @@ int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID)
 	uint8_t macAddressLen = SL_MAC_ADDR_LEN;
 
 	memset(pucFridgeCamID, '\0', FRIDGECAM_ID_SIZE);
-	strcpy((char*)pucFridgeCamID, "Cam_");
-	pucFridgeCamID += strlen((const char*)pucFridgeCamID);
-	pucTemp = pucFridgeCamID;
+	strcpy((char*)pucFridgeCamID, FRIDGECAM_NAME_PREFIX);
 
+	pucTemp = pucFridgeCamID + strlen(FRIDGECAM_NAME_PREFIX);
 	lRetVal = sl_NetCfgGet(SL_MAC_ADDRESS_GET,NULL,&macAddressLen,(uint8_t *)macAddressVal);
 
 	for(i=0; i<SL_MAC_ADDR_LEN; i++)
 	{
 		//Left Nibble
-		*pucFridgeCamID = (macAddressVal[i] & 0xF0) >> 4;	//4-nibble size.
-		pucFridgeCamID++;
+		*pucTemp = (macAddressVal[i] & 0xF0) >> 4;	//4-nibble size.
+		pucTemp++;
 
 		//RightNibble
-		*pucFridgeCamID = (macAddressVal[i] & 0x0F);
-		pucFridgeCamID++;
+		*pucTemp = (macAddressVal[i] & 0x0F);
+		pucTemp++;
 	}
 
-	pucFridgeCamID = pucTemp;
+	pucTemp = pucFridgeCamID + strlen(FRIDGECAM_NAME_PREFIX) ;
 	for(i=0; i<(SL_MAC_ADDR_LEN*2); i++)
 	{
 		//0-9
-		if(*pucFridgeCamID <= 9)
+		if(*pucTemp <= 9)
 		{
-			*pucFridgeCamID = *pucFridgeCamID + 0x30; 		// 0(Char) = 0x30(ASCII)
+			*pucTemp = *pucTemp + 0x30; 		// 0(Char) = 0x30(ASCII)
 		}
 		//A-F
 		else
 		{
-			*pucFridgeCamID = (*pucFridgeCamID-0x0A) + 0x41; // A(Char) = 0x41(ASCII)
+			*pucTemp = (*pucTemp-0x0A) + 0x41; // A(Char) = 0x41(ASCII)
 		}
-		pucFridgeCamID++;
+		pucTemp++;
 	}
 
 	UART_PRINT("FridgeCam ID: %s\n\r",pucFridgeCamID);

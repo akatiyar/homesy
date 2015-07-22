@@ -40,7 +40,7 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** F 23 ***\n\r");
+    	UART_PRINT("*** F 23 DBG1***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
 		LED_Blink(10, 1);
@@ -69,14 +69,14 @@ void Main_Task_withHibernate(void *pvParameters)
 		Standby_ImageSensor();
 
 //Use the folowing code to test without hibernate
-/*
+///*
   		while(1)
 		{
 			Wakeup_ImageSensor();
 			Start_CameraCapture();
 			application_fn();
 		}
-*/
+//*/
 
   		//Commits image if running in test mode
 		OTA_CommitImage();
