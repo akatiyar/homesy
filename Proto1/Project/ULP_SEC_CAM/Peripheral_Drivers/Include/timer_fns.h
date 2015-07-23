@@ -14,6 +14,7 @@
 volatile uint32_t Elapsed_100MilliSecs;
 volatile uint32_t Elapsed_1Secs;
 volatile uint8_t checkForLight_Flag;
+volatile uint8_t captureTimeout_Flag;
 
 int32_t start_100mSecTimer();
 int32_t stop_100mSecTimer();

@@ -16,14 +16,19 @@
 #include "appFns.h"
 #include "timer_fns.h"
 
+extern int32_t g_lFileHandle;
+extern int32_t SendGroundData();
+
 int32_t application_fn()
 {
     long lRetVal;
     long lFileHandle;
 	unsigned long ulToken = NULL;
+    struct u64_time time_now;
 
     uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
-	ParseClient clientHandle;
+	ParseClient clientHandle = NULL;
+	ParseClient clientHandle1 = NULL;
 	uint8_t ucParseImageUrl[PARSE_IMAGE_URL_SIZE];
 	float_t fTemp = 12.34, fRH = 56.78;
 	uint8_t ucBatteryLvl = 80;
@@ -64,9 +69,36 @@ int32_t application_fn()
 		   sl_FsClose(lFileHandle, 0, 0, 0); ASSERT_ON_ERROR(lRetVal);
 		}
 
+		//Tag:Timestamp NWP up
+		cc_rtc_get(&time_now);
+		g_TimeStamp_NWPUp = time_now.secs * 1000 + time_now.nsec / 1000000;
+
 		//Initialize image capture
 		ImagCapture_Init();
 
+		//Tag:Timestamp Camera module up
+		cc_rtc_get(&time_now);
+		g_TimeStamp_CamUp = time_now.secs * 1000 + time_now.nsec / 1000000;
+
+		//NOTE: For Ground data upload to Parse only.
+		//Check once more for light. If light is off, then upload the GroundData object and exit function
+		if(IsLightOff(LUX_THRESHOLD))
+		{
+			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+			ASSERT_ON_ERROR(lRetVal);
+
+			lRetVal = sl_Stop(0xFFFF);
+			ASSERT_ON_ERROR(lRetVal);
+
+			//Tag:Upload GroundData object
+			SendGroundData();
+
+			g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
+			Standby_ImageSensor();
+			return g_ulAppStatus;
+		}
+
+		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
 		//Initialize magnetometer for angle calculation
 		angleCheck_Initializations();
 
@@ -98,6 +130,7 @@ int32_t application_fn()
 				if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
 				{
 					g_ulAppStatus = TIMEOUT_BEFORE_IMAGING;
+					g_ucReasonForFailure = TIMEOUT_BEFORE_IMAGESNAP;
 					UART_PRINT("Timeout\n\r");
 					break;
 				}
@@ -109,11 +142,35 @@ int32_t application_fn()
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
 		{
+			g_ucReasonForFailure = IMAGE_NOTCAPTURED;
 			start_1Sec_TimeoutTimer();	//To timeout incase image capture is not successful
+			captureTimeout_Flag = 0;
 			lRetVal = CaptureImage(lFileHandle);
+			if(captureTimeout_Flag)
+			{
+				//NOTE: For Ground data upload to Parse only.
+				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+				ASSERT_ON_ERROR(lRetVal);
+				lRetVal = sl_Stop(0xFFFF);
+				ASSERT_ON_ERROR(lRetVal);
+				//Tag:Upload GroundData object
+				SendGroundData();
+
+				//Read MT9D111 register statuses. View in UART PRINTs
+				Read_AllRegisters();
+				CCMRegs_Read();
+				PCLK_Rate_read();
+
+				PRCMSOCReset();
+			}
 			stop_1Sec_TimeoutTimer();
 
+			//Tag:Timestamp photo click
+			cc_rtc_get(&time_now);
+			g_TimeStamp_PhotoSnap = time_now.secs * 1000 + time_now.nsec / 1000000;
+
 			g_ulAppStatus = IMAGE_CAPTURED;
+			g_ucReasonForFailure = IMAGE_NOTUPLOADED;
 		}
 
 		// Close the file after writing the image into it
@@ -130,6 +187,8 @@ int32_t application_fn()
 		if(g_ulAppStatus == IMAGE_CAPTURED)
 		{
 			UART_PRINT("Inside if\n");	//Tag:Rm
+
+  			//Connect to WiFi
 			lRetVal = WiFi_Connect();
 			if (lRetVal < 0)
 			{
@@ -160,14 +219,65 @@ int32_t application_fn()
 								&ucFridgeCamID[0], &ucParseImageUrl[0], fTemp,
 								fRH, ucBatteryLvl, &ucSensorDataTxt[0]);
 				PRINT_ON_ERROR(lRetVal);
+				if(lRetVal >= 0)
+				{
+					g_ucReasonForFailure = SUCCESS;
+					//Tag:Timestamp
+					cc_rtc_get(&time_now);
+					g_TimeStamp_PhotoUploaded = time_now.secs * 1000 + time_now.nsec / 1000000;
+				}
 			}
 
-			//	Free the memory allocated for clientHandle in InitialiseParse()
+			//Uncomment if not collecting GroundData
+			/*//	Free the memory allocated for clientHandle in InitialiseParse()
 			free((void*)clientHandle);
 
-			sl_Stop(0xFFFF);	//sl_start() in WiFi_Connect()
+			sl_Stop(0xFFFF);	//sl_start() in WiFi_Connect()*/
+
 		}
 		UART_PRINT("After if\n");	//Tag:Rm
+
+		//Tag:Timestamp door close/30sec timeout/door still open but image was uploaded - use a light on
+		//Tag:Upload GroundData object
+		if(IsLightOff(LUX_THRESHOLD))
+		{
+			cc_rtc_get(&time_now);
+			g_TimeStamp_DoorClosed = time_now.secs * 1000 + time_now.nsec / 1000000;
+		}
+
+		g_TimeStamp_maxAngle = g_Struct_TimeStamp_MaxAngle.secs * 1000 + g_Struct_TimeStamp_MaxAngle.nsec / 1000000;
+		g_TimeStamp_minAngle = g_Struct_TimeStamp_MinAngle.secs * 1000 + g_Struct_TimeStamp_MinAngle.nsec / 1000000;
+
+		if(clientHandle == NULL)
+		{
+			//uint8_t uc
+			//Connect to WiFi
+			lRetVal = WiFi_Connect();
+			if (lRetVal < 0)
+			{
+				sl_Stop(0xFFFF);
+				ASSERT_ON_ERROR(lRetVal);
+			}
+
+			//	Parse initialization
+			clientHandle1 = InitialiseParse();
+
+			Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from unique MAC
+												//ID of the CC3200 device
+
+			UploadGroundDataObjectToParse(clientHandle1, &ucFridgeCamID[0]);
+
+			free((void*)clientHandle1);	//malloc() in InitializeParse()
+		}
+		else
+		{
+			UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
+
+			free((void*)clientHandle);	//malloc() in InitializeParse()
+		}
+
+		//free((void*)clientHandle_1);	//malloc() in InitializeParse()
+		sl_Stop(0xFFFF);				//sl_start() in WiFi_Connect()
 	}
 
 	return lRetVal;

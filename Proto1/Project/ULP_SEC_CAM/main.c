@@ -288,7 +288,32 @@ BoardInit(void)
 	//
 	UDMAInit();
 }
+//*****************************************************************************
+//
+//! \brief This function initializes the application variables
+//!
+//! \param    None
+//!
+//! \return None
+//!
+//*****************************************************************************
+static void InitializeAppVariables()
+{
+	g_ulAppStatus = START;
+	g_I2CPeripheral_inUse_Flag = NEVER;
 
+	g_TimeStamp_cc3200Up = 0;
+	g_TimeStamp_NWPUp = 0;
+	g_TimeStamp_CamUp = 0;
+	g_TimeStamp_PhotoSnap = 0;
+	g_TimeStamp_PhotoUploaded = 0;
+	g_TimeStamp_DoorClosed = 0;
+	g_TimeStamp_minAngle = 0;
+	g_TimeStamp_maxAngle = 0;
+	g_ucReasonForFailure = NEVER_WENT_TO_ANGLECHECK;
+	g_fMinAngle = 361;
+	g_fMaxAngle = 0;
+}
 //****************************************************************************
 //
 //! Main function
@@ -314,8 +339,12 @@ void main()
     //
     // Initialize application variables
     //
-    g_ulAppStatus = START;
-   	g_I2CPeripheral_inUse_Flag = NEVER;
+    InitializeAppVariables();
+
+    //Tag:Timestamp CC3200 up
+    struct u64_time time_now;
+	cc_rtc_get(&time_now);
+	g_TimeStamp_cc3200Up = time_now.secs * 1000 + time_now.nsec / 1000000;
 
 	//
     // Start the SimpleLink Host - SpawnTask is needed for NWP asynch events
@@ -357,7 +386,7 @@ void main()
 					Main_Task_withHibernate,
 					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
-					OSI_STACK_SIZE,
+					OSI_STACK_SIZE_MAIN_TASK,
 					NULL,
 					1,
 					&g_MainTaskHandle );

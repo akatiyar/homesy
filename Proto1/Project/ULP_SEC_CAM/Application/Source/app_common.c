@@ -16,10 +16,11 @@ const char pcDigits[] = "0123456789"; /* variable used by itoa function */
 //!
 //
 //*****************************************************************************
-unsigned short intToASCII(short cNum, char *cString)
+unsigned short intToASCII(long long cNum, char *cString)	//Tag:CS
 {
     char* ptr;
-    short uTemp = cNum;
+    //short uTemp = cNum;
+    long long uTemp = cNum;		//Tag:CS
     unsigned short length;
 
     // value 0 is a special case
@@ -27,7 +28,7 @@ unsigned short intToASCII(short cNum, char *cString)
     {
         length = 1;
         *cString = '0';
-
+        *++cString = '\0';
         return length;
     }
 
@@ -42,6 +43,7 @@ unsigned short intToASCII(short cNum, char *cString)
     // Do the actual formatting, right to left
     uTemp = cNum;
     ptr = cString + length;
+    *ptr = '\0';			//Tag:CS
     while (uTemp > 0)
     {
         --ptr;
@@ -49,7 +51,7 @@ unsigned short intToASCII(short cNum, char *cString)
         uTemp /= 10;
     }
 
-    return length;
+    return (length+1);	//Tag:CS
 }
 
 //******************************************************************************

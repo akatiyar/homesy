@@ -371,7 +371,9 @@ static  const s_RegList capture_cmds_list[]= {
 */
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
-    {100, 0x00, 0x01F4  },  // Delay =500ms
+	{1, 0xC6, 0xA104    },  // wait till become capture
+	{111, 0xC8, 0x0007  }
+    //{100, 0x00, 0x01F4  },  // Delay =500ms
 };
 
 #endif

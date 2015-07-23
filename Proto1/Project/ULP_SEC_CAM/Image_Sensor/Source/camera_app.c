@@ -555,6 +555,10 @@ int32_t CaptureImage(int32_t lFileHandle)
 			}
     		break;
     	}
+    	if(captureTimeout_Flag)
+    	{
+    		return CAMERA_CAPTURE_FAILED;
+    	}
     }
     while((g_frame_end == 0))
     {

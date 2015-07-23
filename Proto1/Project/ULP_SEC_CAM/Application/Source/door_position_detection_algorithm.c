@@ -38,7 +38,6 @@ uint8_t print_count;
 
 void check_doorpos()
 {
-
 	float angle_reg = 0;
 
 	if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
@@ -52,6 +51,19 @@ void check_doorpos()
 	else
 	{
 		angle_reg = thisSV_6DOF_GB_BASIC.fLPRho;// temp angle variable.. dont change the actual angle readings structure
+	}
+
+	if(angle_reg < g_fMinAngle)
+	{
+		g_fMinAngle = angle_reg;
+		cc_rtc_get(&g_Struct_TimeStamp_MinAngle);
+		//UART_PRINT("%d milli sec\n", g_TimeStamp_minAngle);
+	}
+	if(angle_reg > g_fMaxAngle)
+	{
+		g_fMaxAngle = angle_reg;
+		cc_rtc_get(&g_Struct_TimeStamp_MaxAngle);
+		//UART_PRINT("%d milli sec\n", g_TimeStamp_maxAngle);
 	}
 
 	if(print_count==20)
@@ -98,15 +110,23 @@ void check_doorpos()
 		UART_PRINT("O \n");
 		UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
 		LED_Off();
+		g_ucReasonForFailure = OPEN_NOTCLOSED;
 	}
 	//-----------------
 
 	//----***------Conditon check for image snap SNAP
-	if( (angle_avg < (gdoor_40deg_angle+3)) &&  (angle_avg > (gdoor_40deg_angle-3)) && (valid_case == 1 ))
+	if( (angle_avg < (gdoor_40deg_angle+3)) &&  (angle_avg > (gdoor_40deg_angle-3)) )
 	{
-		valid_case = 0;
-		UART_PRINT("S<>ANGLE=%3.2f \n", thisSV_6DOF_GB_BASIC.fLPRho);
-		g_flag_door_closing_45degree = 1;
+		if ( valid_case == 1 )
+		{
+			valid_case = 0;
+			UART_PRINT("S<>ANGLE=%3.2f \n", thisSV_6DOF_GB_BASIC.fLPRho);
+			g_flag_door_closing_45degree = 1;
+		}
+		else
+		{
+			g_ucReasonForFailure = NOTOPEN_CLOSED;
+		}
 	}
 	//---------------------------
 }

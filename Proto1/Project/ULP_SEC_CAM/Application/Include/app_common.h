@@ -11,7 +11,7 @@
 #include "app.h"
 #include "math.h"
 
-unsigned short intToASCII(short cNum, char *cString);
+unsigned short intToASCII(long long cNum, char *cString);
 void LED_Blink(uint8_t ucHowManyTimes, float_t fSecsForEachCycle);
 void LED_Off();
 void LED_On();

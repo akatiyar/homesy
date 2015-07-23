@@ -9,6 +9,42 @@
 //		sl_extlib_BootImg2();
 //		sl_Stop(0xFFFF);
 
+/*	struct u64_time time_now;
+	uint32_t time;
+	cc_rtc_get(&time_now);
+	time = time_now.secs * 1000 + time_now.nsec / 1000000;
+	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	UART_PRINT("%d milli sec\n", time);
+
+	UtilsDelay(4*80000000/6);
+	cc_rtc_get(&time_now);
+	time = time_now.secs * 1000 + time_now.nsec / 1000000;
+	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	UART_PRINT("%d milli sec\n", time);
+
+	UtilsDelay(2*80000000/6);
+	cc_rtc_get(&time_now);
+	time = time_now.secs * 1000 + time_now.nsec / 1000000;
+	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	UART_PRINT("%d milli sec\n", time);
+
+	UtilsDelay(80000000/6);
+	cc_rtc_get(&time_now);
+	time = time_now.secs * 1000 + time_now.nsec / 1000000;
+	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	UART_PRINT("%d milli sec\n", time);
+
+	UtilsDelay(0.5*80000000/6);
+	cc_rtc_get(&time_now);
+	time = time_now.secs * 1000 + time_now.nsec / 1000000;
+	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	UART_PRINT("%d milli sec\n", time);
+
+	UtilsDelay(0.1*80000000/6);
+	cc_rtc_get(&time_now);
+	time = time_now.secs * 1000 + time_now.nsec / 1000000;
+	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	UART_PRINT("%d milli sec\n", time);*/
 
 		/*
 		Config_CameraCapture();

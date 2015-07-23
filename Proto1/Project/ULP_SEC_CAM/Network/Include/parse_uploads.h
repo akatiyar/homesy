@@ -3,7 +3,7 @@
 #include "app.h"
 #include "math.h"
 
-//// MyApp
+// MyApp
 //#define PARSE_APP_ID		"InlZ2zle1OJi2f0Tfikz6DVhaz9IUdhHCzTW0f7w"
 //#define PARSE_CLIENT_KEY	"KArqKTEjYrlT29hwW8p7aRYT1iTt1e9w6KS7g42E"
 
@@ -33,3 +33,5 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 									uint8_t ucBatteryLevel,
 									uint8_t* pucSensorDataTxt);
 int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID);
+int32_t UploadGroundDataObjectToParse(ParseClient client,
+										uint8_t* pucFridgeCamID);

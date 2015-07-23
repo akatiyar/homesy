@@ -980,3 +980,12 @@ static int CreateJpegHeader(char *header, int width, int height,
 //
 //    return 0;
 //}
+
+//Did not work. long long UART_PRINT
+//		UART_PRINT("g_TimeStamp_cc3200Up: %d milli sec\n", g_TimeStamp_cc3200Up);
+//		UART_PRINT("g_TimeStamp_NWPUp : %d milli sec\n", g_TimeStamp_NWPUp);
+//		UART_PRINT("g_TimeStamp_CamUp : %d milli sec\n", g_TimeStamp_CamUp);
+//		UART_PRINT("g_TimeStamp_PhotoSnap : %d milli sec\n", g_TimeStamp_PhotoSnap);
+//		UART_PRINT("g_TimeStamp_PhotoUploaded: %d milli sec\n", g_TimeStamp_PhotoUploaded);
+//		UART_PRINT("g_TimeStamp_maxAngle: %d milli sec\n", g_TimeStamp_maxAngle);
+//		UART_PRINT("g_TimeStamp_minAngle: %d milli sec\n", g_TimeStamp_minAngle);

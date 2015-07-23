@@ -19,6 +19,7 @@
 #include "prcm.h"
 #include "timer_if.h"
 #include "wdt_if.h"
+#include "rtc_hal.h"
 
 //#define APP_SSID_NAME 			"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -34,9 +35,10 @@
 
 #define VCOGNITION_DEVICE_ID	"cam9SP10"
 
-#define SLEEP_TIME              8000000
-//#define OSI_STACK_SIZE          3000
-#define OSI_STACK_SIZE          3000
+#define SLEEP_TIME              		8000000
+//#define OSI_STACK_SIZE          		3000
+#define OSI_STACK_SIZE          		3000	//in bytes
+#define OSI_STACK_SIZE_MAIN_TASK		4000	//in bytes
 
 #define IMAGE_QUANTIZ_SCALE		(0x0020)
 //#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
@@ -137,13 +139,42 @@ typedef enum
                         ERR_PRINT(error_code);\
                  }\
             }
-
+//
 //Global variable used through out the app
+//
 uint32_t g_ulAppStatus;
 int8_t g_I2CPeripheral_inUse_Flag;
 uint8_t g_flag_door_closing_45degree;
 
+//Ground data in Parse
+uint8_t g_ucReasonForFailure;
+uint64_t g_TimeStamp_cc3200Up;
+uint64_t g_TimeStamp_NWPUp;
+uint64_t g_TimeStamp_CamUp;
+uint64_t g_TimeStamp_PhotoSnap;
+uint64_t g_TimeStamp_PhotoUploaded;
+uint64_t g_TimeStamp_DoorClosed;
+uint64_t g_TimeStamp_minAngle;
+uint64_t g_TimeStamp_maxAngle;
+int16_t g_fMaxAngle;
+int16_t g_fMinAngle;
+struct u64_time g_Struct_TimeStamp_MaxAngle;
+struct u64_time g_Struct_TimeStamp_MinAngle;
+
+//Reasons for failure
+typedef enum
+{
+	NEVER_WENT_TO_ANGLECHECK = 1,
+	NOTOPEN_NOTCLOSED, //(or equivalently light went out)
+	OPEN_NOTCLOSED,
+	NOTOPEN_CLOSED,
+	TIMEOUT_BEFORE_IMAGESNAP,
+	IMAGE_NOTCAPTURED,
+	IMAGE_NOTUPLOADED
+}e_GroundData_FailureReasonCodes;
+
 #define NO		0
 #define YES		1
-#define NEVER	-1	//This is used only for the current fix for reducing set up time
+#define NEVER	-1	//This is used only for the current fix for reducing Image sensor set up time
+
 #endif /* GENERAL_INCLUDES_H_ */

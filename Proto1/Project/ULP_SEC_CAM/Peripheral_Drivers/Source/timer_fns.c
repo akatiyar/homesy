@@ -11,6 +11,8 @@
 #include "timer_fns.h"
 #include "math.h"
 
+#include "simplelink.h"
+
 #include "app_common.h"
 #include <stdbool.h>
 #define APP_PROFILING_TIMER_BASE		TIMERA0_BASE
@@ -77,7 +79,7 @@ void IntHandler_1Sec_TimeoutTimer(void)
 
 	if(Elapsed_1Secs == CAMERA_CAPTURE_TIMEOUT)
 	{
-		PRCMSOCReset();
+		captureTimeout_Flag  = 1;
 	}
 
 }

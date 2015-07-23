@@ -7,11 +7,43 @@
 
 #define FRIDGECAM_NAME_PREFIX		"Cam_"
 
+#define GROUND_DATA_OBJECT_SIZE		1024	//bytes
+
+//Ground Data : Field Names
+#define DEVICE_ID					"deviceID"
+#define FAILURE_REASON				"Failure_Reason"
+#define TS_CC3200UP					"TimeStamp_CC3200Up"
+#define TS_NWPUP					"TimeStamp_NWPUp"
+#define TS_CAMUP					"TimeStamp_CamUp"
+#define TS_PHOTOSNAP				"TimeStamp_PhotoSnapd"
+#define TS_PHOTOUPLOAD				"TimeStamp_PhotoUped"
+#define TS_DOORCLOSED				"TimeStamp_DoorClosed"
+#define TS_MAXANGLE					"TimeStamp_MaxAngle"
+#define TS_MINANGLE					"TimeStamp_MinAngle"
+#define MAX_ANGLE					"Max_DoorAngle"
+#define MIN_ANGLE					"Min_DoorAngle"
+#define ANGLE40						"Angle40"
+#define ANGLE90						"Angle90"
+
+typedef enum{
+	FIRST,
+	MIDDLE,
+	LAST
+}e_FieldPosition;
+
 extern char* dataBuffer;
+extern float gdoor_90deg_angle;
+extern float gdoor_40deg_angle;
 
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
 int simpleJsonProcessor(const char *data, const char *key, char* value, int size);
 
+int32_t Add_NumberField_ToJSONString(uint8_t* pucGroundDataObject,
+										uint8_t* pucFieldName,
+										uint64_t ullFieldEntry,
+										uint8_t ucFieldPosition);
+int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
+									uint8_t* pucGroundDataObject);
 
 //******************************************************************************
 //
@@ -93,7 +125,6 @@ int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 
 	// Construct the JSON object string
 	ConstructDeviceStateObject(pucFridgeCamID, pucParseImageUrl, fTemp, fRH, ucBatteryLvl, sensorDataObject);
-	UART_PRINT("OBJECT: %s\n", sensorDataObject);
 
 	ucTryNum = 0;
 	do{
@@ -285,7 +316,142 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 	strncat((char*)pucSensorDataTxt, ".", 1);
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv+2, 2);
 	strncat((char*)pucSensorDataTxt, "}", sizeof("}"));
-	//UART_PRINT("\n%s\n", pucSensorDataTxt);
+
+	UART_PRINT("\n%s\n", pucSensorDataTxt);
+
+	return 0;
+}
+
+//*****************************************************************************
+//
+//	This function uploads Ground Data Object to Parse.com
+//
+//	param[in]	client
+//	param[in]	pucFridgeCamID - Pointer to FridgeCamID string
+//
+//	Description: Upload is done using POST request. Construction of the packet
+//	is handled within.
+//
+//*****************************************************************************
+int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamID)
+{
+	int32_t lRetVal = -1;
+	uint8_t ucTryNum;
+	uint8_t ucGroundDataObject[GROUND_DATA_OBJECT_SIZE];
+
+	// Construct the JSON object string
+	ConstructGroundDataObject(pucFridgeCamID, &ucGroundDataObject[0]);
+
+ 	ucTryNum = 0;
+	do{
+		lRetVal = parseSendRequest(client,
+							"POST",
+							"/1/classes/GroundData", //DeviceState is object name
+							(const char*)ucGroundDataObject,
+							NULL,
+							jsonObject);
+		PRINT_ON_ERROR(lRetVal);
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//
+//	This function constructs the JSON GroundData object that is to be uploaded
+//	to cloud server (Parse.com)
+//
+//	param[out]	pucGroundDataObject - pointer to location where the json object
+//							is to be put
+//
+//	return none
+//
+//	String functions are used
+//
+//******************************************************************************
+int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
+									uint8_t* pucGroundDataObject)
+{
+	memset(pucGroundDataObject, '\0', GROUND_DATA_OBJECT_SIZE);
+
+	strncat((char*)pucGroundDataObject, "{\"deviceId\":\"",
+					sizeof("{\"deviceId\":\""));
+	strncat((char*)pucGroundDataObject, (const char*)pucFridgeCamID,
+					strlen((char*)pucFridgeCamID));
+	strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
+
+	Add_NumberField_ToJSONString(pucGroundDataObject, FAILURE_REASON,
+									g_ucReasonForFailure, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_CC3200UP,
+									g_TimeStamp_cc3200Up, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_NWPUP,
+									g_TimeStamp_NWPUp, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_CAMUP,
+									g_TimeStamp_CamUp, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_PHOTOSNAP,
+									g_TimeStamp_PhotoSnap, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_PHOTOUPLOAD,
+									g_TimeStamp_PhotoUploaded, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_DOORCLOSED,
+									g_TimeStamp_DoorClosed, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MAXANGLE,
+									g_TimeStamp_minAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MINANGLE,
+									g_TimeStamp_maxAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, MAX_ANGLE,
+									g_fMaxAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, MIN_ANGLE,
+									g_fMinAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE40,
+									(long long)gdoor_40deg_angle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE90,
+									(long long)gdoor_90deg_angle, LAST);
+
+	UART_PRINT("\n%s\n", pucGroundDataObject);
+
+	return 0;
+}
+
+//******************************************************************************
+//
+// ullField entry data type is long long, but any lesser sized number can be passed
+// ucFieldPosition - Position of the field in the JSOn string. Can be first, middle or last
+//
+//******************************************************************************
+int32_t Add_NumberField_ToJSONString(uint8_t* pucGroundDataObject,
+										uint8_t* pucFieldName,
+										uint64_t ullFieldEntry,
+										uint8_t ucFieldPosition)
+{
+	uint8_t ucCharConv[20];
+
+	//Append { for first field only
+	if(ucFieldPosition == FIRST)
+	{
+		strncat((char*)pucGroundDataObject, "{", sizeof("{"));
+	}
+
+	//Append "<FieldName>":
+	strncat((char*)pucGroundDataObject, "\"", sizeof("\""));	//Append "
+	strncat((char*)pucGroundDataObject, (const char*)pucFieldName,
+						strlen((char*)pucFieldName));			//Append Field name
+	strncat((char*)pucGroundDataObject, "\":", sizeof("\":"));	//Append ":
+
+	//Append <FieldEntry>
+	intToASCII(ullFieldEntry, (char*)ucCharConv);
+	strncat((char*)pucGroundDataObject, (const char*)ucCharConv, sizeof(ucCharConv));
+
+	//Append , only for first or middle fields
+	if((ucFieldPosition == FIRST) || (ucFieldPosition == MIDDLE))
+	{
+		strncat((char*)pucGroundDataObject, ",", sizeof(","));
+	}
+	//Append } only for last field
+	else if (ucFieldPosition == LAST)
+	{
+		strncat((char*)pucGroundDataObject, "}", sizeof("}"));
+	}
 
 	return 0;
 }
