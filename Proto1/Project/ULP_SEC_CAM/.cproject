@@ -106,7 +106,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/flc/ccs/Release&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/ota/ccs/Release&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}\parse\release\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}\Lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PARSE_SDK_ROOT}/Release/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/example/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/ccs/Release&quot;"/>
