@@ -16,8 +16,12 @@
 #include "appFns.h"
 #include "timer_fns.h"
 
+#include "stdbool.h"
+bool g_tempflag=true;
+
 extern int32_t g_lFileHandle;
 extern int32_t SendGroundData();
+
 
 int32_t application_fn()
 {
@@ -25,6 +29,7 @@ int32_t application_fn()
     long lFileHandle;
 	unsigned long ulToken = NULL;
     struct u64_time time_now;
+    uint32_t ulTimeDuration_ms;
 
     uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	ParseClient clientHandle = NULL;
@@ -47,6 +52,18 @@ int32_t application_fn()
 	//trigger on light on.
 	if(!IsLightOff(LUX_THRESHOLD))
 	{
+		//* * * * * * * * * Wake-up Initializations * * * * * * * * *
+		//Task3 also runs parallelly, doing some of the initializations.
+		//Initializations done on this task:
+		//	1. NWP on
+		//	2. Magnetometer flash file reading
+		//	3. File open
+		//	4. Wait for Task3 to finish
+		//Initializations done on Task3:
+		//	1. MT9D111 wakeup, start capture
+		//	2. Magnetometer I2C configuration
+		//	3. Few intitial angle reads
+
 		g_I2CPeripheral_inUse_Flag = NO;
 
 		start_100mSecTimer();	//Tag:Remove when waketime optimization is over
@@ -56,6 +73,12 @@ int32_t application_fn()
 		lRetVal = sl_Start(0, 0, 0);
 		UART_PRINT("a sl_start\n\r");	//Tag:Remove when waketime optimization is over
 		ASSERT_ON_ERROR(lRetVal);
+
+		//g_tempflag=false;
+		//Initialize magnetometer for angle calculation
+		angleCheck_Initializations();
+
+		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
 
 		// Open Image file in Flash to write image. File open for write takes
 		//time, so we do it ahead of angle check, so that at the instant angle
@@ -73,12 +96,17 @@ int32_t application_fn()
 		cc_rtc_get(&time_now);
 		g_TimeStamp_NWPUp = time_now.secs * 1000 + time_now.nsec / 1000000;
 
-		//Initialize image capture
-		ImagCapture_Init();
+		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
+		{
+			UART_PRINT("#");
+			osi_Sleep(10);
+		}
 
-		//Tag:Timestamp Camera module up
-		cc_rtc_get(&time_now);
-		g_TimeStamp_CamUp = time_now.secs * 1000 + time_now.nsec / 1000000;
+		ulTimeDuration_ms = get_timeDuration();
+		stop_100mSecTimer();
+		UART_PRINT("Total Wake Time - %d ms\n\r", ulTimeDuration_ms);
+
+		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
 
 		//NOTE: For Ground data upload to Parse only.
 		//Check once more for light. If light is off, then upload the GroundData object and exit function
@@ -99,8 +127,6 @@ int32_t application_fn()
 		}
 
 		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
-		//Initialize magnetometer for angle calculation
-		angleCheck_Initializations();
 
 		start_100mSecTimer();	//For Timeout detection
 		//sensorsTriggerSetup(); //Tag:Remove DGB Wake Time Profile
@@ -250,7 +276,6 @@ int32_t application_fn()
 
 		if(clientHandle == NULL)
 		{
-			//uint8_t uc
 			//Connect to WiFi
 			lRetVal = WiFi_Connect();
 			if (lRetVal < 0)

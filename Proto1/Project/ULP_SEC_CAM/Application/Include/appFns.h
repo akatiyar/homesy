@@ -18,5 +18,6 @@ extern int16_t IsLightOff(uint16_t usThresholdLux);
 extern float_t get_angle();
 extern void check_doorpos();
 extern int16_t angleCheck_Initializations();
+extern int16_t magnetometer_initialize();
 
 #endif /* APPFNS_H_ */

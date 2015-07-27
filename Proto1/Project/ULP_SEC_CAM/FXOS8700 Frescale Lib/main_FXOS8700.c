@@ -31,6 +31,7 @@ int16_t angleCheck();
 int16_t angleCheck_Initializations();
 float_t get_angle();
 int16_t angleCheck_WithCalibration();
+int16_t magnetometer_initialize();
 
 int16_t IsLightOff(uint16_t usThresholdLux);
 
@@ -41,6 +42,13 @@ extern struct SV_6DOF_GB_BASIC thisSV_6DOF_GB_BASIC;
 
 extern volatile uint32_t v_OneSecFlag;
 
+//******************************************************************************
+//
+//	This function sets the intial values of variable for ecompass angle finding.
+//The function reads the magnetometer calibration values and door angles from
+//Flash and expects NWP to be on before the funciton is called.
+//
+//******************************************************************************
 int16_t angleCheck_Initializations()
 {
 	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
@@ -56,13 +64,11 @@ int16_t angleCheck_Initializations()
 	globals.iMPL3115Found = false;
 	globals.MagneticPacketID = 0;
 
-	// initialize the physical sensors over I2C and the sensor data structures
-	RdSensData_Init();
-
 	// initialize the sensor fusion algorithms
 	Fusion_Init();
 
 	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, MAGNETOMETER_DATA_SIZE, 0);
+	UART_PRINT("Magn FLash file Read done\n\r");	//Tag:Remove when waketime optimization is over
 
 	gdoor_90deg_angle = Mag_Calb_Value[tmpCnt++];
 	gdoor_40deg_angle  = Mag_Calb_Value[tmpCnt++];
@@ -82,21 +88,36 @@ int16_t angleCheck_Initializations()
 	print_count = 0;
 	valid_case = 0;
 
+	//UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
+	//UART_PRINT("40w:%3.2f\n\r",gdoor_40deg_angle);
+	return 0;
+}
+
+//******************************************************************************
+//	This function writes to the Magnetometer to initialize the device.
+//	Also, first few angle calculations are read out as a ork around.
+//******************************************************************************
+int16_t magnetometer_initialize()
+{
+	// initialize the physical sensors over I2C and the sensor data structures
+	RdSensData_Init();
+
 	//Tag:Work-around for first few invalid angle values
 	//Tag:Remove timing stuff
-	uint32_t ulTimeDuration_ms;
-	start_100mSecTimer();
-	int i;
+	//uint32_t ulTimeDuration_ms;
+	int32_t i;
+
+//	start_100mSecTimer();
+
 	for(i=0; i<50; i++)	//50 is value based on observation of ecompass readings
 	{
 		get_angle();
 	}
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("a+m init reading - %d ms\n\r", ulTimeDuration_ms);
 
-	//UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
-	//UART_PRINT("40w:%3.2f\n\r",gdoor_40deg_angle);
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("a+m init reading - %d ms\n\r", ulTimeDuration_ms);
+
 	return 0;
 }
 

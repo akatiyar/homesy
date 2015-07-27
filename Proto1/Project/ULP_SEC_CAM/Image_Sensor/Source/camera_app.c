@@ -340,6 +340,7 @@ int32_t Standby_ImageSensor()
 		UART_PRINT("retry\n");
 		SoftReset_ImageSensor();
 		CameraSensorInit();
+		Start_CameraCapture();
 		EnterStandby_mt9d111(SOFT_STANDBY);
 	}
 	//ASSERT_ON_ERROR(lRetVal);
@@ -361,6 +362,8 @@ int32_t Wakeup_ImageSensor()
 	UART_PRINT("\n\rCam Wake\n\r");
 
 	CamControllerInit();
+
+	UtilsDelay(50);		//uTHRA
 
 	//lRetVal = ExitStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = ExitStandby_mt9d111(SOFT_STANDBY);
@@ -395,6 +398,30 @@ int32_t Start_CameraCapture()
 	return lRetVal;
 }
 
+int32_t ReStart_CameraCapture()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("\n\rCam Start2\n\r");
+
+//	lRetVal = disableAE();
+//	ASSERT_ON_ERROR(lRetVal);
+//	lRetVal = disableAWB();
+//	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = RestartSensorInJpegMode();
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = WriteAllAEnAWBRegs();
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = Refresh_mt9d111Firmware();
+	ASSERT_ON_ERROR(lRetVal);
+
+	//UtilsDelay(80000000/6);
+
+	return lRetVal;
+}
 //*****************************************************************************
 //
 //*****************************************************************************
@@ -469,7 +496,7 @@ int32_t Config_And_Start_CameraCapture()
 }
 void ImagCapture_Init()
 {
-	uint32_t ulTimeDuration_ms;
+	//uint32_t ulTimeDuration_ms;
 
     g_block_lastFilled = -1;
     g_position_in_block = 0;
@@ -479,30 +506,30 @@ void ImagCapture_Init()
 	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
 	memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
 
-	//
-	// Initialize camera controller
-	//
-	CamControllerInit();
+//	//
+//	// Initialize camera controller
+//	//
+//	CamControllerInit();
 
 	//
 	// Configure DMA in ping-pong mode
 	//
 	DMAConfig();
 
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
-	start_100mSecTimer();
-	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
-	{
-		UART_PRINT("{");
-		osi_Sleep(10);
-	}
-	//Tag:Remove when waketime optimization is over
-	ulTimeDuration_ms = get_timeDuration();
-	stop_100mSecTimer();
-	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
+//	start_100mSecTimer();
+//	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
+//	{
+//		UART_PRINT("{");
+//		osi_Sleep(10);
+//	}
+//	//Tag:Remove when waketime optimization is over
+//	ulTimeDuration_ms = get_timeDuration();
+//	stop_100mSecTimer();
+//	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
 	return;
 }

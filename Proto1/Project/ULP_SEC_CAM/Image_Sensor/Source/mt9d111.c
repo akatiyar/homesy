@@ -372,10 +372,25 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
 	{1, 0xC6, 0xA104    },  // wait till become capture
-	{111, 0xC8, 0x0007  }
-    //{100, 0x00, 0x01F4  },  // Delay =500ms
+	//{111, 0xC8, 0x0007  }
+    {100, 0x00, 0x01F4  },  // Delay =500ms
 };
 
+static  const s_RegList recapture_cmds_list[]= {
+	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
+
+    {0,  0x65,  0x2000  },  // Enable PLL
+    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+
+	{100, 0x00, 0x0064  },  // Delay =100ms
+	//{100, 0x00, (0x00C8) },  // Delay =200ms
+	//{100, 0x00, 0x01F4 },  // Delay =500ms
+
+    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
+    {1, 0xC8, 0x0002    },
+    {1, 0xC6, 0xA104    },  // wait till become capture
+    {111, 0xC8, 0x0007   }
+};
 #endif
 //*****************************************************************************
 // Static Function Declarations
@@ -549,6 +564,18 @@ long StartSensorInJpegMode()
                         sizeof(capture_cmds_list)/sizeof(s_RegList));
     ASSERT_ON_ERROR(lRetVal);    
 #endif 
+    return 0;
+}
+
+long RestartSensorInJpegMode()
+{
+#ifdef ENABLE_JPEG
+    long lRetVal = -1;
+
+    lRetVal = RegLstWrite((s_RegList *)recapture_cmds_list,
+                        sizeof(recapture_cmds_list)/sizeof(s_RegList));
+    ASSERT_ON_ERROR(lRetVal);
+#endif
     return 0;
 }
 
@@ -735,7 +762,7 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
 //                UART_PRINT("4:%d\n\r",ucTmp);
                 //MT9D111Delay(10*10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
                 MT9D111Delay(.01 * 80000000 / 6);	//10m*80000000/6  = 10 milli sec
-                UART_PRINT("^");
+                UART_PRINT("%d", usTemp);
                 ulCounter++;
                 if(ulCounter > 500)	//500*.01sec = 5 sec
                 {
@@ -801,6 +828,7 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
         //MT9D111Delay(10);
         //MT9D111Delay(40);
         MT9D111Delay(10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
+
     }
 
     return RET_OK;
@@ -1525,7 +1553,8 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 	s_RegList stndby_cmds_list[] =	{
 				{1, 0xC6, 0xA103},{1, 0xC8, 0x0001},	//Conext A/Preview; seq.cmd = 1(preview cmd)
 				{100, 0, 0x0064	},						//100ms delay
-				{1, 0xC6, 0xA104},{111, 0xC8, 0x0003}	//Wait till in A; seq.state = 3(preview state)
+				{1, 0xC6, 0xA104},{111, 0xC8, 0x0003},	//Wait till in A; seq.state = 3(preview state)
+				//{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 }  // SEQ_MODE Will turn off AE, AWB
 									};
 
 	MT9D111Delay(SYSTEM_CLOCK/MT9D111_CLKIN_MIN * 24 + 100);

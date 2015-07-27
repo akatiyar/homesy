@@ -144,6 +144,9 @@ typedef enum
 //
 uint32_t g_ulAppStatus;
 int8_t g_I2CPeripheral_inUse_Flag;
+int8_t g_Task3_Notification;	//Can be set in Task3 or in other tasks.
+								//Can be checked in Task3 or any other task.
+								//For communication from Task3 or to Task3
 uint8_t g_flag_door_closing_45degree;
 
 //Ground data in Parse
@@ -161,6 +164,12 @@ int16_t g_fMinAngle;
 struct u64_time g_Struct_TimeStamp_MaxAngle;
 struct u64_time g_Struct_TimeStamp_MinAngle;
 
+//Reasons for failure
+typedef enum
+{
+	READ_MAGNTMTRFILE_DONE = 1,
+	MAGNTMTRINIT_DONE,
+}e_Task3_NotificationValues;
 //Reasons for failure
 typedef enum
 {

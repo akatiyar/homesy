@@ -301,6 +301,7 @@ static void InitializeAppVariables()
 {
 	g_ulAppStatus = START;
 	g_I2CPeripheral_inUse_Flag = NEVER;
+	g_Task3_Notification = 0;
 
 	g_TimeStamp_cc3200Up = 0;
 	g_TimeStamp_NWPUp = 0;

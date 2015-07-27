@@ -40,7 +40,7 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** F 24(GroundData) Testing1***\n\r");
+    	UART_PRINT("*** F 26 Demo Prakash <Wake time reduce>***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
 		LED_Blink(10, 1);
@@ -66,6 +66,7 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		//Do the initial configurations for MT9D111 and then put it in standby
 		Config_CameraCapture();
+		Start_CameraCapture();	//Do this once. Not needed after standby wake_up
 		Standby_ImageSensor();
 
 //Use the folowing code to test without hibernate

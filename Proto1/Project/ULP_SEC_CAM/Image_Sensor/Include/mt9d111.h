@@ -41,6 +41,7 @@ long WriteConfigRegFile_toFlash();
 #include <stdint.h>
 
 long StartSensorInJpegMode();
+long RestartSensorInJpegMode();
 
 long RegStatusRead(uint16_t* pusRegVal);
 

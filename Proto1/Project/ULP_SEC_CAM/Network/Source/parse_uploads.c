@@ -93,6 +93,7 @@ int32_t UploadImageToParse(ParseClient client,
 										NULL,
 										image);
 		PRINT_ON_ERROR(lRetVal);
+		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
 
@@ -135,6 +136,7 @@ int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 							NULL,
 							jsonObject);
 		PRINT_ON_ERROR(lRetVal);
+		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
 
@@ -351,6 +353,7 @@ int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 							NULL,
 							jsonObject);
 		PRINT_ON_ERROR(lRetVal);
+		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
 

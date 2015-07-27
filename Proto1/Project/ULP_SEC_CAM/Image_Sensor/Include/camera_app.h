@@ -164,6 +164,7 @@ int32_t Write_JPEGHeader();
 int32_t Config_And_Start_CameraCapture();
 int32_t Start_CameraCapture();
 int32_t Config_CameraCapture();
+int32_t ReStart_CameraCapture();
 
 int32_t toggle_standby();//Tag:Remove later
 

@@ -388,6 +388,8 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 
             CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
             CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_AQUIRED);
+            memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
+            memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
 
             pEventData = &pWlanEvent->EventData.STAandP2PModeDisconnected;
 
@@ -428,10 +430,8 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 //				{
 //					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
 //				}
-
+                PRCMSOCReset();
             }
-            memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
-            memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
         }
         break;
 
