@@ -346,6 +346,40 @@ static  const s_RegList capture_cmds_list[]= {
 #elif QVGA_FRAME
     {1, 0xC8, 320       },
 #endif
+
+	// Added by Uthra
+    {1, 0xC6, 0x2122 },{1, 0xC8, 0 },
+	{1, 0xC6, 0x2124 },{1, 0xC8, 0 },
+	{1, 0xC6, 0x2126 },{1, 0xC8, 0 },
+	{1, 0xC6, 0x2129 },{1, 0xC8, 0 },
+	{1, 0xC6, 0x212A },{1, 0xC8, 0 },
+	{1, 0xC6, 0x212B },{1, 0xC8, 0 },
+	{1, 0xC6, 0x212D },{1, 0xC8, 0 },
+	{1, 0xC6, 0x2130 },{1, 0xC8, 0 },
+	{1, 0xC6, 0x2132 },{1, 0xC8, 0 },
+	{1, 0xC6, 0x2134 },{1, 0xC8, 0 },
+
+    {1, 0xC6, 0x276B },	//Enable status byte insertion, Enable adaptive clocking
+	{1, 0xC8, 0x0227 },	//Disable adaptive clocking
+	{1, 0xC6, 0x276D }, // Enable Capture video
+	{1, 0xC8, 0x02FF },
+	{1, 0xC6, 0x276F }, // Enable Capture video
+	{1, 0xC8, 0x0001 },
+
+    {1, 0xC6, 0x2703    },  // MODE_OUTPUT_WIDTH_A
+    {1, 0xC8, 120      },
+    {1, 0xC6, 0x2705    },  // MODE_OUTPUT_HEIGHT_A
+    {1, 0xC8, 120       },
+
+    {1, 0xC6, 0x2727    },  // MODE_CROP_X0_A
+    {1, 0xC8, 0x0000    },
+    {1, 0xC6, 0x2729    },  // MODE_CROP_X1_A
+    {1, 0xC8, 240  },
+	{1, 0xC6, 0x2731    },  // MODE_CROP_Y0_A
+    {1, 0xC8, 0x0000    },
+    {1, 0xC6, 0x2733    },  // MODE_CROP_Y1_A
+    {1, 0xC8, 240      },
+	/******************************************/
     {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2737    },  // MODE_CROP_X1_B
@@ -372,20 +406,16 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
 	{1, 0xC6, 0xA104    },  // wait till become capture
-	//{111, 0xC8, 0x0007  }
-    {100, 0x00, 0x01F4  },  // Delay =500ms
+	{111, 0xC8, 0x0007  }
+    //{100, 0x00, 0x01F4  },  // Delay =500ms
 };
 
 static  const s_RegList recapture_cmds_list[]= {
-	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
 
+	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
     {0,  0x65,  0x2000  },  // Enable PLL
     {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
-
 	{100, 0x00, 0x0064  },  // Delay =100ms
-	//{100, 0x00, (0x00C8) },  // Delay =200ms
-	//{100, 0x00, 0x01F4 },  // Delay =500ms
-
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
     {1, 0xC6, 0xA104    },  // wait till become capture
@@ -764,7 +794,7 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
                 MT9D111Delay(.01 * 80000000 / 6);	//10m*80000000/6  = 10 milli sec
                 UART_PRINT("%d", usTemp);
                 ulCounter++;
-                if(ulCounter > 500)	//500*.01sec = 5 sec
+                if(ulCounter > 1000)	//500*.01sec = 5 sec
                 {
                 	//stop_100mSecTimer();
                 	return MT9D111_FIRMWARE_STATE_ERROR;

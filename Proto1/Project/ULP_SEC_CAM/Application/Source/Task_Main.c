@@ -40,7 +40,7 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** F 26 Demo Prakash <Wake time reduce>***\n\r");
+    	UART_PRINT("*** Uthra Testing v0.2***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
 		LED_Blink(10, 1);

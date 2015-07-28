@@ -430,7 +430,9 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 //				{
 //					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
 //				}
-                PRCMSOCReset();
+              //  PRCMSOCReset();
+                sl_Stop(0);
+                sl_Start(0,0,0);
             }
         }
         break;

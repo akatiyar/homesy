@@ -23,6 +23,7 @@ int32_t create_AngleValuesFile();
 extern float_t get_angle();
 extern int16_t angleCheck_Initializations();
 extern int16_t angleCheck_WithCalibration();
+extern int16_t magnetometer_initialize();
 
 int16_t fxos_Calibration();
 int16_t fxosDefault_Initializations();
@@ -433,6 +434,8 @@ static int32_t CollectAngle(uint8_t ucAngle)
 
 	//Collect the readings
 	angleCheck_Initializations();
+
+	magnetometer_initialize();
 
 	//Tag:Work-around for invalid first fet ecompass readings
 	uint8_t tmpCnt=0;
