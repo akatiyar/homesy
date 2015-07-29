@@ -34,7 +34,6 @@ typedef enum
 	ANGLE_VALUE_COLLECTED
 }doorbuttonstatus;
 
-extern unsigned long  g_ulStatus;//SimpleLink Status
 extern unsigned long  g_ulGatewayIP; //Network Gateway IP address
 extern unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
 extern unsigned char  g_ucConnectionBSSID[BSSID_LEN_MAX]; //Connection BSSID

@@ -31,7 +31,8 @@ int32_t initial_magnetometerReadings()
 	//
 	// Save initial magnetometer readings in flash
 	//
-	lRetVal = sl_Start(0, 0, 0);
+	//lRetVal = sl_Start(0, 0, 0);
+	lRetVal = NWP_SwitchOn();
 	ASSERT_ON_ERROR(lRetVal);
 
 	lRetVal = CreateFile_Flash((uint8_t*)MAGN_INIT_VALS_FILE_NAME,
@@ -56,7 +57,8 @@ int32_t waitfor40degrees_fxos()
 	//
 	// Read initial magnetometer readings from flash
 	//
-	lRetVal = sl_Start(0, 0, 0);
+	//lRetVal = sl_Start(0, 0, 0);
+	lRetVal = NWP_SwitchOn();
 	ASSERT_ON_ERROR(lRetVal);
 
 	lRetVal = ReadFile_FromFlash((uint8_t*)&fYaw_closedDoor,

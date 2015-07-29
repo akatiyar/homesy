@@ -34,6 +34,8 @@
 static OtaOptServerInfo_t g_otaOptServerInfo;
 static void *pvOtaApp;
 
+extern int32_t NWP_SwitchOn();
+
 int OTAServerInfoSet(void **pvOtaApp, char *vendorStr);
 //static void RebootMCU();
 
@@ -197,6 +199,9 @@ int32_t OTA_Update()
 	OTA_Run();
 
 	sl_Stop(0xFF);	//sl_start() is within WiFi_Connect()
+	//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
+	g_ulSimplelinkStatus = 0;
+	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 	return 0;
 }
 //******************************************************************************
@@ -210,7 +215,8 @@ int32_t OTA_CommitImage()
     unsigned char OptionVal;
 
     UART_PRINT("Entered OTA_CommitImage()\n\r");
-	sl_Start(0,0,0);
+	//sl_Start(0,0,0);
+    NWP_SwitchOn();
 
 	OTA_Init();
     //Tag:OTA
@@ -229,6 +235,9 @@ int32_t OTA_CommitImage()
     }
 
     sl_Stop(0xFF);
+	//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
+	g_ulSimplelinkStatus = 0;
+	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
     return 0;
 }

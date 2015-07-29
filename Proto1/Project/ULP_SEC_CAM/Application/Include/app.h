@@ -18,7 +18,6 @@
 #include "rom_map.h"
 #include "prcm.h"
 #include "timer_if.h"
-#include "wdt_if.h"
 #include "rtc_hal.h"
 
 //#define APP_SSID_NAME 			"Solflr3"
@@ -148,6 +147,8 @@ int8_t g_Task3_Notification;	//Can be set in Task3 or in other tasks.
 								//Can be checked in Task3 or any other task.
 								//For communication from Task3 or to Task3
 uint8_t g_flag_door_closing_45degree;
+uint8_t g_ucFeedWatchdog;
+uint32_t g_ulSimplelinkStatus;//SimpleLink Status
 
 //Ground data in Parse
 uint8_t g_ucReasonForFailure;

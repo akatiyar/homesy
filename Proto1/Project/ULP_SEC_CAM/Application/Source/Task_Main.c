@@ -21,10 +21,14 @@
 
 #include "dbgFns.h"	//Can be removed when debug fns are not used
 
+#include "watchdog.h"
+
 extern OsiTaskHandle g_UserConfigTaskHandle;
 
 void Main_Task_withHibernate(void *pvParameters)
 {
+	WDT_init();
+
 	//This branch is entered only on wake up from hibernate
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
@@ -40,7 +44,7 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** Uthra Testing v0.2***\n\r");
+    	UART_PRINT("*** F27 WDT ***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
 		LED_Blink(10, 1);
@@ -73,9 +77,8 @@ void Main_Task_withHibernate(void *pvParameters)
 /*
   		while(1)
 		{
-			Wakeup_ImageSensor();
-			Start_CameraCapture();
-			application_fn();
+  			application_fn();
+  			//MAP_UtilsDelay(3*80000000/6);
 		}
 */
 

@@ -485,7 +485,8 @@ long CaptureAndStore_Image()
 
 	UART_PRINT("b sl_start\n\r");
 	// Start SimpleLink
-    lRetVal = sl_Start(0, 0, 0);
+    //lRetVal = sl_Start(0, 0, 0);
+	lRetVal = NWP_SwitchOn();
     UART_PRINT("a sl_start\n\r");
     ASSERT_ON_ERROR(lRetVal);
 
@@ -1505,7 +1506,8 @@ int32_t createAndWrite_ImageHeaderFile()
 	unsigned long ulToken = NULL;
 	long lRetVal;
 
-	sl_Start(0,0,0);
+	//sl_Start(0,0,0);
+	NWP_SwitchOn();
 
 	//
 	// NVMEM File Open to write to SFLASH
@@ -1574,7 +1576,8 @@ int32_t create_JpegImageFile()
 	unsigned long ulToken = NULL;
 	long lRetVal;
 
-	lRetVal = sl_Start(0,0,0);
+	//lRetVal = sl_Start(0,0,0);
+	lRetVal = NWP_SwitchOn();
 	ASSERT_ON_ERROR(lRetVal);
 
 	//
@@ -1614,7 +1617,8 @@ int32_t Write_JPEGHeader()
 										PIXELS_IN_X_AXIS,PIXELS_IN_Y_AXIS,
 										0, 0x0006,(int)IMAGE_QUANTIZ_SCALE);
 
-	lRetVal = sl_Start(0,0,0);
+	//lRetVal = sl_Start(0,0,0);
+	lRetVal = NWP_SwitchOn();
 	ASSERT_ON_ERROR(lRetVal);
 
 	// Open the file for Write Operation

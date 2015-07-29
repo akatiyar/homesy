@@ -9,6 +9,7 @@ char Token[100]="";
 char Value[100]="";
 
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
+extern int32_t NWP_SwitchOn();
 //****************************************************************************
 //
 //!    \brief This function initializes the application variables
@@ -20,7 +21,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 //****************************************************************************
 void InitializeUserConfigVariables()
 {
-    g_ulStatus = 0;
+	g_ulSimplelinkStatus = 0;
     g_ulGatewayIP = 0;
     memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
     memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
@@ -66,8 +67,10 @@ long ConfigureSimpleLinkToDefaultState()
     long lMode = -1;
 
     UART_PRINT("b sl_start()1\n\r");	//Tag:Rm
-    lMode = sl_Start(0, 0, 0);
-    ASSERT_ON_ERROR(lMode);
+    //lMode = sl_Start(0, 0, 0);
+    //ASSERT_ON_ERROR(lMode);
+    lRetVal = NWP_SwitchOn();
+    ASSERT_ON_ERROR(lRetVal);
     UART_PRINT("a sl_start()1\n\r");	//Tag:Rm
 
     // If the device is not in station-mode, try configuring it in station-mode
@@ -77,7 +80,7 @@ long ConfigureSimpleLinkToDefaultState()
         {
             // If the device is in AP mode, we need to wait for this event
             // before doing anything
-            while(!IS_IP_ACQUIRED(g_ulStatus))
+            while(!IS_IP_ACQUIRED(g_ulSimplelinkStatus))
             {
 #ifndef SL_PLATFORM_MULTI_THREADED
               _SlNonOsMainLoopTask();
@@ -91,8 +94,12 @@ long ConfigureSimpleLinkToDefaultState()
 
         lRetVal = sl_Stop(0xFF);
         ASSERT_ON_ERROR(lRetVal);
+		//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
+		g_ulSimplelinkStatus = 0;
+		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
-        lRetVal = sl_Start(0, 0, 0);
+        //lRetVal = sl_Start(0, 0, 0);
+        lRetVal = NWP_SwitchOn();
         ASSERT_ON_ERROR(lRetVal);
 
         // Check if the device is in station again
@@ -140,7 +147,7 @@ long ConfigureSimpleLinkToDefaultState()
     if(0 == lRetVal)
     {
         // Wait
-        while(IS_CONNECTED(g_ulStatus))
+        while(IS_CONNECTED(g_ulSimplelinkStatus))
         {
 #ifndef SL_PLATFORM_MULTI_THREADED
               _SlNonOsMainLoopTask();
@@ -180,6 +187,9 @@ long ConfigureSimpleLinkToDefaultState()
 
     lRetVal = sl_Stop(SL_STOP_TIMEOUT);
     ASSERT_ON_ERROR(lRetVal);
+	//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
+	g_ulSimplelinkStatus = 0;
+	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
     InitializeUserConfigVariables();
 
@@ -208,9 +218,12 @@ int ConfigureMode(int iMode)
     lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 
     // reset status bits
-    CLR_STATUS_BIT_ALL(g_ulStatus);
+    //CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
+	g_ulSimplelinkStatus = 0;
+	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
-    return sl_Start(NULL,NULL,NULL);
+    //return sl_Start(NULL,NULL,NULL);
+    return NWP_SwitchOn();
 }
 
 
@@ -226,7 +239,8 @@ int32_t WiFi_Connect()
 
 	ConfigureSimpleLinkToDefaultState();
 	UART_PRINT("b sl_start\n\r");
-	lRetVal = sl_Start(0, 0, 0);
+	//lRetVal = sl_Start(0, 0, 0);
+	lRetVal = NWP_SwitchOn();
 	UART_PRINT("a sl_start\n\r");
 	ASSERT_ON_ERROR(lRetVal);
 
@@ -315,7 +329,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 
     // Wait for WLAN Event
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
-		((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
+		((!IS_CONNECTED(g_ulSimplelinkStatus)) || (!IS_IP_ACQUIRED(g_ulSimplelinkStatus))))
     {
     	osi_Sleep(10);
         uiConnectTimeoutCnt++;
@@ -354,7 +368,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
     {
         case SL_WLAN_CONNECT_EVENT:
         {
-            SET_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
+            SET_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_CONNECTION);
 
             //
             // Information about the connected AP (like name, MAC etc) will be
@@ -386,8 +400,8 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
         {
             slWlanConnectAsyncResponse_t*  pEventData = NULL;
 
-            CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
-            CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_AQUIRED);
+            CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_CONNECTION);
+            CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_IP_AQUIRED);
             memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
             memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
 
@@ -430,9 +444,13 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 //				{
 //					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
 //				}
-              //  PRCMSOCReset();
-                sl_Stop(0);
+                // cc3200 gets stuck after this. So, a workaround is to reset
+                //and begin again
+                PRCMSOCReset();
+                /*sl_Stop(0);
+                UART_PRINT("NWP stop done");
                 sl_Start(0,0,0);
+                UART_PRINT("NWP restart done");*/
             }
         }
         break;
@@ -475,7 +493,7 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
         {
             SlIpV4AcquiredAsync_t *pEventData = NULL;
 
-            SET_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_AQUIRED);
+            SET_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_IP_AQUIRED);
 
             //Ip Acquired Event Data
             pEventData = &pNetAppEvent->EventData.ipAcquiredV4;

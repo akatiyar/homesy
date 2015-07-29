@@ -8,6 +8,7 @@
 #include "ota.h"
 #include "accelomtrMagntomtr_fxos8700.h"
 #include "app.h"
+#include "appFns.h"
 
 #define ANGLE_90		0
 #define ANGLE_40		1
@@ -122,7 +123,9 @@ int32_t User_Configure()
 	}
 
 	lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-	CLR_STATUS_BIT_ALL(g_ulStatus);
+	//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
+	g_ulSimplelinkStatus = 0;
+	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
     return SUCCESS;
 }
@@ -159,7 +162,8 @@ static int32_t AccessPtMode_HTTPServer_Start()
 	//UART_PRINT("Device is configured in default state \n\r");
 
 	//	Start NWP
-	lRetVal = sl_Start(0, 0, 0);
+	//lRetVal = sl_Start(0, 0, 0);
+    lRetVal = NWP_SwitchOn();
 	if (lRetVal < 0)
 	{
 	   UART_PRINT("Failed to start the device \n\r");
@@ -173,10 +177,12 @@ static int32_t AccessPtMode_HTTPServer_Start()
 	{
 		UART_PRINT("Unable to set AP mode...\n\r");
 		lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-		CLR_STATUS_BIT_ALL(g_ulStatus);
+		//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
+		g_ulSimplelinkStatus = 0;
+		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 		LOOP_FOREVER();
 	}
-	while(!IS_IP_ACQUIRED(g_ulStatus));	//looping till ip is acquired
+	while(!IS_IP_ACQUIRED(g_ulSimplelinkStatus));	//looping till ip is acquired
 	UART_PRINT("CC3200 in APmode\n\r");
 
 	//Stop Internal HTTP Server
@@ -232,7 +238,9 @@ static int32_t WiFiProvisioning()
 	{
 		UART_PRINT("Unable to set STA mode...\n\r");
 		lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-		CLR_STATUS_BIT_ALL(g_ulStatus);
+		//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
+		g_ulSimplelinkStatus = 0;
+		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 		LOOP_FOREVER();
 	}
 	// Connect to the Configured Access Point
@@ -240,14 +248,14 @@ static int32_t WiFiProvisioning()
 	if(lRetVal == SUCCESS)
 	{
 		g_ucProvisioningDone = 1;	//Set the global variable
-		g_ucConnectedToConfAP = IS_CONNECTED(g_ulStatus);
+		g_ucConnectedToConfAP = IS_CONNECTED(g_ulSimplelinkStatus);
 
 		//Disconnect back
 		UART_PRINT("WLAN Connect Done\n\r");
 		lRetVal = sl_WlanDisconnect();
 		if(0 == lRetVal)
 		{
-			while(IS_CONNECTED(g_ulStatus));
+			while(IS_CONNECTED(g_ulSimplelinkStatus));
 		}
 		//UART_PRINT("WLAN Disconnected back\n\r");
 
@@ -291,10 +299,12 @@ static int32_t WiFiProvisioning()
 	{
 		UART_PRINT("Unable to set AP mode...\n\r");
 		lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-		CLR_STATUS_BIT_ALL(g_ulStatus);
+		//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
+		g_ulSimplelinkStatus = 0;
+		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 		LOOP_FOREVER();
 	}
-	while(!IS_IP_ACQUIRED(g_ulStatus));	//looping till ip is acquired
+	while(!IS_IP_ACQUIRED(g_ulSimplelinkStatus));	//looping till ip is acquired
 	UART_PRINT("WiFi Testing over\n\rConfigd APmode\n\r");
 
 	//Stop Internal HTTP Server
@@ -344,13 +354,13 @@ static long WlanConnect()
 
     // Wait for WLAN Event
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
-		((!IS_CONNECTED(g_ulStatus)) || (!IS_IP_ACQUIRED(g_ulStatus))))
+		((!IS_CONNECTED(g_ulSimplelinkStatus)) || (!IS_IP_ACQUIRED(g_ulSimplelinkStatus))))
     {
         osi_Sleep(10); //Sleep 1 millisecond
         uiConnectTimeoutCnt++;
     }
 
-    if (!(IS_CONNECTED(g_ulStatus) || IS_IP_ACQUIRED(g_ulStatus)))
+    if (!(IS_CONNECTED(g_ulSimplelinkStatus) || IS_IP_ACQUIRED(g_ulSimplelinkStatus)))
     {
     	return USER_WIFI_PROFILE_FAILED_TO_CONNECT;
     }

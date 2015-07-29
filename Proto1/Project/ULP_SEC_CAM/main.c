@@ -92,6 +92,7 @@
 #include "camera_app.h"
 #include "network_related_fns.h"
 #include "app_common.h"
+
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -111,7 +112,6 @@ SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 //unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
 unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))]; //Appropriate name change to be done
 
-unsigned long  g_ulStatus = 0;//SimpleLink Status
 unsigned long  g_ulGatewayIP = 0; //Network Gateway IP address
 unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
 unsigned char  g_ucConnectionBSSID[BSSID_LEN_MAX]; //Connection BSSID
@@ -302,6 +302,7 @@ static void InitializeAppVariables()
 	g_ulAppStatus = START;
 	g_I2CPeripheral_inUse_Flag = NEVER;
 	g_Task3_Notification = 0;
+	g_ulSimplelinkStatus = 0;
 
 	g_TimeStamp_cc3200Up = 0;
 	g_TimeStamp_NWPUp = 0;

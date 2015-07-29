@@ -20,4 +20,5 @@ extern void check_doorpos();
 extern int16_t angleCheck_Initializations();
 extern int16_t magnetometer_initialize();
 
+extern int32_t NWP_SwitchOn();
 #endif /* APPFNS_H_ */
