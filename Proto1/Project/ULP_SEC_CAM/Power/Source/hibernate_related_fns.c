@@ -92,6 +92,10 @@ void HIBernate(uint32_t ulWakeSources,
 			sensorsTriggerSetup();
 			//UART_PRINT("Cleared sensors\n\r");
 		}
+#ifdef IOEXPANDER_PRESENT
+		ClearInterrupt_IOExpander();
+#endif
+
 	}
 
     //

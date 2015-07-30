@@ -36,6 +36,8 @@ uint8_t avg_buffer_cnt;
 uint8_t isitfirsttime;
 uint8_t print_count;
 
+extern struct MQXLiteGlobals mqxglobals;
+
 void check_doorpos()
 {
 	float angle_reg = 0;
@@ -69,6 +71,7 @@ void check_doorpos()
 	if(print_count==20)
 	{
 	UART_PRINT("ANGLE=%3.2f\n", angle_reg);
+	//UART_PRINT("%3.2f  %3.2f\n", angle_reg, thisSV_6DOF_GB_BASIC.fLPRho);
 //	UART_PRINT("phi = %3.2f, theta = %3.2f, psi = %3.2f, rho = %3.2f, chi = %3.2f\n",
 //			thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe, thisSV_6DOF_GB_BASIC.fLPPsi,
 //			thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPChi);

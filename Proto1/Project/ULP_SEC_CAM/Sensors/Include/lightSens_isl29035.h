@@ -111,5 +111,5 @@ uint16_t verifyISL29035(void);
 uint16_t getLightsensor_intrptStatus(void);
 void setThreshold_lightsensor(uint16_t upper_threshold,
 								uint16_t lower_threshold);
-
+int32_t PowerDown_ISL29035();
 #endif

@@ -47,7 +47,7 @@ void Main_Task_withHibernate(void *pvParameters)
     	UART_PRINT("*** F27 WDT ***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
-		LED_Blink(10, 1);
+		//LED_Blink(10, 1);
 		LED_On();
 
 		//Wait if User Config is happening presently
@@ -60,6 +60,16 @@ void Main_Task_withHibernate(void *pvParameters)
 		UART_PRINT("!!Application running!!\n\r");
 
 		Check_I2CDevices();		//Tag:Remove once I2C issues are resolved
+
+		/*//DBG - having to read out first few angle values
+		NWP_SwitchOn();
+		angleCheck_Initializations();
+		RdSensData_Init();
+		while(1)
+		{
+			get_angle();
+			check_doorpos();
+		}*/
 
 		//Configure Light sensor for reading Lux. It has to be done the first time
 		configureISL29035(0, LUX_THRESHOLD, NULL);
@@ -74,13 +84,13 @@ void Main_Task_withHibernate(void *pvParameters)
 		Standby_ImageSensor();
 
 //Use the folowing code to test without hibernate
-/*
+///*
   		while(1)
 		{
   			application_fn();
   			//MAP_UtilsDelay(3*80000000/6);
 		}
-*/
+//*/
 
   		//Commits image if running in test mode
 		OTA_CommitImage();

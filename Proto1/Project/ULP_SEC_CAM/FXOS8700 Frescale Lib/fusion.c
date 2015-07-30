@@ -36,6 +36,8 @@
 #include "time.h"
 #include "string.h"
 
+#include "common.h"
+
 void fInit_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, float flpftimesecs, int16 iSensorFS, int16 iOverSampleRatio)
 {
 	// set algorithm sampling interval (typically 25Hz)
@@ -60,10 +62,13 @@ void fInit_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, float flpftimesecs, i
 // 6DOF orientation function which calls ecompass and implements low pass filters
 void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthisMag, struct AccelSensor *pthisAccel, int32 loopcounter, int16 ithisCoordSystem)
 {
+//	UART_PRINT("%f %f %f %f %f %f\n", pthisMag->fBc[X], pthisMag->fBc[Y], pthisMag->fBc[Z],
+//									pthisAccel->fGp[X], pthisAccel->fGp[Y], pthisAccel->fGp[Z]);
 	// do a reset and return if requested
 	if (pthisSV->resetflag)
 	{
 		fInit_6DOF_GB_BASIC(pthisSV, 0.6F, SENSORFS, OVERSAMPLE_RATIO);
+		//fInit_6DOF_GB_BASIC(pthisSV, 0.1F, SENSORFS, OVERSAMPLE_RATIO);
 		return;
 	}
 
@@ -91,6 +96,8 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), pthisSV->flpf, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
 	fRotationMatrixFromQuaternion(pthisSV->fLPR, &(pthisSV->fLPq));
 	fRotationVectorDegFromQuaternion(&(pthisSV->fLPq), pthisSV->fLPRVec);
+	//fRotationMatrixFromQuaternion(pthisSV->fLPR, &(pthisSV->fq));
+	//fRotationVectorDegFromQuaternion(&(pthisSV->fq), pthisSV->fLPRVec);
 
 	// compute the low pass filtered Euler angles
 	if (ithisCoordSystem == NED)

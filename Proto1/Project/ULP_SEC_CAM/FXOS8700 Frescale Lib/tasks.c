@@ -201,7 +201,8 @@ void RdSensData_Run(void)
 	FXOS8700_ReadData(&thisAccel, &thisMag);
 	ApplyAccelHAL(&thisAccel);
 	ApplyMagHAL(&thisMag);
-	//UART_PRINT("%f, %f, %f\n\r",thisMag.fBpFast[X], thisMag.fBpFast[Y], thisMag.fBpFast[Z]);
+//	UART_PRINT("%d, %d, %d\n\r",thisMag.iBpFast[X], thisMag.iBpFast[Y], thisMag.iBpFast[Z]);
+//	UART_PRINT("%d, %d, %d\n\r",thisAccel.iGpFast[X], thisAccel.iGpFast[Y], thisAccel.iGpFast[Z]);
 #endif
 #if defined USE_FXAS21000
 	FXAS21000_ReadData(I2C_DeviceData, &thisGyro, iCounter);

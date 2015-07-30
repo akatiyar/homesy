@@ -93,6 +93,8 @@
 #include "network_related_fns.h"
 #include "app_common.h"
 
+#include "appFns.h"
+#include "hibernate_related_fns.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -347,6 +349,31 @@ void main()
     struct u64_time time_now;
 	cc_rtc_get(&time_now);
 	g_TimeStamp_cc3200Up = time_now.secs * 1000 + time_now.nsec / 1000000;
+
+	if(Get_BatteryPercent() <= BATTERY_LOW_THRESHOLD)
+	{
+		UART_PRINT("Battery too low\n");
+
+		PowerDown_LightSensor();
+#ifndef  IOEXPANDER_PRESENT
+		//Hibernate with no wake. Give a power reset i.e remove battery and put
+		//it back (after charging)
+		UART_PRINT("Hibernating...\n");
+		HIBernate(NULL, NULL, NULL, NULL);
+#else
+		//To be used when IO expander is included in the ckt
+		//Hibernate with GPIO wake enable interrupt
+		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
+#endif
+	}
+
+#ifdef IOEXPANDER_PRESENT
+	if((!IsInterruptFromBatteryADC()) & (!IsInterruptFromLightSensor()))
+	{
+		ClearInterrupt_IOExpander();
+		HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
+	}
+#endif
 
 	//
     // Start the SimpleLink Host - SpawnTask is needed for NWP asynch events

@@ -290,3 +290,20 @@ uint16_t verifyISL29035(void)
 	return( !((data & DEVICE_ID_MASK) == DEVICE_ID) );
 }
 
+//******************************************************************************
+//	This function powers down ISL29035
+// current consumed on power down: .3uA
+////****************************************************************************
+int32_t PowerDown_ISL29035()
+{
+	int32_t lRetVal;
+	uint8_t ucConfigArray[] = {CMD_1_REG, 0x00};
+
+	lRetVal = i2cWriteRegisters(ISL29035_I2C_ADDRESS,
+						ucConfigArray[0],
+						LENGTH_IS_ONE,
+						&ucConfigArray[1]);
+	PRINT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}

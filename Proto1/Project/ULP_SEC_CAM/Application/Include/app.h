@@ -49,8 +49,10 @@
 
 #define SYSTEM_CLOCK	80000000
 
-#define LUX_THRESHOLD			8
-#define DOORCHECK_TIMEOUT_SEC	60
+#define LUX_THRESHOLD					8	//lux
+#define DOORCHECK_TIMEOUT_SEC			60
+#define BATTERY_LOW_THRESHOLD			5	//percent
+//#define BATTERY_LOW_THRESHOLD			32	//percent
 
 #define PI				(3.141592654F)
 

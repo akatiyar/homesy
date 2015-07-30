@@ -19,3 +19,14 @@ int16_t IsLightOff(uint16_t usThresholdLux)
 	else
 		return 0;
 }
+
+int32_t PowerDown_LightSensor()
+{
+	int32_t lRetVal;
+
+	UART_PRINT("Powering down light sensor\n");
+	lRetVal = PowerDown_ISL29035();
+	PRINT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}

@@ -8,6 +8,8 @@
 #include "network_related_fns.h"
 #include "parse_uploads.h"
 
+extern int32_t NWP_SwitchOff();
+
 int32_t SendGroundData()
 {
 	ParseClient clientHandle1;
@@ -18,10 +20,7 @@ int32_t SendGroundData()
 	lRetVal = WiFi_Connect();
 	if (lRetVal < 0)
 	{
-		sl_Stop(0xFFFF);
-		//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+		NWP_SwitchOff();
 		ASSERT_ON_ERROR(lRetVal);
 	}
 
@@ -35,10 +34,7 @@ int32_t SendGroundData()
 
 	free((void*)clientHandle1);	//malloc() in InitializeParse()
 
-	//sl_Stop(0xFFF);
-	g_ulSimplelinkStatus = 0;
-	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
-	CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
+	NWP_SwitchOff();
 
 	return 0;
 }

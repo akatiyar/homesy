@@ -14,6 +14,7 @@ extern int32_t application_fn();
 extern uint8_t Get_BatteryPercent();
 
 extern int16_t IsLightOff(uint16_t usThresholdLux);
+extern int32_t PowerDown_LightSensor();
 
 extern float_t get_angle();
 extern void check_doorpos();
@@ -21,4 +22,10 @@ extern int16_t angleCheck_Initializations();
 extern int16_t magnetometer_initialize();
 
 extern int32_t NWP_SwitchOn();
+extern int32_t NWP_SwitchOff();
+
+extern int8_t IsInterruptFromLightSensor();
+extern int8_t IsInterruptFromBatteryADC();
+extern int32_t ClearInterrupt_IOExpander();
+
 #endif /* APPFNS_H_ */

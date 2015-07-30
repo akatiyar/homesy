@@ -10,6 +10,7 @@ char Value[100]="";
 
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 extern int32_t NWP_SwitchOn();
+extern int32_t NWP_SwitchOff();
 //****************************************************************************
 //
 //!    \brief This function initializes the application variables
@@ -92,11 +93,8 @@ long ConfigureSimpleLinkToDefaultState()
         lRetVal = sl_WlanSetMode(ROLE_STA);
         ASSERT_ON_ERROR(lRetVal);
 
-        lRetVal = sl_Stop(0xFF);
+        lRetVal = NWP_SwitchOff();
         ASSERT_ON_ERROR(lRetVal);
-		//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
         //lRetVal = sl_Start(0, 0, 0);
         lRetVal = NWP_SwitchOn();
@@ -185,11 +183,9 @@ long ConfigureSimpleLinkToDefaultState()
                        sizeof(_WlanRxFilterOperationCommandBuff_t));
     ASSERT_ON_ERROR(lRetVal);
 
-    lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+    lRetVal = NWP_SwitchOff();
     ASSERT_ON_ERROR(lRetVal);
-	//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-	g_ulSimplelinkStatus = 0;
-	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+
 
     InitializeUserConfigVariables();
 
@@ -215,12 +211,7 @@ int ConfigureMode(int iMode)
     ASSERT_ON_ERROR(lRetVal);
 
     /* Restart Network processor */
-    lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-
-    // reset status bits
-    //CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
-	g_ulSimplelinkStatus = 0;
-	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+    lRetVal = NWP_SwitchOff();
 
     //return sl_Start(NULL,NULL,NULL);
     return NWP_SwitchOn();

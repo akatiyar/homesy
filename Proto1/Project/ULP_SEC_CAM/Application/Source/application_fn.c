@@ -69,10 +69,7 @@ int32_t application_fn()
 		start_100mSecTimer();	//Tag:Remove when waketime optimization is over
 
 		// Start SimpleLink - NWP ON - required for all flash operations
-		UART_PRINT("b sl_start\n\r");	//Tag:Remove when waketime optimization is over
-		//lRetVal = sl_Start(0, 0, 0);
 		lRetVal = NWP_SwitchOn();
-		UART_PRINT("a sl_start\n\r");	//Tag:Remove when waketime optimization is over
 		ASSERT_ON_ERROR(lRetVal);
 
 		//g_tempflag=false;
@@ -98,7 +95,7 @@ int32_t application_fn()
 		g_TimeStamp_NWPUp = time_now.secs * 1000 + time_now.nsec / 1000000;
 
 //Use the folowing code to test without hibernate
-/*
+///*
 		// Wake the image sensor and begin image capture
 		Wakeup_ImageSensor();
 		ReStart_CameraCapture();
@@ -109,7 +106,7 @@ int32_t application_fn()
 		magnetometer_initialize();
 		g_I2CPeripheral_inUse_Flag = NO;
 		g_Task3_Notification = MAGNTMTRINIT_DONE;
-*/
+//*/
 
 		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
 		{
@@ -130,11 +127,8 @@ int32_t application_fn()
 			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 			ASSERT_ON_ERROR(lRetVal);
 
-			lRetVal = sl_Stop(0xFFFF);
+			lRetVal = NWP_SwitchOff();
 			ASSERT_ON_ERROR(lRetVal);
-			//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-			g_ulSimplelinkStatus = 0;
-			UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
 			//Tag:Upload GroundData object
 			SendGroundData();
@@ -197,11 +191,9 @@ int32_t application_fn()
 				//NOTE: For Ground data upload to Parse only.
 				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 				ASSERT_ON_ERROR(lRetVal);
-				lRetVal = sl_Stop(0xFFFF);
+				lRetVal = NWP_SwitchOff();
 				ASSERT_ON_ERROR(lRetVal);
-				//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-				g_ulSimplelinkStatus = 0;
-				UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+
 				//Tag:Upload GroundData object
 				SendGroundData();
 
@@ -227,11 +219,8 @@ int32_t application_fn()
 	    ASSERT_ON_ERROR(lRetVal);
 
 	    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
-	    lRetVal = sl_Stop(0xFFFF);
+	    lRetVal = NWP_SwitchOff();
 		ASSERT_ON_ERROR(lRetVal);
-		//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
 
 		Standby_ImageSensor();	//Put the Image Sensor in standby
 
@@ -244,10 +233,7 @@ int32_t application_fn()
 			lRetVal = WiFi_Connect();
 			if (lRetVal < 0)
 			{
-				sl_Stop(0xFFFF);
-				//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-				g_ulSimplelinkStatus = 0;
-				UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+				NWP_SwitchOff();
 				ASSERT_ON_ERROR(lRetVal);
 			}
 
@@ -310,10 +296,7 @@ int32_t application_fn()
 			lRetVal = WiFi_Connect();
 			if (lRetVal < 0)
 			{
-				sl_Stop(0xFFFF);
-				//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
-				g_ulSimplelinkStatus = 0;
-				UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+				NWP_SwitchOff();
 				ASSERT_ON_ERROR(lRetVal);
 			}
 
@@ -335,10 +318,7 @@ int32_t application_fn()
 		}
 
 		//free((void*)clientHandle_1);	//malloc() in InitializeParse()
-		sl_Stop(0xFFFF);				//sl_start() in WiFi_Connect()
-		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
-		//CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
+		NWP_SwitchOff();
 	}
 
 	return lRetVal;

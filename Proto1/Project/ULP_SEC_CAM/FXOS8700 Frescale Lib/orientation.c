@@ -939,6 +939,7 @@ void fLPFOrientationQuaternion(struct fquaternion *pq, struct fquaternion *pLPq,
 	{
 		*pLPq = *pq;
 	}
+	//*pLPq = *pq;	//LowPass removed
 
 	// set fdeltaqn to the delta rotation quaternion conjg(fLPq[n-1) . fqn
 	fdeltaq = qconjgAxB(pLPq, pq);
@@ -996,6 +997,8 @@ void fLPFOrientationQuaternion(struct fquaternion *pq, struct fquaternion *pLPq,
 // function low pass filters a scalar
 void fLPFScalar(float *pfS, float *pfLPS, float flpf, int32 loopcounter)
 {
+	//*pfLPS = *pfS;	//No Low Pass
+
 	// set S[LP,n]=S[n] on first pass
 	if (loopcounter == 0)
 	{
