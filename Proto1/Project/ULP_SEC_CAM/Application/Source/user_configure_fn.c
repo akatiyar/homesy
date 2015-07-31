@@ -35,6 +35,8 @@ static long WlanConnect();
 static int32_t Get_Calibration_MagSensor();
 static int32_t CollectAngle(uint8_t ucAngle);
 
+float_t* g_pfUserConfigData = (float_t *) g_image_buffer;
+
 //******************************************************************************
 // This function calls the function corresponding to button presses (button
 //	presses are translated to global flag changes in network_related_fns.c) from
@@ -53,12 +55,18 @@ int32_t User_Configure()
 	long lRetVal = -1;
 	bool run_flag=true;
 	float fAngle;
+	uint8_t i;
+	int32_t lFileHandle;
 
 	AccessPtMode_HTTPServer_Start();
 
+	// Reading the file, since write erases contents already present
+	ReadFile_FromFlash((uint8_t*)g_pfUserConfigData,
+						(uint8_t*)USER_CONFIGS_FILENAME,
+						CONTENT_LENGTH_USER_CONFIGS, 0);
+
 	while(run_flag == true)
     {
-
 		if(g_ucCalibration == BUTTON_PRESSED)
 		{
 			UART_PRINT("*** Calibration\n\r");
@@ -95,14 +103,28 @@ int32_t User_Configure()
 
 		if(g_ucExitButton == BUTTON_PRESSED)
 		{
-			uint8_t i;
-			for(i=0;i<14;i++)
+
+			//Write all the User Config contents into the flash
+			lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
+									(uint8_t*)USER_CONFIGS_FILENAME,
+									CONTENT_LENGTH_USER_CONFIGS, 0,
+									SINGLE_WRITE, &lFileHandle);
+			ASSERT_ON_ERROR(lRetVal);
+
+			//Verification
+			for(i=0;i<15;i++)
 			{
 				fAngle = 0;
 				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)USER_CONFIGS_FILENAME, sizeof(float), (i)*sizeof(float));
 				UART_PRINT("%d:%3.2f\n\r",i,fAngle);
 			}
+			// For verification - DBG
+			lRetVal = ReadFile_FromFlash(((uint8_t*)g_pfUserConfigData+3),
+											(uint8_t*)USER_CONFIGS_FILENAME,
+											WIFI_DATA_SIZE-3,
+											WIFI_DATA_OFFSET);
 
+			g_ucExitButton = BUTTON_NOT_PRESSED;
 			run_flag = false;
 			break;
 		}
@@ -122,10 +144,7 @@ int32_t User_Configure()
 		UART_PRINT("Unable to set to Station mode\n\r");
 	}
 
-	lRetVal = sl_Stop(SL_STOP_TIMEOUT);
-	//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
-	g_ulSimplelinkStatus = 0;
-	UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+	NWP_SwitchOff();
 
     return SUCCESS;
 }
@@ -224,9 +243,8 @@ static int32_t AccessPtMode_HTTPServer_Start()
 static int32_t WiFiProvisioning()
 {
 	int32_t lRetVal;
-	uint8_t ucConfigFileData[CONTENT_LENGTH_USER_CONFIGS];
-	int32_t lFileHandle;
-	uint8_t* pucConfigFileData = &ucConfigFileData[WIFI_DATA_OFFSET];
+	uint8_t* pucConfigFileData = (uint8_t*)g_pfUserConfigData;
+	pucConfigFileData += WIFI_DATA_OFFSET;
 
 	g_ucProfileAdded = 0;
 
@@ -259,11 +277,11 @@ static int32_t WiFiProvisioning()
 		}
 		//UART_PRINT("WLAN Disconnected back\n\r");
 
-		//Write to Flash file
+/*		//Write to Flash file
 		lRetVal = ReadFile_FromFlash(ucConfigFileData,
 										(uint8_t*)USER_CONFIGS_FILENAME,
 										CONTENT_LENGTH_USER_CONFIGS,
-										0);
+										0);*/
 
 		strcpy((char*)pucConfigFileData, (const char*)g_cWlanSSID);
 		pucConfigFileData += strlen((const char*)pucConfigFileData)+1;
@@ -273,8 +291,7 @@ static int32_t WiFiProvisioning()
 
 		strcpy((char*)pucConfigFileData, (const char*)g_cWlanSecurityKey);
 
-
-		lRetVal = WriteFile_ToFlash((uint8_t*)&ucConfigFileData[0],
+/*		lRetVal = WriteFile_ToFlash((uint8_t*)&ucConfigFileData[0],
 									(uint8_t*)USER_CONFIGS_FILENAME,
 									CONTENT_LENGTH_USER_CONFIGS,
 									0, 1, &lFileHandle);
@@ -285,7 +302,7 @@ static int32_t WiFiProvisioning()
 										(uint8_t*)USER_CONFIGS_FILENAME,
 										WIFI_DATA_SIZE-3,
 										WIFI_DATA_OFFSET);
-		ASSERT_ON_ERROR(lRetVal);
+		ASSERT_ON_ERROR(lRetVal);*/
 	}
 	else
 	{
@@ -376,20 +393,13 @@ static long WlanConnect()
 //******************************************************************************
 static int32_t Get_Calibration_MagSensor()
 {
-	int32_t lRetVal = -1;
-	int32_t lFileHandle;
 	uint8_t tmpCnt=0;
-	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
-//	uint32_t ulToken = 0;
-//	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	fxosDefault_Initializations();
 
-	// Reading the file, since write erases contents already present
-	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, CONTENT_LENGTH_USER_CONFIGS, 0);
-
 	g_ucMagCalb = 0;
+
 #define MAG_SENSOR_CALIBCOUNT		1
 //#define MAG_SENSOR_CALIBCOUNT		3
 //#define MAG_SENSOR_CALIBCOUNT		2
@@ -399,29 +409,23 @@ static int32_t Get_Calibration_MagSensor()
 	}
 
 	tmpCnt = OFFSET_MAG_CALB;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[0][0];
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[0][1];
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[0][2] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[1][0] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[1][1] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[1][2] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[2][0] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[2][1] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.finvW[2][2] ;
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.fV[0];
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.fV[1];
-	Mag_Calb_Value[tmpCnt++] = thisMagCal.fV[2];
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][0];
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][1];
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][2] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][0] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][1] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][2] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][0] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][1] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][2] ;
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[0];
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[1];
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[2];
+	g_pfUserConfigData[tmpCnt++] = thisMagCal.fFitErrorpc;
 
-//	uint8_t i=0;
-//	for(i=2; i<14;i++)
-//		UART_PRINT("%f\n",Mag_Calb_Value[i]);
-
-	lRetVal = WriteFile_ToFlash((uint8_t*)Mag_Calb_Value,
-							(uint8_t*)USER_CONFIGS_FILENAME,
-							CONTENT_LENGTH_USER_CONFIGS, 0,
-							SINGLE_WRITE, &lFileHandle);
-	//UART_PRINT("Write lRet %d", lRetVal);
-	ASSERT_ON_ERROR(lRetVal);
+	uint8_t i=0;
+	for(i=2; i<15;i++)
+		UART_PRINT("%f\n",g_pfUserConfigData[i]);
 
 	return 0;
 }
@@ -437,10 +441,6 @@ static int32_t CollectAngle(uint8_t ucAngle)
 {
 	int32_t lRetVal = -1;
 	float_t fAngleTemp;
-	int32_t lFileHandle;
-	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
-//	uint32_t ulToken = 0;
-//	SlFsFileInfo_t FileInfo;
 
 	//Collect the readings
 	angleCheck_Initializations();
@@ -455,40 +455,21 @@ static int32_t CollectAngle(uint8_t ucAngle)
 		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
-//	lRetVal = sl_FsGetInfo((uint8_t *)USER_CONFIGS_FILENAME, ulToken, &FileInfo);
-//	if(FileInfo.FileLen)
-//	{
-//		//UART_PRINT("Filelen is %d\n\r", FileInfo.FileLen);
-//		ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, FileInfo.FileLen, 0);
-//	}
-//	else
-//	{
-//		UART_PRINT("Filelen 0 :(\n\r");
-//	}
-
-	// Reading the file, since write erases contents already present
-	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, CONTENT_LENGTH_USER_CONFIGS, 0);
-
 	//Save it in flash in the right place
 	if(ucAngle == ANGLE_90)
 	{
 		UART_PRINT("90deg: %f\n\r",fAngleTemp);
-		Mag_Calb_Value[0] = fAngleTemp;
-		lRetVal = WriteFile_ToFlash((uint8_t*)g_image_buffer,
-								(uint8_t*)USER_CONFIGS_FILENAME,
-								CONTENT_LENGTH_USER_CONFIGS, 0,
-								SINGLE_WRITE, &lFileHandle);
-		ASSERT_ON_ERROR(lRetVal);
+		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		*(g_pfUserConfigData) = fAngleTemp;
+		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
 	}
 	else if (ucAngle == ANGLE_40)
 	{
 		UART_PRINT("40deg: %f\n\r",fAngleTemp);
-		Mag_Calb_Value[1] = fAngleTemp;
-		lRetVal = WriteFile_ToFlash((uint8_t*)g_image_buffer,
-								(uint8_t*)USER_CONFIGS_FILENAME,
-								CONTENT_LENGTH_USER_CONFIGS, 0,
-								SINGLE_WRITE, &lFileHandle);
-		ASSERT_ON_ERROR(lRetVal);
+		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		*(g_pfUserConfigData+1) = fAngleTemp;
+		//UART_PRINT("40deg: %f\n\r",g_pfUserConfigData[1]);
+		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
 	}
 
 	return lRetVal;

@@ -95,7 +95,7 @@ int32_t application_fn()
 		g_TimeStamp_NWPUp = time_now.secs * 1000 + time_now.nsec / 1000000;
 
 //Use the folowing code to test without hibernate
-///*
+/*
 		// Wake the image sensor and begin image capture
 		Wakeup_ImageSensor();
 		ReStart_CameraCapture();
@@ -106,7 +106,7 @@ int32_t application_fn()
 		magnetometer_initialize();
 		g_I2CPeripheral_inUse_Flag = NO;
 		g_Task3_Notification = MAGNTMTRINIT_DONE;
-//*/
+*/
 
 		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
 		{

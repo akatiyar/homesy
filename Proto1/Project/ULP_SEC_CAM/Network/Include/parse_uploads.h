@@ -35,3 +35,7 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID);
 int32_t UploadGroundDataObjectToParse(ParseClient client,
 										uint8_t* pucFridgeCamID);
+int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
+									uint8_t* pucUserConfigObject);
+int32_t UploadUserConfigObjectToParse(ParseClient client,
+										uint8_t* pucFridgeCamID);

@@ -4,10 +4,13 @@
 #include "string.h"
 #include "app_common.h"
 #include "netcfg.h"
+#include "flash_files.h"
 
 #define FRIDGECAM_NAME_PREFIX		"Cam_"
 
 #define GROUND_DATA_OBJECT_SIZE		1024	//bytes
+#define USER_CONFIG_OBJECT_SIZE		500	//bytes
+
 
 //Ground Data : Field Names
 #define DEVICE_ID					"deviceID"
@@ -24,6 +27,8 @@
 #define MIN_ANGLE					"Min_DoorAngle"
 #define ANGLE40						"Angle40"
 #define ANGLE90						"Angle90"
+
+#define MAGNETOMETER_CALIB_FITERROR	"MagnmtrCalib_FitError_Percent"
 
 typedef enum{
 	FIRST,
@@ -348,7 +353,7 @@ int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 	do{
 		lRetVal = parseSendRequest(client,
 							"POST",
-							"/1/classes/GroundData", //DeviceState is object name
+							"/1/classes/GroundData", //GroundData is object name
 							(const char*)ucGroundDataObject,
 							NULL,
 							jsonObject);
@@ -415,7 +420,86 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 
 	return 0;
 }
+//*****************************************************************************
+//
+//	This function uploads Ground Data Object to Parse.com
+//
+//	param[in]	client
+//	param[in]	pucFridgeCamID - Pointer to FridgeCamID string
+//
+//	Description: Upload is done using POST request. Construction of the packet
+//	is handled within.
+//
+//*****************************************************************************
+int32_t UploadUserConfigObjectToParse(ParseClient client, uint8_t* pucFridgeCamID)
+{
+	int32_t lRetVal = -1;
+	uint8_t ucTryNum;
+	uint8_t ucUserConfigObject[USER_CONFIG_OBJECT_SIZE];
 
+	// Construct the JSON object string
+	ConstructUserConfigObject(pucFridgeCamID, &ucUserConfigObject[0]);
+
+ 	ucTryNum = 0;
+	do{
+		lRetVal = parseSendRequest(client,
+							"POST",
+							"/1/classes/UserConfigs", //UserConfigs is object name
+							(const char*)ucUserConfigObject,
+							NULL,
+							jsonObject);
+		PRINT_ON_ERROR(lRetVal);
+		ucTryNum++;
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//
+//	This function constructs the JSON GroundData object that is to be uploaded
+//	to cloud server (Parse.com)
+//
+//	param[out]	pucGroundDataObject - pointer to location where the json object
+//							is to be put
+//
+//	return none
+//
+//	String functions are used
+//
+//******************************************************************************
+int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
+									uint8_t* pucUserConfigObject)
+{
+	int32_t lRetVal;
+	float_t fUserConfigData[MAGNETOMETER_DATA_SIZE/(sizeof(float))];
+
+	lRetVal = ReadFile_FromFlash(((uint8_t*)fUserConfigData),
+												(uint8_t*)USER_CONFIGS_FILENAME,
+												MAGNETOMETER_DATA_SIZE,
+												0);
+	PRINT_ON_ERROR(lRetVal);
+
+	memset(pucUserConfigObject, '\0', USER_CONFIG_OBJECT_SIZE);
+
+	strncat((char*)pucUserConfigObject, "{\"deviceId\":\"",
+					sizeof("{\"deviceId\":\""));
+	strncat((char*)pucUserConfigObject, (const char*)pucFridgeCamID,
+					strlen((char*)pucFridgeCamID));
+	strncat((char*)pucUserConfigObject,	"\",", sizeof("\","));
+
+	Add_NumberField_ToJSONString(pucUserConfigObject, MAGNETOMETER_CALIB_FITERROR,
+									(long long)fUserConfigData[14], MIDDLE);
+	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE40,
+									(long long)fUserConfigData[1], MIDDLE);
+	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE90,
+									(long long)fUserConfigData[0], LAST);
+
+	UART_PRINT("\n%s\n", pucUserConfigObject);
+
+	return 0;
+}
 //******************************************************************************
 //
 // ullField entry data type is long long, but any lesser sized number can be passed

@@ -10,6 +10,9 @@
 
 void Test_Task(void *pvParameters)
 {
+
+
+#ifdef COMPILE_THIS
 	Config_And_Start_CameraCapture();
 
 	Config_CameraCapture();
@@ -21,6 +24,7 @@ void Test_Task(void *pvParameters)
 		Start_CameraCapture();
 		Standby_ImageSensor();
 	}
+#endif
 
 #ifdef COMPIL_THIS
 	sl_Start(0,0,0);

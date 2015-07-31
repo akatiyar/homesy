@@ -51,7 +51,7 @@ extern volatile uint32_t v_OneSecFlag;
 //******************************************************************************
 int16_t angleCheck_Initializations()
 {
-	float_t *Mag_Calb_Value = (float_t *) g_image_buffer;
+	float_t Mag_Calb_Value[MAGNETOMETER_DATA_SIZE/sizeof(float)];
 	uint8_t tmpCnt=0;
 	g_flag_door_closing_45degree = 0;
 

@@ -18,7 +18,7 @@
 #define TIMEOUT_LONGPRESS		(30)	//3 sec press is defined as long press.
 
 extern OsiTaskHandle g_UserConfigTaskHandle;
-
+extern int32_t sendUserConfigData();
 void UserConfigure_Task(void *pvParameters)
 {
 	//LED_On();
@@ -81,6 +81,7 @@ void UserConfigure_Task(void *pvParameters)
 		{
 			UART_PRINT("Short press : %d\n\r", Elapsed_100MilliSecs);
 			User_Configure();
+			sendUserConfigData();
 			UART_PRINT("User Cofig Mode EXIT\n\r");
 		}
 

@@ -44,10 +44,10 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** F27 WDT ***\n\r");
+    	UART_PRINT("*** F29 Fit error in Parse ***\n\r");
 
     	//Give time to press the push button for OTA or MobileApp config
-		//LED_Blink(10, 1);
+		LED_Blink(10, 1);
 		LED_On();
 
 		//Wait if User Config is happening presently
@@ -84,13 +84,13 @@ void Main_Task_withHibernate(void *pvParameters)
 		Standby_ImageSensor();
 
 //Use the folowing code to test without hibernate
-///*
+/*
   		while(1)
 		{
   			application_fn();
   			//MAP_UtilsDelay(3*80000000/6);
 		}
-//*/
+*/
 
   		//Commits image if running in test mode
 		OTA_CommitImage();
