@@ -44,11 +44,12 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** F29 Fit error in Parse ***\n\r");
+    	UART_PRINT("*** %s ***\n\r", FIRMWARE_VERSION);
 
     	//Give time to press the push button for OTA or MobileApp config
-		LED_Blink(10, 1);
-		LED_On();
+		//LED_Blink(10, 1);
+    	LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
+    	osi_Sleep(10000);	//10 second wait for user to press a button
 
 		//Wait if User Config is happening presently
 		//Loop will exit if UserConfig is over or UserConfig was never entered

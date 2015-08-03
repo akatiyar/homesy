@@ -7,10 +7,39 @@
 
 #include "app.h"
 #include "camera_app.h"
-
+#include "app_common.h"
+#include "osi.h"
+#include "LED_Timer.h"
 void Test_Task(void *pvParameters)
 {
+	LEDTimer_Enable();
+	LED_Blink_2(.2,.2,BLINK_FOREVER);
+	int i = 100;
+	while(i)
+		{
+			osi_Sleep(100);
+			UART_PRINT("j");
+			i--;
+		}
+	LED_Blink_2(.2,1,BLINK_FOREVER);
+	i = 100;
+	while(i)
+	{
+		osi_Sleep(100);
+		UART_PRINT("k");
+		i--;
+	}
+	LED_Blink_2(0,1,0);
+	LED_Blink_2(1,0,0);
+	LEDTimer_Disable();
+	//LED_Blink_2(.2,,10);
 
+	while(1)
+	{
+		osi_Sleep(100);
+		UART_PRINT("j");
+	}
+	//LED_Blink_2(1,.5,5);
 
 #ifdef COMPILE_THIS
 	Config_And_Start_CameraCapture();

@@ -489,6 +489,12 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 					strlen((char*)pucFridgeCamID));
 	strncat((char*)pucUserConfigObject,	"\",", sizeof("\","));
 
+	strncat((char*)pucUserConfigObject, "\"FirmwareVersion\":\"",
+					sizeof("\"FirmwareVersion\":\""));
+	strncat((char*)pucUserConfigObject, (const char*)FIRMWARE_VERSION,
+					strlen((char*)FIRMWARE_VERSION));
+	strncat((char*)pucUserConfigObject,	"\",", sizeof("\","));
+
 	Add_NumberField_ToJSONString(pucUserConfigObject, MAGNETOMETER_CALIB_FITERROR,
 									(long long)fUserConfigData[14], MIDDLE);
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE40,

@@ -1,6 +1,6 @@
 
 // Simplelink includes
-#include "app.h"
+#include "app_common.h"
 #include "network_related_fns.h"
 #include "camera_app.h"
 #include "flash_files.h"
@@ -314,7 +314,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 
 	UART_PRINT("WiFi\n\r");
-//	UART_PRINT("%s\n\r%s\n\r%s", ssid, keyParams->Key, keyParams->Type);
+	UART_PRINT("%s\n\r%s\n\r%s", ssid, keyParams->Key, keyParams->Type);
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	ASSERT_ON_ERROR(status);
 
@@ -449,6 +449,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
         case SL_WLAN_STA_CONNECTED_EVENT:
         {
         	UART_PRINT("[WLAN EVENT] Mobile Station connected to CC3200-AP\n\r");
+        	LED_Blink_2(.5,.5,BLINK_FOREVER);
         }
         break;
         default:

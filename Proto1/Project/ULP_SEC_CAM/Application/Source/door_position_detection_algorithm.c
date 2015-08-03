@@ -114,6 +114,7 @@ void check_doorpos()
 		UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
 		LED_Off();
 		g_ucReasonForFailure = OPEN_NOTCLOSED;
+		LED_Blink_2(.25,.25,BLINK_FOREVER);
 	}
 	//-----------------
 
@@ -125,6 +126,7 @@ void check_doorpos()
 			valid_case = 0;
 			UART_PRINT("S<>ANGLE=%3.2f \n", thisSV_6DOF_GB_BASIC.fLPRho);
 			g_flag_door_closing_45degree = 1;
+			LED_On();
 		}
 		else
 		{

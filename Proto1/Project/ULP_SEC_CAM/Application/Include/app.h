@@ -19,8 +19,11 @@
 #include "prcm.h"
 #include "timer_if.h"
 #include "rtc_hal.h"
+#include "osi.h"
 
-//#define APP_SSID_NAME 			"Solflr3"
+#define FIRMWARE_VERSION 		"F30 LED indications"
+
+//#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
@@ -31,8 +34,6 @@
 //#define APP_SSID_NAME 		"Chrysolin-test"
 //#define APP_SSID_PASSWORD		"chrysolin"
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
-
-#define VCOGNITION_DEVICE_ID	"cam9SP10"
 
 #define SLEEP_TIME              		8000000
 //#define OSI_STACK_SIZE          		3000

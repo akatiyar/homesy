@@ -7,7 +7,7 @@
 
 
 #include "ota.h"
-#include "app.h"
+#include "app_common.h"
 #include "simplelink.h"
 #include "network_related_fns.h"
 //Tag:OTA
@@ -151,6 +151,8 @@ static int32_t OTA_Run()
     }
     else
     {
+    	LED_Blink_2(1,.2,BLINK_FOREVER);
+
     	while(!lRetVal)	//lRetVal is non-zero only if OTA download is complete or an error has occured
     	{
     		lRetVal = sl_extLib_OtaRun(pvOtaApp);
@@ -231,6 +233,8 @@ int32_t OTA_CommitImage()
     	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
         //RebootMCU();
     	//PRCMSOCReset();
+
+    	//Can upload an object to parse informing of the ota firmware update
     }
 
     NWP_SwitchOff();

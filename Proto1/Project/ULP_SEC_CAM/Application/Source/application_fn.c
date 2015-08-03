@@ -118,6 +118,7 @@ int32_t application_fn()
 		stop_100mSecTimer();
 		UART_PRINT("Total Wake Time - %d ms\n\r", ulTimeDuration_ms);
 
+		LED_Blink_2(.5,.5,BLINK_FOREVER);
 		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
 
 		//NOTE: For Ground data upload to Parse only.

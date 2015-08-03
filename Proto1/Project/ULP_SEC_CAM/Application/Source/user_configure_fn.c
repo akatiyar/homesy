@@ -7,7 +7,7 @@
 #include "stdbool.h"
 #include "ota.h"
 #include "accelomtrMagntomtr_fxos8700.h"
-#include "app.h"
+#include "app_common.h"
 #include "appFns.h"
 
 #define ANGLE_90		0
@@ -71,39 +71,47 @@ int32_t User_Configure()
 		{
 			UART_PRINT("*** Calibration\n\r");
 			UART_PRINT("***ROTATE DEVICE NOW***\n\r");
+			LED_On();
 			Get_Calibration_MagSensor();
 			standby_accelMagn_fxos8700();
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucCalibration = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
     	}
 		if(g_ucAngle40 == BUTTON_PRESSED)
 		{
+			LED_On();
 			UART_PRINT("*** Angle40\n\r");
 			CollectAngle(ANGLE_40);
 			standby_accelMagn_fxos8700();
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle40 = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 		}
 
 		if(g_ucAngle90 == BUTTON_PRESSED)
 		{
+			LED_On();
 			UART_PRINT("*** Angle90\n\r");
 			CollectAngle(ANGLE_90);
 			standby_accelMagn_fxos8700();
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle90 = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 		}
 
 		if(g_ucConfig == BUTTON_PRESSED)
 		{
+			LED_On();
 			WiFiProvisioning();
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucConfig = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
     	}
 
 		if(g_ucExitButton == BUTTON_PRESSED)
 		{
-
+			LED_On();
 			//Write all the User Config contents into the flash
 			lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
 									(uint8_t*)USER_CONFIGS_FILENAME,
@@ -307,6 +315,9 @@ static int32_t WiFiProvisioning()
 	else
 	{
 		UART_PRINT("WiFi connect test failed\n\r***TRY AGAIN*** \n\r");
+		//Switch off LED for 5 sec to indicate the WiFi config didnt go well
+		LED_Off();
+		osi_Sleep(5000);	//5 seconds
 	}
 
 	//
@@ -424,8 +435,16 @@ static int32_t Get_Calibration_MagSensor()
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.fFitErrorpc;
 
 	uint8_t i=0;
-	for(i=2; i<15;i++)
-		UART_PRINT("%f\n",g_pfUserConfigData[i]);
+		for(i=2; i<15;i++)
+			UART_PRINT("%f\n",g_pfUserConfigData[i]);
+
+#define ACCEPTABLE_FITERROR		5
+	//Switch off LED for 5 sec to indicate that the fit error was not within acceptable limits
+	if(thisMagCal.fFitErrorpc > ACCEPTABLE_FITERROR)
+	{
+		LED_Off();
+		osi_Sleep(5000);	//5 seconds delay
+	}
 
 	return 0;
 }

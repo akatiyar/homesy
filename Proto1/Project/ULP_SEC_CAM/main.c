@@ -98,9 +98,6 @@
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
-#define APPLICATION_VERSION     "1.1.0"
-#define APP_NAME                "HD IMAGE, SENSOR DATA UPLOAD ON A/M TRIGGER"
-
 #define SERVER_RESPONSE_TIMEOUT 10
 #define SLEEP_TIME              8000000
 #define SUCCESS                 0
@@ -289,6 +286,9 @@ BoardInit(void)
 	// Initilalize DMA
 	//
 	UDMAInit();
+
+	LEDTimer_Enable();
+	LED_On();
 }
 //*****************************************************************************
 //

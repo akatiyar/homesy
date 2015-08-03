@@ -75,11 +75,13 @@ void UserConfigure_Task(void *pvParameters)
 		if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
 		{
 			UART_PRINT("Long press : %d\n\r", Elapsed_100MilliSecs);
+			LED_On();
 			OTA_Update();
 		}
 		else if (Elapsed_100MilliSecs < TIMEOUT_LONGPRESS)
 		{
 			UART_PRINT("Short press : %d\n\r", Elapsed_100MilliSecs);
+			LED_Blink_2(.25,.25,BLINK_FOREVER);
 			User_Configure();
 			sendUserConfigData();
 			UART_PRINT("User Cofig Mode EXIT\n\r");

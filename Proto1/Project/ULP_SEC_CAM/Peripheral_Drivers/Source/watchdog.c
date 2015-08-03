@@ -22,7 +22,7 @@ volatile uint32_t g_ulWatchdogCycles;
 //*****************************************************************************
 void WatchdogIntHandler(void)
 {
-	UART_PRINT("wdt\n");
+	//UART_PRINT("wdt\n");
     //
     // If we have been told to stop feeding the watchdog, return immediately
     // without clearing the interrupt.  This will cause the system to reset
@@ -61,7 +61,7 @@ void WatchdogIntHandler(void)
     // Increment our interrupt counter.
     //
     g_ulWatchdogCycles++;
-    UART_PRINT("W*D*T\n");
+    //UART_PRINT("W*D*T\n");
 
 }
 
