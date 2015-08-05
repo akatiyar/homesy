@@ -476,12 +476,12 @@ static int32_t CollectAngle(uint8_t ucAngle)
 	magnetometer_initialize();
 
 	//Tag:Work-around for invalid first fet ecompass readings
-	uint8_t tmpCnt=0;
-	for(tmpCnt =0;tmpCnt<75;tmpCnt++)
-	{
-		fAngleTemp = get_angle();
-		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
-	}
+//	uint8_t tmpCnt=0;
+//	for(tmpCnt =0;tmpCnt<75;tmpCnt++)
+//	{
+//		fAngleTemp = get_angle();
+//		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
+//	}
 
 	fAngleTemp = get_angle();
 

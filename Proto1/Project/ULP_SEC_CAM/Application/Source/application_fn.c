@@ -29,7 +29,7 @@ int32_t application_fn()
     long lFileHandle;
 	unsigned long ulToken = NULL;
     struct u64_time time_now;
-    uint32_t ulTimeDuration_ms;
+    //uint32_t ulTimeDuration_ms;
 
     uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	ParseClient clientHandle = NULL;
@@ -81,14 +81,16 @@ int32_t application_fn()
 		// Open Image file in Flash to write image. File open for write takes
 		//time, so we do it ahead of angle check, so that at the instant angle
 		//is detected, image can be clicked
+		g_Task1_Notification = IMAGEFILE_OPEN_BEGUN;
 		UART_PRINT("b Fileopen\n\r");	//Tag:Remove when waketime optimization is over
 		lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
 						   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
-		UART_PRINT("a Fileopen\n\r");	//Tag:Remove when waketime optimization is over
 		if(lRetVal < 0)
 		{
 		   sl_FsClose(lFileHandle, 0, 0, 0); ASSERT_ON_ERROR(lRetVal);
 		}
+		UART_PRINT("a Fileopen\n\r");	//Tag:Remove when waketime optimization is over
+		g_Task1_Notification = IMAGEFILE_OPEN_COMPLETE;
 
 		//Tag:Timestamp NWP up
 		cc_rtc_get(&time_now);
@@ -114,19 +116,21 @@ int32_t application_fn()
 			osi_Sleep(10);
 		}
 
-		/*while(g_I2CPeripheral_inUse_Flag == YES)
+		while(g_I2CPeripheral_inUse_Flag == YES)
 		{
-		}*/
-		ulTimeDuration_ms = get_timeDuration();
-		stop_100mSecTimer();
-		UART_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
+			UART_PRINT("&&&&\n");
+			osi_Sleep(1);
+		}
+//		ulTimeDuration_ms = get_timeDuration();
+//		stop_100mSecTimer();
+//		UART_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
 
 		LED_Blink_2(.5,.5,BLINK_FOREVER);
 		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
 
 		//NOTE: For Ground data upload to Parse only.
 		//Check once more for light. If light is off, then upload the GroundData object and exit function
-		if(IsLightOff(LUX_THRESHOLD))
+		if((IsLightOff(LUX_THRESHOLD)) || (g_ucReasonForFailure == DOOR_SHUT_DURING_FILEOPEN))
 		{
 			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 			ASSERT_ON_ERROR(lRetVal);

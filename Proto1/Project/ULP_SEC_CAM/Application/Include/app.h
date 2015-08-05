@@ -21,8 +21,8 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-//#define FIRMWARE_VERSION 		"F30 FXOS Init Optimization"
-#define FIRMWARE_VERSION 		"Release 0.0.11"
+#define FIRMWARE_VERSION 		"F30 FXOS Init Optimization 2"
+//#define FIRMWARE_VERSION 		"Release 0.0.11"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -180,7 +180,8 @@ typedef enum
 
 typedef enum
 {
-	FILE_OPEN_COMPLETE = 1,
+	IMAGEFILE_OPEN_BEGUN = 1,
+	IMAGEFILE_OPEN_COMPLETE,
 
 }e_Task1_NotificationValues;
 

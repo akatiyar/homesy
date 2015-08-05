@@ -117,8 +117,8 @@ int16_t magnetometer_initialize()
 
 //	start_100mSecTimer();
 
-	for(i=0; i<50; i++)	//50 is value based on observation of ecompass readings
-	//for(i=0; i<5; i++)	//50 is value based on observation of ecompass readings
+	//for(i=0; i<50; i++)	//50 is value based on observation of ecompass readings
+	for(i=0; i<5; i++)	//50 is value based on observation of ecompass readings
 	{
 		get_angle();
 	}

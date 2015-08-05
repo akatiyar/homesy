@@ -65,9 +65,49 @@ void Main_Task_withHibernate(void *pvParameters)
 		//DBG - having to read out first few angle values
 /*		NWP_SwitchOn();
 		angleCheck_Initializations();
-		RdSensData_Init();
-		//uint32_t ulTimeDuration_ms;
+		magnetometer_initialize();
+		int i;
 		while(1)
+		{
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+//			get_angle();
+//			check_doorpos();
+		}
+		//RdSensData_Init();
+		//uint32_t ulTimeDuration_ms;*/
+/*		while(1)
 		{
 			get_angle();
 			check_doorpos();
@@ -94,8 +134,8 @@ void Main_Task_withHibernate(void *pvParameters)
 			check_doorpos();
 			get_angle();
 			check_doorpos();
-		}
-		while(1)
+		}*/
+/*		while(1)
 		{
 			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
 			get_angle();

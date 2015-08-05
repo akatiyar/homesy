@@ -95,11 +95,12 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	fQuaternionFromRotationMatrix(pthisSV->fR, &(pthisSV->fq));
 
 	// low pass filter the orientation quaternion and compute the low pass rotation matrix
-//	if(loopcounter <= 2)
-//	{
-//		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), 1, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
-//	}
-//	else
+	if(loopcounter <= 2)
+	{
+		UART_PRINT("No LPF %d\n", loopcounter);
+		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), 1, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
+	}
+	else
 	{
 		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), pthisSV->flpf, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
 	}
