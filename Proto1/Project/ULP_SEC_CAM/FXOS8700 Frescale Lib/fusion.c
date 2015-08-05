@@ -41,11 +41,11 @@
 void fInit_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, float flpftimesecs, int16 iSensorFS, int16 iOverSampleRatio)
 {
 	// set algorithm sampling interval (typically 25Hz)
-	pthisSV->fdeltat = (float) iOverSampleRatio / (float) iSensorFS;
+	pthisSV->fdeltat = (float) iOverSampleRatio / (float) iSensorFS;//delta time
 
 	// set low pass filter constant with maximum value 1.0 (all pass) decreasing to 0.0 (increasing low pass)
 	if (flpftimesecs > pthisSV->fdeltat)
-		pthisSV->flpf = pthisSV->fdeltat / flpftimesecs;
+		pthisSV->flpf = pthisSV->fdeltat / flpftimesecs;//cut off frequency/period of LPF
 	else
 		pthisSV->flpf = 1.0F;
 
@@ -69,6 +69,8 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	{
 		fInit_6DOF_GB_BASIC(pthisSV, 0.6F, SENSORFS, OVERSAMPLE_RATIO);
 		//fInit_6DOF_GB_BASIC(pthisSV, 0.1F, SENSORFS, OVERSAMPLE_RATIO);
+		//fInit_6DOF_GB_BASIC(pthisSV, 0.6F, SENSORFS, OVERSAMPLE_RATIO);
+		//fInit_6DOF_GB_BASIC(pthisSV, 0.3F, SENSORFS, OVERSAMPLE_RATIO);
 		return;
 	}
 
@@ -93,7 +95,14 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	fQuaternionFromRotationMatrix(pthisSV->fR, &(pthisSV->fq));
 
 	// low pass filter the orientation quaternion and compute the low pass rotation matrix
-	fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), pthisSV->flpf, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
+//	if(loopcounter <= 2)
+//	{
+//		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), 1, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
+//	}
+//	else
+	{
+		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), pthisSV->flpf, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
+	}
 	fRotationMatrixFromQuaternion(pthisSV->fLPR, &(pthisSV->fLPq));
 	fRotationVectorDegFromQuaternion(&(pthisSV->fLPq), pthisSV->fLPRVec);
 	//fRotationMatrixFromQuaternion(pthisSV->fLPR, &(pthisSV->fq));

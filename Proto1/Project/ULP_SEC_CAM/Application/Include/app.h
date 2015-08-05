@@ -21,7 +21,8 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"F30 LED indications"
+//#define FIRMWARE_VERSION 		"F30 FXOS Init Optimization"
+#define FIRMWARE_VERSION 		"Release 0.0.11"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -115,7 +116,8 @@ typedef enum
 	TIMEOUT_BEFORE_IMAGING,
 	IMAGE_CAPTURED,
 	IMAGESENSOR_CAPTURECONFIGS_HAPPENING,
-	IMAGESENSOR_CAPTURECONFIGS_DONE
+	IMAGESENSOR_CAPTURECONFIGS_DONE,
+
 }e_AppStatusCodes;
 
 #define STOPHERE_ON_ERROR(error_code)\
@@ -149,9 +151,11 @@ int8_t g_I2CPeripheral_inUse_Flag;
 int8_t g_Task3_Notification;	//Can be set in Task3 or in other tasks.
 								//Can be checked in Task3 or any other task.
 								//For communication from Task3 or to Task3
+int8_t g_Task1_Notification;
 uint8_t g_flag_door_closing_45degree;
 uint8_t g_ucFeedWatchdog;
 uint32_t g_ulSimplelinkStatus;//SimpleLink Status
+uint32_t g_ulAppTimeout_ms;
 
 //Ground data in Parse
 uint8_t g_ucReasonForFailure;
@@ -168,12 +172,18 @@ int16_t g_fMinAngle;
 struct u64_time g_Struct_TimeStamp_MaxAngle;
 struct u64_time g_Struct_TimeStamp_MinAngle;
 
-//Reasons for failure
 typedef enum
 {
 	READ_MAGNTMTRFILE_DONE = 1,
 	MAGNTMTRINIT_DONE,
 }e_Task3_NotificationValues;
+
+typedef enum
+{
+	FILE_OPEN_COMPLETE = 1,
+
+}e_Task1_NotificationValues;
+
 //Reasons for failure
 typedef enum
 {
@@ -183,7 +193,8 @@ typedef enum
 	NOTOPEN_CLOSED,
 	TIMEOUT_BEFORE_IMAGESNAP,
 	IMAGE_NOTCAPTURED,
-	IMAGE_NOTUPLOADED
+	IMAGE_NOTUPLOADED,
+	DOOR_SHUT_DURING_FILEOPEN,
 }e_GroundData_FailureReasonCodes;
 
 #define NO		0

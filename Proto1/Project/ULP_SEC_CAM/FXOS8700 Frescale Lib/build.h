@@ -118,6 +118,11 @@
 #define FTM_INCLK_HZ		1000000		// int32: 1MHz FTM timer frequency set in PE: do not change
 #define SENSORFS 			200         // int32: 200Hz: frequency (Hz) of sensor sampling process
 #define OVERSAMPLE_RATIO 	8       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
+//#define OVERSAMPLE_RATIO 	9	       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
+//#define OVERSAMPLE_RATIO 	10       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
+//#define OVERSAMPLE_RATIO 	4       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
+//#define OVERSAMPLE_RATIO 	16       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
+//#define OVERSAMPLE_RATIO 	32       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
 //#define OVERSAMPLE_RATIO 	2       	// int32: 8x: 3DOF, 6DOF, 9DOF run at SENSORFS / OVERSAMPLE_RATIO Hz
 
 // power saving deep sleep

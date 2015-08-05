@@ -269,6 +269,27 @@ int32_t getMagntData(uint8_t* pucMagntData)
 	return lRetVal;
 }
 
+//******************************************************************************
+//
+//  This function fetches current magnetometer readings of all the 3 axis from
+//	FXOS8700 by calling i2cReadRegister API
+//
+//	\param[out] pucData - pointer to array to which magnetometer data is
+//								stored
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+int32_t getAccelMagntData(uint8_t* pucAccelMagntData)
+{
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS, ACCEL_OUTPUT_DATA_REG,
+									LENGTH_OUTPUT_DATA*2, pucAccelMagntData);
+	PRINT_ON_ERROR(lRetVal);
+	return lRetVal;
+}
+
 #ifdef COMPILE_THIS
 //******************************************************************************
 //

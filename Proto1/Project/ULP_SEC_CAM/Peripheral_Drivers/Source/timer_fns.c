@@ -69,6 +69,7 @@ uint32_t get_timeDuration()
 	ulCounter = MAP_TimerValueGet(APP_PROFILING_TIMER_BASE, TIMER_A);
 	ulCounter = MILLISECONDS_TO_TICKS(RELOADVAL_100MILLISEC) - ulCounter;
 	ulDurationMilliSec = ((float_t)Elapsed_100MilliSecs * 100.0) + ((float_t)ulCounter / 80000.0); //in milli sec
+	//ulDurationMilliSec = ((float_t)Elapsed_100MilliSecs * 1000.0) + ((float_t)ulCounter / 8000.0); //in .1 milli sec
 
 	return ulDurationMilliSec;
 }

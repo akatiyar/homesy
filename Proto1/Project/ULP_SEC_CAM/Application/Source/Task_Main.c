@@ -62,14 +62,64 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Check_I2CDevices();		//Tag:Remove once I2C issues are resolved
 
-		/*//DBG - having to read out first few angle values
-		NWP_SwitchOn();
+		//DBG - having to read out first few angle values
+/*		NWP_SwitchOn();
 		angleCheck_Initializations();
 		RdSensData_Init();
+		//uint32_t ulTimeDuration_ms;
 		while(1)
 		{
 			get_angle();
 			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+			get_angle();
+			check_doorpos();
+		}
+		while(1)
+		{
+			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
+			get_angle();
+			ulTimeDuration_ms = get_timeDuration();
+			stop_100mSecTimer();
+			UART_PRINT("1. Time - %d ms\n\r", ulTimeDuration_ms);
+
+			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
+			get_angle();
+			ulTimeDuration_ms = get_timeDuration();
+			stop_100mSecTimer();
+			UART_PRINT("2. Time - %d ms\n\r", ulTimeDuration_ms);
+
+			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
+			get_angle();
+			ulTimeDuration_ms = get_timeDuration();
+			stop_100mSecTimer();
+			UART_PRINT("3. Time - %d ms\n\r", ulTimeDuration_ms);
+
+			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
+			get_angle();
+			ulTimeDuration_ms = get_timeDuration();
+			stop_100mSecTimer();
+			UART_PRINT("4. Time - %d ms\n\r", ulTimeDuration_ms);
 		}*/
 
 		//Configure Light sensor for reading Lux. It has to be done the first time

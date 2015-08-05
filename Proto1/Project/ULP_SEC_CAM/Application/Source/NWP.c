@@ -15,7 +15,7 @@ int32_t NWP_SwitchOn()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("SL Status1: %x\n", g_ulSimplelinkStatus);
+	UART_PRINT("SL 1: %x\n", g_ulSimplelinkStatus);
 	if (!(IS_NW_PROCSR_ON(g_ulSimplelinkStatus)))
 	{
 #ifdef WATCHDOG_ENABLE
@@ -30,7 +30,7 @@ int32_t NWP_SwitchOn()
 		{
 			SET_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);
 		}
-		UART_PRINT("SL Status2: %x\n", g_ulSimplelinkStatus);
+		UART_PRINT("SL 2: %x\n", g_ulSimplelinkStatus);
 	}
 	else
 	{
@@ -44,7 +44,7 @@ int32_t NWP_SwitchOff()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("SL Status3: %x\n", g_ulSimplelinkStatus);
+	UART_PRINT("SL 3: %x\n", g_ulSimplelinkStatus);
 	if ((IS_NW_PROCSR_ON(g_ulSimplelinkStatus)))
 	{
 #ifdef WATCHDOG_ENABLE
@@ -59,7 +59,7 @@ int32_t NWP_SwitchOff()
 		{
 			CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
 		}
-		UART_PRINT("SL Status4: %x\n", g_ulSimplelinkStatus);
+		UART_PRINT("SL 4: %x\n", g_ulSimplelinkStatus);
 	}
 	else
 	{

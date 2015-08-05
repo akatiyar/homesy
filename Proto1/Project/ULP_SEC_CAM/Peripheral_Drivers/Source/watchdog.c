@@ -42,7 +42,7 @@ void WatchdogIntHandler(void)
     // After 10 interrupts, switch On LED6 to indicate system reset
     // and don't clear watchdog interrupt which causes system reset
     //
-    if(g_ulWatchdogCycles >= (APPLICATION_TIMEOUT/WDT_KICK_GAP))
+    if(g_ulWatchdogCycles >= (g_ulAppTimeout_ms/WDT_KICK_GAP))
     {
         //MAP_UtilsDelay(800000);
     	UART_PRINT("WDT app time out\n");
@@ -73,6 +73,8 @@ int16_t WDT_init()
 
 	g_ucFeedWatchdog = 1;
 	g_ulWatchdogCycles = 0;
+
+	g_ulAppTimeout_ms = APPLICATION_TIMEOUT;
 #endif
 	return 0;
 }

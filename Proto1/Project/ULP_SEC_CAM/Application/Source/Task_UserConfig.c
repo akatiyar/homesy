@@ -12,6 +12,8 @@
 #include "ota.h"
 #include "appFns.h"
 
+#include "watchdog.h"
+
 // TI library headers that are not included in app.h
 #include "osi.h"
 
@@ -82,6 +84,7 @@ void UserConfigure_Task(void *pvParameters)
 		{
 			UART_PRINT("Short press : %d\n\r", Elapsed_100MilliSecs);
 			LED_Blink_2(.25,.25,BLINK_FOREVER);
+			g_ulAppTimeout_ms = USERCONFIG_TIMEOUT;
 			User_Configure();
 			sendUserConfigData();
 			UART_PRINT("User Cofig Mode EXIT\n\r");

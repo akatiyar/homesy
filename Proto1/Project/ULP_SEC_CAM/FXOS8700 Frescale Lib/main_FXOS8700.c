@@ -21,12 +21,14 @@ uint8_t cnt_prakz2;
 extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
+extern float gdoor_OpenDeg_angle;
 
 //Tag:See if you can remove this
 extern uint8_t print_count;
 extern uint8_t valid_case;
 
 extern void check_doorpos();
+extern float Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90);
 int16_t angleCheck();
 int16_t angleCheck_Initializations();
 float_t get_angle();
@@ -70,8 +72,10 @@ int16_t angleCheck_Initializations()
 	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, MAGNETOMETER_DATA_SIZE, 0);
 	UART_PRINT("Magn FLash file Read done\n\r");	//Tag:Remove when waketime optimization is over
 
-	gdoor_90deg_angle = Mag_Calb_Value[tmpCnt++];
-	gdoor_40deg_angle  = Mag_Calb_Value[tmpCnt++];
+	gdoor_90deg_angle = Mag_Calb_Value[(OFFSET_ANGLE_90/sizeof(float))];
+	gdoor_40deg_angle  = Mag_Calb_Value[(OFFSET_ANGLE_40/sizeof(float))];
+
+	tmpCnt = (OFFSET_MAG_CALB/sizeof(float));
 	thisMagCal.finvW[0][0] = Mag_Calb_Value[tmpCnt++];
 	thisMagCal.finvW[0][1]=  Mag_Calb_Value[tmpCnt++];
 	thisMagCal.finvW[0][2] = Mag_Calb_Value[tmpCnt++];
@@ -85,11 +89,15 @@ int16_t angleCheck_Initializations()
 	thisMagCal.fV[1]= Mag_Calb_Value[tmpCnt++];
 	thisMagCal.fV[2]= Mag_Calb_Value[tmpCnt++];
 
+	gdoor_OpenDeg_angle  = Mag_Calb_Value[(OFFSET_ANGLE_OPEN/sizeof(float))];
+
 	print_count = 0;
 	valid_case = 0;
 
-	//UART_PRINT("90w:%3.2f\n\r",gdoor_90deg_angle);
-	//UART_PRINT("40w:%3.2f\n\r",gdoor_40deg_angle);
+//	UART_PRINT("90:%3.2f\n\r",gdoor_90deg_angle);
+//	UART_PRINT("40:%3.2f\n\r",gdoor_40deg_angle);
+//	UART_PRINT("Open:%3.2f\n\r",gdoor_OpenDeg_angle);
+
 	return 0;
 }
 
@@ -110,6 +118,7 @@ int16_t magnetometer_initialize()
 //	start_100mSecTimer();
 
 	for(i=0; i<50; i++)	//50 is value based on observation of ecompass readings
+	//for(i=0; i<5; i++)	//50 is value based on observation of ecompass readings
 	{
 		get_angle();
 	}
@@ -186,15 +195,21 @@ int16_t fxos_Calibration()
 }
 
 
-
+uint32_t ulTimeDuration_ms;
 float_t get_angle()
 {
 	while(1)
 	{
 		mqxglobals.RunKF_Event_Flag = 0;
+
+//		start_100mSecTimer();
 		// read the sensors
 		RdSensData_Run();
 		//UART_PRINT("r\n\r");
+//		ulTimeDuration_ms = get_timeDuration();
+//		stop_100mSecTimer();
+//		UART_PRINT("Read SensData - %d ms\n\r", ulTimeDuration_ms);
+//		start_100mSecTimer();
 
 		mqxglobals.MagCal_Event_Flag = 0;
 		if(mqxglobals.RunKF_Event_Flag == 1)

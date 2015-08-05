@@ -18,6 +18,7 @@ extern int32_t PowerDown_LightSensor();
 
 extern float_t get_angle();
 extern void check_doorpos();
+extern float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90);
 extern int16_t angleCheck_Initializations();
 extern int16_t magnetometer_initialize();
 

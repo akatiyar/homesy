@@ -255,9 +255,9 @@ static  const s_RegList capture_cmds_list[]= {
     {0, 0x65, 0xA000    },  // Bypass PLL
     {0, 0x65, 0xE000    },  // Power DOWN PLL
     {100, 0x00, 0x01F4  },  // Delay =500ms
-//    {0,  0x66,  0x1E03  },
+//    {0,  0x66,  0x1E03  },	////{0,  0x66,  0x1E01  },
 //    {0,  0x67,  0x0501  },
-    {0,  0x66,  0x1E01  },
+	{0,  0x66,  0x2801  },		//M = 40, N = 1
 	{0,  0x67,  0x0503  },
     //{0,  0x66,  0x1E01  },	//N = 1, M = 30
     //{0,  0x67,  0x0506  },	//P = 7		// Changed to 9 -Uthra
@@ -294,7 +294,7 @@ static  const s_RegList capture_cmds_list[]= {
 	//{1, 0xC8, 0x0267 },
 	{1, 0xC8, 0x0227 },	//Disable adaptive clocking
 	{1, 0xC6, 0x2774 }, // Enable Capture video
-	{1, 0xC8, 0x02FF },
+	{1, 0xC8, 0x02F8 },
 	{1, 0xC6, 0x2776 }, // Enable Capture video
 	{1, 0xC8, 0x0001 },
 
@@ -367,18 +367,18 @@ static  const s_RegList capture_cmds_list[]= {
 	{1, 0xC8, 0x0001 },
 
     {1, 0xC6, 0x2703    },  // MODE_OUTPUT_WIDTH_A
-    {1, 0xC8, 120      },
+    {1, 0xC8, 640      },
     {1, 0xC6, 0x2705    },  // MODE_OUTPUT_HEIGHT_A
-    {1, 0xC8, 120       },
+    {1, 0xC8, 480       },
 
     {1, 0xC6, 0x2727    },  // MODE_CROP_X0_A
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2729    },  // MODE_CROP_X1_A
-    {1, 0xC8, 240  },
+    {1, 0xC8, 1600  },
 	{1, 0xC6, 0x2731    },  // MODE_CROP_Y0_A
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2733    },  // MODE_CROP_Y1_A
-    {1, 0xC8, 240      },
+    {1, 0xC8, 1200      },
 	/******************************************/
     {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
     {1, 0xC8, 0x0000    },
@@ -403,6 +403,8 @@ static  const s_RegList capture_cmds_list[]= {
 	{1, 0xC6, 0xA104    }, // SEQ_CMD
 	{111, 0xC8,0x0003   },
 */
+	 {1, 0xC6, 0x2725    },{1, 0xC8, 0x0002    },  // Clock Settings R0x0A
+	 {1, 0xC6, 0xA117    },{1, 0xC8, 0x005f    },        // Enable low lighting in the driver
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
 	{1, 0xC6, 0xA104    },  // wait till become capture
@@ -412,15 +414,54 @@ static  const s_RegList capture_cmds_list[]= {
 
 static  const s_RegList recapture_cmds_list[]= {
 
+//	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
+//    {0,  0x65,  0x2000  },  // Enable PLL
+//    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+//	{100, 0x00, 0x0064  },  // Delay =100ms
+//    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
+//    {1, 0xC8, 0x0002    },
+//    {1, 0xC6, 0xA104    },  // wait till become capture
+//    {111, 0xC8, 0x0007   }
+
 	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
-    {0,  0x65,  0x2000  },  // Enable PLL
-    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+	{0,  0x65,  0x2000  },  // Enable PLL
+	{0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
 	{100, 0x00, 0x0064  },  // Delay =100ms
-    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
-    {1, 0xC8, 0x0002    },
-    {1, 0xC6, 0xA104    },  // wait till become capture
-    {111, 0xC8, 0x0007   }
+
+	{0x00, 0x2B, ((0x0024<<1)|0x0080)},        //Lines exist. tfss-9203b65b-f7ea-42b8-b9e8-be5366de68bf-myPic1.jpg
+	{0x00, 0x2C, ((0x003A<<1)|0x0080)},
+	{0x00, 0x2D, ((0x0024<<1)|0x0080)},
+	{0x00, 0x2E, ((0x0024<<1)|0x0080)},
+
+	//{0x00, 0x09, (0x005F)},         //Integration time = 5mS
+	{0x00, 0x09, (0x0060)},         //Integration time = 5mS
+	{0x00, 0x0C, 0x0300},
+
+	{0x01, 0x6E, 0x0085},
+	{0x01, 0x6A, 0x008D},
+	{0x01, 0x6B, 0x008D},
+	{0x01, 0x6C, 0x0093},
+	{0x01, 0x6D, 0x008d},
+	{0x01, 0x4E, 0x0020},
+
+
+
+	{0x01, 0x60, 0x291A},
+	{0x01, 0x61, 0x04E4},
+	{0x01, 0x62, 0xbab5},
+	{0x01, 0x63, 0xb001},
+	{0x01, 0x64, 0x4089},
+	{0x01, 0x65, 0xf17c},
+	//        {0x01, 0x48, 0x0101},
+
+
+	{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
+	{1, 0xC8, 0x0002    },
+	{1, 0xC6, 0xA104    },  // wait till become capture
+	{111, 0xC8, 0x0007   }
 };
+
+
 #endif
 //*****************************************************************************
 // Static Function Declarations

@@ -341,7 +341,12 @@ int32_t Standby_ImageSensor()
 		SoftReset_ImageSensor();
 		CameraSensorInit();
 		Start_CameraCapture();
-		EnterStandby_mt9d111(SOFT_STANDBY);
+		UART_PRINT("\n\rCam Stndby\n\r");
+		lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
+		if(lRetVal == 0)
+		{
+			UART_PRINT("Success on Retry\n");
+		}
 	}
 	//ASSERT_ON_ERROR(lRetVal);
 
@@ -412,11 +417,11 @@ int32_t ReStart_CameraCapture()
 	lRetVal = RestartSensorInJpegMode();
 	ASSERT_ON_ERROR(lRetVal);
 
-	lRetVal = WriteAllAEnAWBRegs();
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = Refresh_mt9d111Firmware();
-	ASSERT_ON_ERROR(lRetVal);
+//	lRetVal = WriteAllAEnAWBRegs();
+//	ASSERT_ON_ERROR(lRetVal);
+//
+//	lRetVal = Refresh_mt9d111Firmware();
+//	ASSERT_ON_ERROR(lRetVal);
 
 	//UtilsDelay(80000000/6);
 

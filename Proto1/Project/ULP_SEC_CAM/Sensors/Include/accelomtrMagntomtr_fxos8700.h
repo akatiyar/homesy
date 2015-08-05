@@ -166,6 +166,7 @@ void getDoorDirection(float_t* pfDegrees);
 void getAccelerationMagnitude(float_t* pfAccel);
 void getMagnFlux_3axis(float_t* pfMagnFlux_3axis);
 int32_t getMagntData(uint8_t* pucMagntData);
+int32_t getAccelMagntData(uint8_t* pucAccelMagntData);
 
 void setMotionDetectionThreshold(float accelThreshold);
 void updateConfigReg(uint8_t ucConfigRegAddr,

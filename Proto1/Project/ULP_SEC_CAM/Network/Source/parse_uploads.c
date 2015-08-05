@@ -27,6 +27,7 @@
 #define MIN_ANGLE					"Min_DoorAngle"
 #define ANGLE40						"Angle40"
 #define ANGLE90						"Angle90"
+#define ANGLE_OPEN					"AngleOpen"
 
 #define MAGNETOMETER_CALIB_FITERROR	"MagnmtrCalib_FitError_Percent"
 
@@ -39,6 +40,7 @@ typedef enum{
 extern char* dataBuffer;
 extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
+extern float gdoor_OpenDeg_angle;
 
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
 int simpleJsonProcessor(const char *data, const char *key, char* value, int size);
@@ -414,7 +416,9 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE40,
 									(long long)gdoor_40deg_angle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE90,
-									(long long)gdoor_90deg_angle, LAST);
+									(long long)gdoor_90deg_angle,MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE_OPEN,
+									(long long)gdoor_OpenDeg_angle,LAST);
 
 	UART_PRINT("\n%s\n", pucGroundDataObject);
 
@@ -496,11 +500,13 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 	strncat((char*)pucUserConfigObject,	"\",", sizeof("\","));
 
 	Add_NumberField_ToJSONString(pucUserConfigObject, MAGNETOMETER_CALIB_FITERROR,
-									(long long)fUserConfigData[14], MIDDLE);
+									(long long)fUserConfigData[(OFFSET_FIT_ERROR/sizeof(float))], MIDDLE);
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE40,
-									(long long)fUserConfigData[1], MIDDLE);
+									(long long)fUserConfigData[(OFFSET_ANGLE_40/sizeof(float))], MIDDLE);
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE90,
-									(long long)fUserConfigData[0], LAST);
+									(long long)fUserConfigData[(OFFSET_ANGLE_90/sizeof(float))],MIDDLE);
+	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE_OPEN,
+									(long long)fUserConfigData[(OFFSET_ANGLE_OPEN/sizeof(float))], LAST);
 
 	UART_PRINT("\n%s\n", pucUserConfigObject);
 

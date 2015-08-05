@@ -30,7 +30,7 @@
 //				}\
 //			}
 
-#define ONE_FLASH_BLOCK							((1*FLASH_BLOCK_SIZE) - FLASH_FILE_HEADER_SIZE)
+#define ONE_FLASH_BLOCK							((1*FLASH_BLOCK_SIZE) - FLASH_FILE_HEADER_SIZE)	//This is the minimum file size
 
 
 #define JPEG_HEADER_FILE_NAME					"/data/jpeg_header"
@@ -41,13 +41,27 @@
 
 #define USER_CONFIGS_FILENAME					"/config/user_configs"
 #define USER_CONFIGS_MAX_FILESIZE				ONE_FLASH_BLOCK
+//Section1 - Magnetometer configs
 #define MAGNETOMETER_DATA_OFFSET				0
-#define MAGNETOMETER_DATA_SIZE					((12+1+1+1) * sizeof(float))
-#define WIFI_DATA_OFFSET						(MAGNETOMETER_DATA_OFFSET + MAGNETOMETER_DATA_SIZE)
+#define MAGNETOMETER_ALLOCATED_SPACE			0x80	//256 bytes
+//Sub section i - Magn Calibs
+#define OFFSET_MAG_CALB							(MAGNETOMETER_DATA_OFFSET)	// Intrms of Number of float values. This is an offset withing the Magnetometer section fo the file
+#define SIZE_MAG_CALB							(12 * sizeof(float))
+#define OFFSET_FIT_ERROR						(OFFSET_MAG_CALB+SIZE_MAG_CALB)
+#define SIZE_SUBSECTION1						0x50	//80 bytes
+//Sus section ii - Angles
+#define OFFSET_ANGLE_90							(MAGNETOMETER_DATA_OFFSET + SIZE_SUBSECTION1)
+#define SIZE_ANGLE_90							(sizeof(float))
+#define OFFSET_ANGLE_40							(OFFSET_ANGLE_90 + SIZE_ANGLE_90)
+#define SIZE_ANGLE_40							(sizeof(float))
+#define OFFSET_ANGLE_OPEN						(OFFSET_ANGLE_40 + SIZE_ANGLE_40)
+#define SIZE_ANGLE_OPEN							(sizeof(float))
+#define MAGNETOMETER_DATA_SIZE					(OFFSET_ANGLE_OPEN + SIZE_ANGLE_OPEN)
+#define SIZE_SUBSECTION2						0x50	//80 bytes. Can be increased up to 256-80 or a new sub-section can be had
+//Section2 - WiFi configs
+#define WIFI_DATA_OFFSET						(MAGNETOMETER_DATA_OFFSET + MAGNETOMETER_ALLOCATED_SPACE)
 #define WIFI_DATA_SIZE							(AP_SSID_LEN_MAX + AP_PASSWORD_LEN_MAX + AP_SECTYPE_LEN_MAX)
 #define CONTENT_LENGTH_USER_CONFIGS				(WIFI_DATA_OFFSET + WIFI_DATA_SIZE)
-//Uthra
-#define OFFSET_MAG_CALB							2	// Intrms of Number of float values. This is an offset withing the Magnetometer section fo the file
 
 #define FILENAME_SENSORCONFIGS					"/configs/sensors_configs"
 #define MAX_FILESIZE_SENSORCONFIGS				ONE_FLASH_BLOCK

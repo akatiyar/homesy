@@ -12,7 +12,7 @@
 #include "mt9d111.h"	//Tag:Remove after debug stage
 
 #include "osi.h"
-
+#include "timer_fns.h"
 
 #include "stdbool.h"
 extern bool g_tempflag;
@@ -22,7 +22,9 @@ extern OsiTaskHandle g_ImageCaptureConfigs_TaskHandle;
 void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 {
 	struct u64_time time_now;
-	UART_PRINT("T3\n\r");
+	//uint32_t ulTimeDuration_ms;
+
+	//UART_PRINT("T3\n\r");
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
 		//Waiting for Light sensor I2C transactions to complete
@@ -54,9 +56,22 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 			osi_Sleep(10);
 		}
 		magnetometer_initialize();
+		g_Task3_Notification = MAGNTMTRINIT_DONE;
+
+		/*ulTimeDuration_ms = get_timeDuration();
+		stop_100mSecTimer();
+		UART_PRINT("Total Wake Time - %d ms\n\r", ulTimeDuration_ms);
+
+		while(g_Task1_Notification != FILE_OPEN_COMPLETE)
+		{
+			g_I2CPeripheral_inUse_Flag = YES;
+			get_angle();
+			check_doorpos();
+			g_ucReasonForFailure = DOOR_SHUT_DURING_FILEOPEN;
+			g_I2CPeripheral_inUse_Flag = NO;
+		}*/
 
 		g_I2CPeripheral_inUse_Flag = NO;
-		g_Task3_Notification = MAGNTMTRINIT_DONE;
 	}
 
 	// Delete the task

@@ -54,8 +54,6 @@ int32_t User_Configure()
 {
 	long lRetVal = -1;
 	bool run_flag=true;
-	float fAngle;
-	uint8_t i;
 	int32_t lFileHandle;
 
 	AccessPtMode_HTTPServer_Start();
@@ -112,6 +110,7 @@ int32_t User_Configure()
 		if(g_ucExitButton == BUTTON_PRESSED)
 		{
 			LED_On();
+			*(g_pfUserConfigData + (OFFSET_ANGLE_OPEN/sizeof(float))) = Calculate_DoorOpenThresholdAngle(*(g_pfUserConfigData + (OFFSET_ANGLE_40/sizeof(float))),*(g_pfUserConfigData + (OFFSET_ANGLE_90/sizeof(float))));
 			//Write all the User Config contents into the flash
 			lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
 									(uint8_t*)USER_CONFIGS_FILENAME,
@@ -119,18 +118,18 @@ int32_t User_Configure()
 									SINGLE_WRITE, &lFileHandle);
 			ASSERT_ON_ERROR(lRetVal);
 
-			//Verification
+			/*//Verification
 			for(i=0;i<15;i++)
 			{
 				fAngle = 0;
 				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)USER_CONFIGS_FILENAME, sizeof(float), (i)*sizeof(float));
 				UART_PRINT("%d:%3.2f\n\r",i,fAngle);
-			}
+			}*/
 			// For verification - DBG
 			lRetVal = ReadFile_FromFlash(((uint8_t*)g_pfUserConfigData+3),
 											(uint8_t*)USER_CONFIGS_FILENAME,
-											WIFI_DATA_SIZE-3,
-											WIFI_DATA_OFFSET);
+											CONTENT_LENGTH_USER_CONFIGS,
+											0);
 
 			g_ucExitButton = BUTTON_NOT_PRESSED;
 			run_flag = false;
@@ -405,6 +404,9 @@ static long WlanConnect()
 static int32_t Get_Calibration_MagSensor()
 {
 	uint8_t tmpCnt=0;
+	long lRetVal = -1;
+	int32_t lFileHandle;
+
 
 	//Collect the readings
 	fxosDefault_Initializations();
@@ -419,7 +421,7 @@ static int32_t Get_Calibration_MagSensor()
 		fxos_Calibration();
 	}
 
-	tmpCnt = OFFSET_MAG_CALB;
+	tmpCnt = (OFFSET_MAG_CALB/sizeof(float_t));
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][0];
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][1];
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][2] ;
@@ -432,10 +434,11 @@ static int32_t Get_Calibration_MagSensor()
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[0];
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[1];
 	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[2];
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.fFitErrorpc;
+
+	g_pfUserConfigData[(OFFSET_FIT_ERROR/sizeof(float_t))] = thisMagCal.fFitErrorpc;
 
 	uint8_t i=0;
-		for(i=2; i<15;i++)
+		for(i=OFFSET_MAG_CALB; i<13;i++)
 			UART_PRINT("%f\n",g_pfUserConfigData[i]);
 
 #define ACCEPTABLE_FITERROR		5
@@ -445,6 +448,12 @@ static int32_t Get_Calibration_MagSensor()
 		LED_Off();
 		osi_Sleep(5000);	//5 seconds delay
 	}
+
+	lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
+							(uint8_t*)USER_CONFIGS_FILENAME,
+							CONTENT_LENGTH_USER_CONFIGS, 0,
+							SINGLE_WRITE, &lFileHandle);
+	ASSERT_ON_ERROR(lRetVal);
 
 	return 0;
 }
@@ -474,21 +483,23 @@ static int32_t CollectAngle(uint8_t ucAngle)
 		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 	}
 
+	fAngleTemp = get_angle();
+
 	//Save it in flash in the right place
 	if(ucAngle == ANGLE_90)
 	{
-		UART_PRINT("90deg: %f\n\r",fAngleTemp);
-		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
-		*(g_pfUserConfigData) = fAngleTemp;
-		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		//UART_PRINT("90deg: %f\n\r",fAngleTemp);
+		//UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		*(g_pfUserConfigData+(OFFSET_ANGLE_90/sizeof(float))) = fAngleTemp;
+		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[(OFFSET_ANGLE_90/sizeof(float))], g_pfUserConfigData[(OFFSET_ANGLE_40/sizeof(float))]);
 	}
 	else if (ucAngle == ANGLE_40)
 	{
-		UART_PRINT("40deg: %f\n\r",fAngleTemp);
-		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
-		*(g_pfUserConfigData+1) = fAngleTemp;
+		//UART_PRINT("40deg: %f\n\r",fAngleTemp);
+		//UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		*(g_pfUserConfigData+(OFFSET_ANGLE_40/sizeof(float))) = fAngleTemp;
 		//UART_PRINT("40deg: %f\n\r",g_pfUserConfigData[1]);
-		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[(OFFSET_ANGLE_90/sizeof(float))], g_pfUserConfigData[(OFFSET_ANGLE_40/sizeof(float))]);
 	}
 
 	return lRetVal;

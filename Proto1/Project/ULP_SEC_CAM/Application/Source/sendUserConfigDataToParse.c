@@ -8,7 +8,10 @@
 #include "app.h"
 #include "network_related_fns.h"
 #include "parse_uploads.h"
+#include "flash_files.h"
+#include "appFns.h"
 
+extern float_t gdoor_OpenDeg_angle;
 extern int32_t NWP_SwitchOff();
 
 int32_t sendUserConfigData()
@@ -30,7 +33,6 @@ int32_t sendUserConfigData()
 
 	Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from unique MAC
 										//ID of the CC3200 device
-
 	UploadUserConfigObjectToParse(clientHandle1, &ucFridgeCamID[0]);
 
 	free((void*)clientHandle1);	//malloc() in InitializeParse()

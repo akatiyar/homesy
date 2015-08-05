@@ -214,6 +214,33 @@ void FXOS8700_ReadData(struct AccelSensor *pthisAccel, struct MagSensor *pthisMa
 	return;
 }
 
+/*//CS
+// read FXOS8700 accelerometer and magnetometer data over I2C
+void FXOS8700_ReadData(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
+{
+	uint8_t ucAccelMagnOut[LENGTH_OUTPUT_DATA*2];
+	getAccelMagntData(ucAccelMagnOut);
+
+	// place the 12 bytes read into the 16 bit accelerometer and magnetometer structures
+	pthisAccel->iGpFast[X] = (ucAccelMagnOut[0] << 8) | ucAccelMagnOut[1];
+	pthisAccel->iGpFast[Y] = (ucAccelMagnOut[2] << 8) | ucAccelMagnOut[3];
+	pthisAccel->iGpFast[Z] = (ucAccelMagnOut[4] << 8) | ucAccelMagnOut[5];
+	pthisMag->iBpFast[X] = (ucAccelMagnOut[LENGTH_OUTPUT_DATA+0] << 8) | ucAccelMagnOut[LENGTH_OUTPUT_DATA+1];
+	pthisMag->iBpFast[Y] = (ucAccelMagnOut[LENGTH_OUTPUT_DATA+2] << 8) | ucAccelMagnOut[LENGTH_OUTPUT_DATA+3];
+	pthisMag->iBpFast[Z] = (ucAccelMagnOut[LENGTH_OUTPUT_DATA+4] << 8) | ucAccelMagnOut[LENGTH_OUTPUT_DATA+5];
+
+	// finally check for -32768 in the accelerometer and magnetometer data since
+	// this value cannot be negated in a later HAL operation
+	if (pthisAccel->iGpFast[X] == -32768) pthisAccel->iGpFast[X]++;
+	if (pthisAccel->iGpFast[Y] == -32768) pthisAccel->iGpFast[Y]++;
+	if (pthisAccel->iGpFast[Z] == -32768) pthisAccel->iGpFast[Z]++;
+	if (pthisMag->iBpFast[X] == -32768) pthisMag->iBpFast[X]++;
+	if (pthisMag->iBpFast[Y] == -32768) pthisMag->iBpFast[Y]++;
+	if (pthisMag->iBpFast[Z] == -32768) pthisMag->iBpFast[Z]++;
+
+	return;
+}*/
+
 /*
 // initialize MPL3115 pressure and temperature sensor
 int8 MPL3115_Init(LDD_TDeviceData *DeviceDataPtr, struct PressureSensor *pthisPressure)

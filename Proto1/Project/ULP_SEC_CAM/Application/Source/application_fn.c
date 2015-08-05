@@ -114,9 +114,12 @@ int32_t application_fn()
 			osi_Sleep(10);
 		}
 
+		/*while(g_I2CPeripheral_inUse_Flag == YES)
+		{
+		}*/
 		ulTimeDuration_ms = get_timeDuration();
 		stop_100mSecTimer();
-		UART_PRINT("Total Wake Time - %d ms\n\r", ulTimeDuration_ms);
+		UART_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
 
 		LED_Blink_2(.5,.5,BLINK_FOREVER);
 		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
@@ -133,7 +136,6 @@ int32_t application_fn()
 
 			//Tag:Upload GroundData object
 			SendGroundData();
-
 			g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
 			Standby_ImageSensor();
 			return g_ulAppStatus;
@@ -178,7 +180,7 @@ int32_t application_fn()
 		standby_accelMagn_fxos8700();
 		stop_100mSecTimer();
 
-		g_ulAppStatus = IMAGING_POSITION_DETECTED;
+		//g_ulAppStatus = IMAGING_POSITION_DETECTED;
 
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)

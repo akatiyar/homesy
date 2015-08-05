@@ -211,7 +211,9 @@ int ConfigureMode(int iMode)
     ASSERT_ON_ERROR(lRetVal);
 
     /* Restart Network processor */
-    lRetVal = NWP_SwitchOff();
+    //lRetVal = NWP_SwitchOff();
+    lRetVal = sl_Stop(0xFE);
+    CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
 
     //return sl_Start(NULL,NULL,NULL);
     return NWP_SwitchOn();

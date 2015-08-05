@@ -10,8 +10,23 @@
 #include "app_common.h"
 #include "osi.h"
 #include "LED_Timer.h"
+#include "appFns.h"
 void Test_Task(void *pvParameters)
 {
+
+	float OpenAngle;
+
+	OpenAngle = Calculate_DoorOpenThresholdAngle(30.56,80.32);
+	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+	OpenAngle = Calculate_DoorOpenThresholdAngle(80.32,30.56);
+	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+
+	OpenAngle = Calculate_DoorOpenThresholdAngle(330.83, 19.2);
+	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+	OpenAngle = Calculate_DoorOpenThresholdAngle(19.2, 330.83);
+	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+
+#ifdef COMPILE_THIS
 	LEDTimer_Enable();
 	LED_Blink_2(.2,.2,BLINK_FOREVER);
 	int i = 100;
@@ -40,6 +55,7 @@ void Test_Task(void *pvParameters)
 		UART_PRINT("j");
 	}
 	//LED_Blink_2(1,.5,5);
+#endif
 
 #ifdef COMPILE_THIS
 	Config_And_Start_CameraCapture();
