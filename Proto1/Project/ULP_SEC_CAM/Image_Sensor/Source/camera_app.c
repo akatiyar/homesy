@@ -420,8 +420,8 @@ int32_t ReStart_CameraCapture()
 //	lRetVal = WriteAllAEnAWBRegs();
 //	ASSERT_ON_ERROR(lRetVal);
 //
-//	lRetVal = Refresh_mt9d111Firmware();
-//	ASSERT_ON_ERROR(lRetVal);
+	lRetVal = Refresh_mt9d111Firmware();
+	ASSERT_ON_ERROR(lRetVal);
 
 	//UtilsDelay(80000000/6);
 

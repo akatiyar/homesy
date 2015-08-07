@@ -25,7 +25,9 @@ void UserConfigure_Task(void *pvParameters)
 {
 	//LED_On();
 	UtilsDelay(1000000);	// To ensure Firmware title is printed first
-	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON) ||(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET))
+	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
+			(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET)||
+			(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
 		UART_PRINT("***SHORT PRESS-CONFIGURE THRU PHONE APP***\n\r"
 						"***LONG PRESS-OTA***\n\r");
@@ -92,12 +94,12 @@ void UserConfigure_Task(void *pvParameters)
 
 		//Main_Task polls and waits for g_ulAppStatus to become USER_CONFIG_DONE
 		g_ulAppStatus = USER_CONFIG_DONE;
-		//while(1);
+		while(1);
 	}
 	else
 	{
-		//osi_TaskDelete(&g_UserConfigTaskHandle);
+		osi_TaskDelete(&g_UserConfigTaskHandle);
 	}
-	osi_TaskDelete(&g_UserConfigTaskHandle);
+	//osi_TaskDelete(&g_UserConfigTaskHandle);
 }
 

@@ -19,6 +19,8 @@
 #define USERCONFIG_TIMEOUT			420000	//in milli sec. 7min = 7*60*1000 msec = 600000
 //#define APPLICATION_TIMEOUT			30000	//in milli sec
 
+volatile uint32_t g_ulWatchdogCycles;
+
 int16_t WDT_init();
 void WatchdogIntHandler(void);
 

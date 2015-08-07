@@ -95,7 +95,6 @@ void HIBernate(uint32_t ulWakeSources,
 #ifdef IOEXPANDER_PRESENT
 		ClearInterrupt_IOExpander();
 #endif
-
 	}
 
     //

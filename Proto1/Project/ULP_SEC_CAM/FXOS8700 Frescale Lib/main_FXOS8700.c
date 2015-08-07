@@ -226,7 +226,7 @@ float_t get_angle()
 
 }
 
-void fxos_main()
+/*void fxos_main()
 {
 	g_flag_door_closing_45degree = 0;
 
@@ -555,3 +555,4 @@ int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor)
 
 	return 1;
 }
+*/

@@ -69,18 +69,35 @@ void check_doorpos()
 		//UART_PRINT("%d milli sec\n", g_TimeStamp_maxAngle);
 	}
 
+	print_count++;
 	if(print_count==20)
 	{
-	//UART_PRINT("ANGLE=%3.2f\n", angle_reg);
-	UART_PRINT("%3.2f\n", angle_reg);
-	//UART_PRINT("%3.2f  %3.2f\n", angle_reg, thisSV_6DOF_GB_BASIC.fLPRho);
-//	UART_PRINT("phi = %3.2f, theta = %3.2f, psi = %3.2f, rho = %3.2f, chi = %3.2f\n",
-//			thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe, thisSV_6DOF_GB_BASIC.fLPPsi,
-//			thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPChi);
-	print_count=0;
+		//UART_PRINT("ANGLE=%3.2f\n", angle_reg);
+		UART_PRINT("%3.2f\n", angle_reg);
+		//UART_PRINT("%3.2f  %3.2f\n", angle_reg, thisSV_6DOF_GB_BASIC.fLPRho);
+
+		/*//----------------------Print all angle related values------------------
+		int i,j;
+		UART_PRINT("Magnetic fld:\n");
+		UART_PRINT("%3.2f  %3.2f  %3.2f\n", thisMag.fBc[X], thisMag.fBc[Y], thisMag.fBc[Z]);
+
+		UART_PRINT("Acceleration:\n");
+		UART_PRINT("%3.2f  %3.2f  %3.2f\n", thisAccel.fGp[X], thisAccel.fGp[Y], thisAccel.fGp[Z]);
+
+		UART_PRINT("Rotation Matrix:\n");
+		for(i=0;i<3;i++)
+		{
+			for(j=0;j<3;j++)
+				UART_PRINT("%3.2f   ", thisSV_6DOF_GB_BASIC.fR[i][j]);
+			UART_PRINT("\n");
+		}
+		UART_PRINT("phi = %3.2f, theta = %3.2f, psi = %3.2f, rho = %3.2f, chi = %3.2f, del = %3.2f\n",
+				thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe, thisSV_6DOF_GB_BASIC.fLPPsi,
+				thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPChi, thisSV_6DOF_GB_BASIC.fLPDelta);*/
+		//----------------------
+		print_count=0;
 
 	}
-	print_count++;
 
 	//--------- Do only once -------------
 	if(!isitfirsttime)
@@ -115,7 +132,6 @@ void check_doorpos()
 		valid_case = 1;
 		UART_PRINT("O \n");
 		UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
-		LED_Off();
 		g_ucReasonForFailure = OPEN_NOTCLOSED;
 		LED_Blink_2(.25,.25,BLINK_FOREVER);
 	}

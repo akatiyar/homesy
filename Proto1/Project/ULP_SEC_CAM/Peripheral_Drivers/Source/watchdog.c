@@ -10,7 +10,6 @@
 #include "watchdog.h"
 #include "osi.h"
 
-volatile uint32_t g_ulWatchdogCycles;
 //*****************************************************************************
 //
 //! The interrupt handler for the watchdog timer

@@ -162,6 +162,9 @@ int32_t User_Configure()
 static int32_t AccessPtMode_HTTPServer_Start()
 {
 	int32_t lRetVal = -1;
+	unsigned char ucFridgeCamID[50];
+	unsigned short  length;
+
 	InitializeUserConfigVariables();
 
 	//
@@ -195,6 +198,11 @@ static int32_t AccessPtMode_HTTPServer_Start()
 	   UART_PRINT("Failed to start the device \n\r");
 	   LOOP_FOREVER();
 	}
+
+    // Set SSID name for AP mode
+    Get_FridgeCamID(&ucFridgeCamID[0]);
+	length = strlen((const char *)&ucFridgeCamID[0]);
+	lRetVal = sl_WlanSet(SL_WLAN_CFG_AP_ID, WLAN_AP_OPT_SSID, length, &ucFridgeCamID[0]);
 
 	//
 	// Configure to AP Mode
@@ -484,6 +492,15 @@ static int32_t CollectAngle(uint8_t ucAngle)
 //	}
 
 	fAngleTemp = get_angle();
+
+	if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
+	{
+		fAngleTemp = thisSV_6DOF_GB_BASIC.fLPRho +180;
+		if(fAngleTemp>360)
+		{
+			fAngleTemp = fAngleTemp-360;
+		}
+	}
 
 	//Save it in flash in the right place
 	if(ucAngle == ANGLE_90)

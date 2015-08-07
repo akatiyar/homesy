@@ -166,6 +166,7 @@ static  const s_RegList preview_cmds_list[]= {
 static  const s_RegList init_cmds_list[]= {
     {100,0x00,0x01F4    },
     {0, 0x33, 0x0343    }, // RESERVED_CORE_33
+	{0, 0x0D, 0x0280    },
     {1, 0xC6, 0xA115    }, // SEQ_LLMODE
     {1, 0xC8, 0x0020    }, // SEQ_LLMODE
     {0, 0x38, 0x0866    }, // RESERVED_CORE_38
@@ -257,8 +258,8 @@ static  const s_RegList capture_cmds_list[]= {
     {100, 0x00, 0x01F4  },  // Delay =500ms
 //    {0,  0x66,  0x1E03  },	////{0,  0x66,  0x1E01  },
 //    {0,  0x67,  0x0501  },
-	{0,  0x66,  0x2801  },		//M = 40, N = 1
-	{0,  0x67,  0x0503  },
+	{0,  0x66,  0x2401  },		//M = 36, N = 1
+	{0,  0x67,  0x0501  },		//P=1
     //{0,  0x66,  0x1E01  },	//N = 1, M = 30
     //{0,  0x67,  0x0506  },	//P = 7		// Changed to 9 -Uthra
     {0, 0x65,   0xA000  },  // Power up PLL
@@ -293,17 +294,17 @@ static  const s_RegList capture_cmds_list[]= {
     {1, 0xC6, 0x2772 },	//Enable status byte insertion, Enable adaptive clocking
 	//{1, 0xC8, 0x0267 },
 	{1, 0xC8, 0x0227 },	//Disable adaptive clocking
-	{1, 0xC6, 0x2774 }, // Enable Capture video
-	{1, 0xC8, 0x02F8 },
-	{1, 0xC6, 0x2776 }, // Enable Capture video
+	{1, 0xC6, 0x2774 }, // PCLk 1 and 2 setting
+	{1, 0xC8, 0x02FF },	// PCLK1 = 15
+	{1, 0xC6, 0x2776 }, // Set Pclk 3
 	{1, 0xC8, 0x0001 },
 
     {1,  0xC6, 0x270B   },  // Mode config, disable JPEG bypass
-    {1,  0xC8, 0x0000   },
+    {1,  0xC8, 0x0010   },	//Enable Jpeg only for Mode B
     {1,  0xC6, 0x2702   },  // FIFO_config0b, no spoof, adaptive clock
     {1,  0xC8, 0x001E   },
     {1,  0xC6, 0xA907   },  // JPEG mode config, video
-    {1,  0xC8, 0x0035   },
+    {1,  0xC8, 0x0011   },
     //{1,  0xC8, 0x0015   },	// Auto QScale selection disabled - CS
     //{1,  0xC8, 0x0013   },	// Enable handshake with CC3200, disable retry after failure - CS
     //{1,  0xC8, 0x0012   },	// Enable handshake with CC3200, disable retry after failure, snapshot - CS
@@ -367,18 +368,18 @@ static  const s_RegList capture_cmds_list[]= {
 	{1, 0xC8, 0x0001 },
 
     {1, 0xC6, 0x2703    },  // MODE_OUTPUT_WIDTH_A
-    {1, 0xC8, 640      },
+    {1, 0xC8, 120      },
     {1, 0xC6, 0x2705    },  // MODE_OUTPUT_HEIGHT_A
-    {1, 0xC8, 480       },
+    {1, 0xC8, 120       },
 
     {1, 0xC6, 0x2727    },  // MODE_CROP_X0_A
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2729    },  // MODE_CROP_X1_A
-    {1, 0xC8, 1600  },
+    {1, 0xC8, 120  },
 	{1, 0xC6, 0x2731    },  // MODE_CROP_Y0_A
     {1, 0xC8, 0x0000    },
     {1, 0xC6, 0x2733    },  // MODE_CROP_Y1_A
-    {1, 0xC8, 1200      },
+    {1, 0xC8, 120      },
 	/******************************************/
     {1, 0xC6, 0x2735    },  // MODE_CROP_X0_B
     {1, 0xC8, 0x0000    },
@@ -403,7 +404,7 @@ static  const s_RegList capture_cmds_list[]= {
 	{1, 0xC6, 0xA104    }, // SEQ_CMD
 	{111, 0xC8,0x0003   },
 */
-	 {1, 0xC6, 0x2725    },{1, 0xC8, 0x0002    },  // Clock Settings R0x0A
+	 {1, 0xC6, 0x2725    },{1, 0xC8, 0x0000    },  // Clock Settings R0x0A
 	 {1, 0xC6, 0xA117    },{1, 0xC8, 0x005f    },        // Enable low lighting in the driver
     {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
     {1, 0xC8, 0x0002    },
@@ -434,8 +435,9 @@ static  const s_RegList recapture_cmds_list[]= {
 	{0x00, 0x2E, ((0x0024<<1)|0x0080)},
 
 	//{0x00, 0x09, (0x005F)},         //Integration time = 5mS
-	{0x00, 0x09, (0x0060)},         //Integration time = 5mS
-	{0x00, 0x0C, 0x0300},
+//	{0x00, 0x09, (200)},         //Integration time = 10mS
+	{0x00, 0x09, (270)},         //Integration time = 15mS
+	{0x00, 0x0C, 0x0000},
 
 	{0x01, 0x6E, 0x0085},
 	{0x01, 0x6A, 0x008D},
@@ -453,12 +455,25 @@ static  const s_RegList recapture_cmds_list[]= {
 	{0x01, 0x64, 0x4089},
 	{0x01, 0x65, 0xf17c},
 	//        {0x01, 0x48, 0x0101},
+	{0x00, 0x05, 0x015c},	//Hblank
+	{0x00, 0x06, 0x0020},	//Vblank
 
 
 	{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
 	{1, 0xC8, 0x0002    },
 	{1, 0xC6, 0xA104    },  // wait till become capture
 	{111, 0xC8, 0x0007   }
+};
+
+static  const s_RegList snap[]= {
+
+										{0, 0x0D, 0x0282    },
+
+//										{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
+//										{1, 0xC8, 0x0002    },
+//
+//										{1, 0xC6, 0xA104    },  // wait till become capture
+//										{111, 0xC8, 0x0007  }
 };
 
 
@@ -648,6 +663,28 @@ long RestartSensorInJpegMode()
     ASSERT_ON_ERROR(lRetVal);
 #endif
     return 0;
+}
+
+long Snap()
+{
+
+    long lRetVal = -1;
+//
+    lRetVal = RegLstWrite((s_RegList *)snap,
+                        sizeof(snap)/sizeof(s_RegList));
+    ASSERT_ON_ERROR(lRetVal);
+    return 0;
+
+//	uint16_t usRegVal=0;
+//	int i=0;
+//	s_RegList StatusRegLst[] = {{0x00, 0x0D, 0xBADD},
+//								};
+//
+//	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+//	{
+//		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
+//		UART_PRINT("\nReg %x : %x",StatusRegLst[i].ucRegAddr,usRegVal);
+//	}
 }
 
 //Teg:Remove later

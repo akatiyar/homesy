@@ -33,7 +33,7 @@ int32_t application_fn()
 
     uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	ParseClient clientHandle = NULL;
-	ParseClient clientHandle1 = NULL;
+	//ParseClient clientHandle1 = NULL;
 	uint8_t ucParseImageUrl[PARSE_IMAGE_URL_SIZE];
 	float_t fTemp = 12.34, fRH = 56.78;
 	uint8_t ucBatteryLvl = 80;
@@ -138,10 +138,12 @@ int32_t application_fn()
 			lRetVal = NWP_SwitchOff();
 			ASSERT_ON_ERROR(lRetVal);
 
-			//Tag:Upload GroundData object
-			SendGroundData();
+			//Upload GroundData object
+			SendGroundData();	//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
+
 			g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
 			Standby_ImageSensor();
+
 			return g_ulAppStatus;
 		}
 
@@ -181,8 +183,11 @@ int32_t application_fn()
 				}
 			}
 		}
+		UART_PRINT("d\n");
 		standby_accelMagn_fxos8700();
+		UART_PRINT("e\n");
 		stop_100mSecTimer();
+		UART_PRINT("f\n");
 
 		//g_ulAppStatus = IMAGING_POSITION_DETECTED;
 
@@ -222,7 +227,9 @@ int32_t application_fn()
 		}
 
 		// Close the file after writing the image into it
+		UART_PRINT("g\n");
 	    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	    UART_PRINT("h\n");
 	    ASSERT_ON_ERROR(lRetVal);
 
 	    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
@@ -266,7 +273,6 @@ int32_t application_fn()
 				lRetVal = UploadSensorDataToParse(clientHandle,
 								&ucFridgeCamID[0], &ucParseImageUrl[0], fTemp,
 								fRH, ucBatteryLvl, &ucSensorDataTxt[0]);
-				PRINT_ON_ERROR(lRetVal);
 				if(lRetVal >= 0)
 				{
 					g_ucReasonForFailure = SUCCESS;
@@ -274,17 +280,21 @@ int32_t application_fn()
 					cc_rtc_get(&time_now);
 					g_TimeStamp_PhotoUploaded = time_now.secs * 1000 + time_now.nsec / 1000000;
 				}
+
 			}
 
-			//Uncomment if not collecting GroundData
-			/*//	Free the memory allocated for clientHandle in InitialiseParse()
-			free((void*)clientHandle);
+			UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
 
-			sl_Stop(0xFFFF);	//sl_start() in WiFi_Connect()
-			CLR_STATUS_BIT(g_ulSimplelinkStatus, STATUS_BIT_NWP_INIT);*/
+			free((void*)clientHandle);	//malloc() in InitializeParse()
 
+			NWP_SwitchOff();
 		}
-		UART_PRINT("After if\n");	//Tag:Rm
+		else
+		{
+			SendGroundData();
+		}
+
+		/*LED_On();
 
 		//Tag:Timestamp door close/30sec timeout/door still open but image was uploaded - use a light on
 		//Tag:Upload GroundData object
@@ -297,6 +307,7 @@ int32_t application_fn()
 		g_TimeStamp_maxAngle = g_Struct_TimeStamp_MaxAngle.secs * 1000 + g_Struct_TimeStamp_MaxAngle.nsec / 1000000;
 		g_TimeStamp_minAngle = g_Struct_TimeStamp_MinAngle.secs * 1000 + g_Struct_TimeStamp_MinAngle.nsec / 1000000;
 
+		//If clienthandle does not already exist, connect to WiFi and initialize parse
 		if(clientHandle == NULL)
 		{
 			//Connect to WiFi
@@ -308,24 +319,18 @@ int32_t application_fn()
 			}
 
 			//	Parse initialization
-			clientHandle1 = InitialiseParse();
+			clientHandle = InitialiseParse();
 
 			Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from unique MAC
 												//ID of the CC3200 device
-
-			UploadGroundDataObjectToParse(clientHandle1, &ucFridgeCamID[0]);
-
-			free((void*)clientHandle1);	//malloc() in InitializeParse()
 		}
-		else
-		{
-			UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
 
-			free((void*)clientHandle);	//malloc() in InitializeParse()
-		}
+		UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
+
+		free((void*)clientHandle);	//malloc() in InitializeParse()
 
 		//free((void*)clientHandle_1);	//malloc() in InitializeParse()
-		NWP_SwitchOff();
+		NWP_SwitchOff();*/
 	}
 
 	return lRetVal;

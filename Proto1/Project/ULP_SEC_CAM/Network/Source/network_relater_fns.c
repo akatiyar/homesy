@@ -315,8 +315,8 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->KeyLen = sizeof("cfuclcxjfdi");
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 
-	UART_PRINT("WiFi\n\r");
-	UART_PRINT("%s\n\r%s\n\r%s", ssid, keyParams->Key, keyParams->Type);
+	UART_PRINT("WiFi\n");
+	UART_PRINT("SSID:%s\nPassword:%s\nSecurity Type:%x\n", ssid, keyParams->Key, keyParams->Type);
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	ASSERT_ON_ERROR(status);
 

@@ -21,8 +21,9 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"F30 FXOS Init Optimization 2"
-//#define FIRMWARE_VERSION 		"Release 0.0.11"
+//#define FIRMWARE_VERSION 		"F30 Robust Angle"
+//#define FIRMWARE_VERSION 		"F30 Reset with button"
+#define FIRMWARE_VERSION 		"Release 0.0.12"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -51,7 +52,8 @@
 
 #define SYSTEM_CLOCK	80000000
 
-#define LUX_THRESHOLD					8	//lux
+#define LUX_THRESHOLD					5
+
 #define DOORCHECK_TIMEOUT_SEC			60
 #define BATTERY_LOW_THRESHOLD			5	//percent
 //#define BATTERY_LOW_THRESHOLD			32	//percent
@@ -188,14 +190,14 @@ typedef enum
 //Reasons for failure
 typedef enum
 {
-	NEVER_WENT_TO_ANGLECHECK = 1,
-	NOTOPEN_NOTCLOSED, //(or equivalently light went out)
-	OPEN_NOTCLOSED,
-	NOTOPEN_CLOSED,
-	TIMEOUT_BEFORE_IMAGESNAP,
-	IMAGE_NOTCAPTURED,
-	IMAGE_NOTUPLOADED,
-	DOOR_SHUT_DURING_FILEOPEN,
+	NEVER_WENT_TO_ANGLECHECK = 1,	//Door shut before wake-up initializations were done (i.e door closed in < 1.5 sec)
+	NOTOPEN_NOTCLOSED, 	//or equivalently, light went out. Likely reason: door opening was too narrow
+	OPEN_NOTCLOSED,		//a likely problem with angle detection. Validate open and snap angles
+	NOTOPEN_CLOSED,		//user opens door very narrowly, so open condition was not met but snap condition was met
+	TIMEOUT_BEFORE_IMAGESNAP,	//Door open for too long
+	IMAGE_NOTCAPTURED,			//Image capture failure due to some image sensor/camera peripheral issue
+	IMAGE_NOTUPLOADED,			//Upload to Parse failed after 5 retries
+	DOOR_SHUT_DURING_FILEOPEN,	//Image file open did not complete when snap position was detected
 }e_GroundData_FailureReasonCodes;
 
 #define NO		0

@@ -338,8 +338,8 @@ int payloadSend( const char *httpRequestBody,
 		{
 			status = sl_FsRead(lFileHandle,
 								(SIZE_SOCK_WRITE_DATA*i),
-								//(unsigned char*)dataBuffer,
-								(unsigned char*)(dataBuffer+i*SIZE_SOCK_WRITE_DATA),
+								(unsigned char*)dataBuffer,
+								//(unsigned char*)(dataBuffer+i*SIZE_SOCK_WRITE_DATA),
 								SIZE_SOCK_WRITE_DATA);
 			 if (status < 0)
 			 {
@@ -352,8 +352,8 @@ int payloadSend( const char *httpRequestBody,
 			if (status >= 0)
 			{
 				long temp = status;
-				//status = socketWrite(socketHandle, dataBuffer, (status));
-				status = socketWrite(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), (status));
+				status = socketWrite(socketHandle, dataBuffer, (status));
+				//status = socketWrite(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), (status));
 				//status = socketWrite(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), SIZE_SOCK_WRITE_DATA);
 				//status = sl_Send(socketHandle, (dataBuffer+(i*SIZE_SOCK_WRITE_DATA)), SIZE_SOCK_WRITE_DATA, NULL);
 				//DEBUG_PRINT("[Parse] Payload Socket Write status: %d\r\n", status);
@@ -371,8 +371,8 @@ int payloadSend( const char *httpRequestBody,
 		{
 			status = sl_FsRead(lFileHandle,
 								(SIZE_SOCK_WRITE_DATA*i),
-								//(unsigned char*)dataBuffer,
-								(unsigned char*)(dataBuffer+(i*SIZE_SOCK_WRITE_DATA)),
+								(unsigned char*)dataBuffer,
+								//(unsigned char*)(dataBuffer+(i*SIZE_SOCK_WRITE_DATA)),
 								(fileInfo.FileLen%SIZE_SOCK_WRITE_DATA));
 			 if (status < 0)
 			 {

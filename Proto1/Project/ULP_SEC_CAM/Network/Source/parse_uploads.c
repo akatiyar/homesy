@@ -6,8 +6,6 @@
 #include "netcfg.h"
 #include "flash_files.h"
 
-#define FRIDGECAM_NAME_PREFIX		"Cam_"
-
 #define GROUND_DATA_OBJECT_SIZE		1024	//bytes
 #define USER_CONFIG_OBJECT_SIZE		500	//bytes
 
@@ -206,64 +204,6 @@ int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 			 ucLength);
 
 	return 0;
-}
-
-//******************************************************************************
-//	This function constructs and returns the Unique ID of the fridge cam
-//
-//	param[out]	pucFridgeCamID	- pointer to the variable where the DeviceID is
-//								placed
-//
-//	return SUCCESS or FAILURE
-//
-//	The MAC ID of the device concatenated to 'Cam' is the device ID
-//
-//	Note: The function involves a simplelink call. So ensure NWP is on before
-//			calling this fn.
-//******************************************************************************
-int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID)
-{
-	int32_t lRetVal;
-	uint8_t i;
-	uint8_t* pucTemp;
-	uint8_t macAddressVal[SL_MAC_ADDR_LEN];
-	uint8_t macAddressLen = SL_MAC_ADDR_LEN;
-
-	memset(pucFridgeCamID, '\0', FRIDGECAM_ID_SIZE);
-	strcpy((char*)pucFridgeCamID, FRIDGECAM_NAME_PREFIX);
-
-	pucTemp = pucFridgeCamID + strlen(FRIDGECAM_NAME_PREFIX);
-	lRetVal = sl_NetCfgGet(SL_MAC_ADDRESS_GET,NULL,&macAddressLen,(uint8_t *)macAddressVal);
-
-	for(i=0; i<SL_MAC_ADDR_LEN; i++)
-	{
-		//Left Nibble
-		*pucTemp = (macAddressVal[i] & 0xF0) >> 4;	//4-nibble size.
-		pucTemp++;
-
-		//RightNibble
-		*pucTemp = (macAddressVal[i] & 0x0F);
-		pucTemp++;
-	}
-
-	pucTemp = pucFridgeCamID + strlen(FRIDGECAM_NAME_PREFIX) ;
-	for(i=0; i<(SL_MAC_ADDR_LEN*2); i++)
-	{
-		//0-9
-		if(*pucTemp <= 9)
-		{
-			*pucTemp = *pucTemp + 0x30; 		// 0(Char) = 0x30(ASCII)
-		}
-		//A-F
-		else
-		{
-			*pucTemp = (*pucTemp-0x0A) + 0x41; // A(Char) = 0x41(ASCII)
-		}
-		pucTemp++;
-	}
-
-	UART_PRINT("FridgeCam ID: %s\n\r",pucFridgeCamID);
-    return lRetVal;
 }
 
 //******************************************************************************

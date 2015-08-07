@@ -14,8 +14,6 @@
 #define DEVICE_STATE_OBJECT_SIZE	500	//bytes
 #define PARSE_IMAGE_URL_SIZE		100	//bytes
 
-#define FRIDGECAM_ID_SIZE			20		//in Bytes; 12 characters for MAC ID + extra
-
 ParseClient InitialiseParse();
 int32_t UploadImageToParse(ParseClient client,
 							uint8_t* ucImageDirName,
@@ -32,7 +30,6 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 									float_t fRH,
 									uint8_t ucBatteryLevel,
 									uint8_t* pucSensorDataTxt);
-int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID);
 int32_t UploadGroundDataObjectToParse(ParseClient client,
 										uint8_t* pucFridgeCamID);
 int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,

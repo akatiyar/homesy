@@ -25,6 +25,18 @@
 
 extern OsiTaskHandle g_UserConfigTaskHandle;
 
+extern int32_t sendUserConfigData();
+
+Reset_byStarvingWDT()
+{
+	g_ucFeedWatchdog = 0;
+	while(1)
+	{
+		osi_Sleep(100);
+		UART_PRINT("@");
+	}
+}
+
 void Main_Task_withHibernate(void *pvParameters)
 {
 	WDT_init();
@@ -38,7 +50,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		//Enter the application funcitonality
 		application_fn();
 	}
-	//This branch is entered on power on (Battery insert) or soc RST(OTA reboot)
+	//This branch is entered on power on (Battery insert) or SOC reset(OTA reboot)
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
     		(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET)||
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
@@ -49,7 +61,9 @@ void Main_Task_withHibernate(void *pvParameters)
     	//Give time to press the push button for OTA or MobileApp config
 		//LED_Blink(10, 1);
     	LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
+#ifndef	DEBUG_MODE
     	osi_Sleep(10000);	//10 second wait for user to press a button
+#endif
 
 		//Wait if User Config is happening presently
 		//Loop will exit if UserConfig is over or UserConfig was never entered
@@ -57,30 +71,34 @@ void Main_Task_withHibernate(void *pvParameters)
 		{
 			osi_Sleep(100);
 		}
-		//osi_TaskDelete(&g_UserConfigTaskHandle);
+		osi_TaskDelete(&g_UserConfigTaskHandle);
+
+    	LED_On();
 		UART_PRINT("!!Application running!!\n\r");
 
 		Check_I2CDevices();		//Tag:Remove once I2C issues are resolved
 
-		//DBG - having to read out first few angle values
-/*		NWP_SwitchOn();
+		/*//DBG - having to read out first few angle values
+		NWP_SwitchOn();
 		angleCheck_Initializations();
 		magnetometer_initialize();
 		int i;
 		while(1)
 		{
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
-			for(i=0;i<20;i++){get_angle();check_doorpos();}
+			for(i=0;i<200;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+//			for(i=0;i<20;i++){get_angle();check_doorpos();}
+		}
+
 //			get_angle();
 //			check_doorpos();
 //			get_angle();
@@ -104,7 +122,7 @@ void Main_Task_withHibernate(void *pvParameters)
 //			check_doorpos();
 //			get_angle();
 //			check_doorpos();
-		}
+
 		//RdSensData_Init();
 		//uint32_t ulTimeDuration_ms;*/
 /*		while(1)
@@ -163,7 +181,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		}*/
 
 		//Configure Light sensor for reading Lux. It has to be done the first time
-		configureISL29035(0, LUX_THRESHOLD, NULL);
+		configureISL29035(0, NULL, NULL);
 
 		//Configure Temperature and RH sensor. Done once on power-on.
 		softResetTempRHSensor();
@@ -186,6 +204,23 @@ void Main_Task_withHibernate(void *pvParameters)
   		//Commits image if running in test mode
 		OTA_CommitImage();
 	}
+
+    //A way to reset the device without removing the battery
+    if(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
+    {
+    	UART_PRINT("Reset button press detected\nRelease button now\n");
+    	LED_Off();
+    	while(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
+    	{
+    		osi_Sleep(100);
+    	}
+    	UART_PRINT("Button released\n");
+#ifdef WATCHDOG_ENABLE
+    	Reset_byStarvingWDT();
+#else
+    	PRCMSOCReset();
+#endif
+    }
 
     // Hibernate. Setting up wake-up source is part of this function
 	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
