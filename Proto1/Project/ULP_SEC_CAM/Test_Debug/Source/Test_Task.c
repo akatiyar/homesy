@@ -13,7 +13,11 @@
 #include "appFns.h"
 void Test_Task(void *pvParameters)
 {
-
+	while(1)
+	{
+		UART_PRINT("%x\n",IS_PUSHBUTTON_PRESSED);
+	}
+#ifdef COMPILE_THIS
 	float OpenAngle;
 
 	OpenAngle = Calculate_DoorOpenThresholdAngle(30.56,80.32);
@@ -25,6 +29,7 @@ void Test_Task(void *pvParameters)
 	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
 	OpenAngle = Calculate_DoorOpenThresholdAngle(19.2, 330.83);
 	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+#endif
 
 #ifdef COMPILE_THIS
 	LEDTimer_Enable();

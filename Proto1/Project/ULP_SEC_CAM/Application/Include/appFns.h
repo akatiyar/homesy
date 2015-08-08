@@ -29,4 +29,8 @@ extern int8_t IsInterruptFromLightSensor();
 extern int8_t IsInterruptFromBatteryADC();
 extern int32_t ClearInterrupt_IOExpander();
 
+extern int16_t IsLongPress();
+
+extern void Reset_byStarvingWDT();
+
 #endif /* APPFNS_H_ */

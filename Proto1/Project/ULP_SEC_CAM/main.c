@@ -357,7 +357,7 @@ void main()
 		PowerDown_LightSensor();
 #ifndef  IOEXPANDER_PRESENT
 		//Hibernate with no wake. Give a power reset i.e remove battery and put
-		//it back (after charging)
+		//it back (after charging) to wake device
 		UART_PRINT("Hibernating...\n");
 		HIBernate(NULL, NULL, NULL, NULL);
 #else
@@ -431,7 +431,7 @@ void main()
     lRetVal = osi_TaskCreate(
     				ImageSensor_CaptureConfigs_Task,
 					(const signed char *)"ImageSensor capture configs",
-					OSI_STACK_SIZE,
+					OSI_STACK_SIZE_USERCONFIG_TASK,
 					NULL,
 					1,
 					&g_ImageCaptureConfigs_TaskHandle );

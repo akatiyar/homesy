@@ -23,7 +23,8 @@
 
 //#define FIRMWARE_VERSION 		"F30 Robust Angle"
 //#define FIRMWARE_VERSION 		"F30 Reset with button"
-#define FIRMWARE_VERSION 		"Release 0.0.12"
+//#define FIRMWARE_VERSION 		"Release 0.0.12"
+#define FIRMWARE_VERSION 		"F31 switch funcitons"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -40,7 +41,8 @@
 #define SLEEP_TIME              		8000000
 //#define OSI_STACK_SIZE          		3000
 #define OSI_STACK_SIZE          		3000	//in bytes
-#define OSI_STACK_SIZE_MAIN_TASK		4000	//in bytes
+#define OSI_STACK_SIZE_MAIN_TASK			4000	//in bytes
+#define OSI_STACK_SIZE_USERCONFIG_TASK		4000	//in bytes
 
 #define IMAGE_QUANTIZ_SCALE		(0x0020)
 //#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug

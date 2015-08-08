@@ -9,6 +9,8 @@
 #include "accelomtrMagntomtr_fxos8700.h"
 #include "app_common.h"
 #include "appFns.h"
+#include "watchdog.h"
+#include "timer_fns.h"
 
 #define ANGLE_90		0
 #define ANGLE_40		1
@@ -36,7 +38,8 @@ static int32_t Get_Calibration_MagSensor();
 static int32_t CollectAngle(uint8_t ucAngle);
 
 float_t* g_pfUserConfigData = (float_t *) g_image_buffer;
-
+#define CONFIG_MODE_USER_ACTION_TIMEOUT		600	//in units of 100ms
+												//1 minute = 1*60*10 = 600
 //******************************************************************************
 // This function calls the function corresponding to button presses (button
 //	presses are translated to global flag changes in network_related_fns.c) from
@@ -56,6 +59,10 @@ int32_t User_Configure()
 	bool run_flag=true;
 	int32_t lFileHandle;
 
+	//So the user gets USERCONFIG_TIMEOUT amount of time to do the configurations
+	g_ulWatchdogCycles = 0;
+	g_ulAppTimeout_ms = USERCONFIG_TIMEOUT;
+
 	AccessPtMode_HTTPServer_Start();
 
 	// Reading the file, since write erases contents already present
@@ -63,8 +70,40 @@ int32_t User_Configure()
 						(uint8_t*)USER_CONFIGS_FILENAME,
 						CONTENT_LENGTH_USER_CONFIGS, 0);
 
+	start_100mSecTimer();	//The timer does not timeout on it's own. We check
+							//the elapsed time and break the while loop on timeout
+
+	//Wait till phone connect to cc3200 AP or till push button is pressed or
+	//timeout happens
+	while(1)
+	{
+		if(IS_PUSHBUTTON_PRESSED || g_PhoneConnected_ToCC3200AP_flag)
+		{
+			break;
+		}
+		if((Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT))
+		{
+			UART_PRINT("Timeout... User did not connect phone\n");
+			return 0;
+		}
+		osi_Sleep(10);
+	}
+
+	stop_100mSecTimer();	//Stop the timeout timer.
+
 	while(run_flag == true)
     {
+		//Abort the UserConfig mode if the user presses the button
+		//If user had configured something before pressing thebutton,
+		//it will not be saved.
+		if(IS_PUSHBUTTON_PRESSED)
+		{
+			UART_PRINT("User pressed button to exit\n");
+			LED_On();	//Indicating to user
+			run_flag = false;
+			//break;
+		}
+
 		if(g_ucCalibration == BUTTON_PRESSED)
 		{
 			UART_PRINT("*** Calibration\n\r");
@@ -75,6 +114,7 @@ int32_t User_Configure()
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucCalibration = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
+			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
     	}
 		if(g_ucAngle40 == BUTTON_PRESSED)
 		{
@@ -85,6 +125,7 @@ int32_t User_Configure()
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle40 = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
+			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
 		}
 
 		if(g_ucAngle90 == BUTTON_PRESSED)
@@ -96,6 +137,7 @@ int32_t User_Configure()
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle90 = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
+			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
 		}
 
 		if(g_ucConfig == BUTTON_PRESSED)
@@ -105,9 +147,10 @@ int32_t User_Configure()
 			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucConfig = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
-    	}
+			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
+		}
 
-		if(g_ucExitButton == BUTTON_PRESSED)
+		if((g_ucExitButton == BUTTON_PRESSED)/*||(Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT)*/)
 		{
 			LED_On();
 			*(g_pfUserConfigData + (OFFSET_ANGLE_OPEN/sizeof(float))) = Calculate_DoorOpenThresholdAngle(*(g_pfUserConfigData + (OFFSET_ANGLE_40/sizeof(float))),*(g_pfUserConfigData + (OFFSET_ANGLE_90/sizeof(float))));
@@ -133,8 +176,9 @@ int32_t User_Configure()
 
 			g_ucExitButton = BUTTON_NOT_PRESSED;
 			run_flag = false;
-			break;
+			//break;
 		}
+
 		osi_Sleep(10);
     }
 

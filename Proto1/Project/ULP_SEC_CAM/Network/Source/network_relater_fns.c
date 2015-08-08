@@ -30,6 +30,7 @@ void InitializeUserConfigVariables()
     g_ucProfileAdded = 0;
     g_ucConnectedToConfAP = 0;
 	g_ucProvisioningDone = 0;
+	g_PhoneConnected_ToCC3200AP_flag = 0;
 
 	g_ucAngle90 = BUTTON_NOT_PRESSED;
 	g_ucAngle40 = BUTTON_NOT_PRESSED;
@@ -451,6 +452,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
         case SL_WLAN_STA_CONNECTED_EVENT:
         {
         	UART_PRINT("[WLAN EVENT] Mobile Station connected to CC3200-AP\n\r");
+        	g_PhoneConnected_ToCC3200AP_flag = 1;
         	LED_Blink_2(.5,.5,BLINK_FOREVER);
         }
         break;

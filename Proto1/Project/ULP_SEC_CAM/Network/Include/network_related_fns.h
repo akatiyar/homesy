@@ -50,7 +50,7 @@ unsigned char g_ucConfig;
 unsigned char g_ucCalibration;
 unsigned char g_ucExitButton;
 unsigned char g_ucPushButtonPressedTwice;
-
+unsigned char g_PhoneConnected_ToCC3200AP_flag;
 extern unsigned char g_ucConnectedToConfAP, g_ucProvisioningDone;
 extern unsigned char g_ucPriority;
 

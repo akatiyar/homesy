@@ -181,6 +181,13 @@ int32_t application_fn()
 					UART_PRINT("Timeout\n\r");
 					break;
 				}
+				//Check for button press to let the user enter UserConfig mode
+				// or do OTA
+				if(IS_PUSHBUTTON_PRESSED)
+				{
+					LED_Off();
+					Reset_byStarvingWDT();
+				}
 			}
 		}
 		UART_PRINT("d\n");
@@ -293,44 +300,6 @@ int32_t application_fn()
 		{
 			SendGroundData();
 		}
-
-		/*LED_On();
-
-		//Tag:Timestamp door close/30sec timeout/door still open but image was uploaded - use a light on
-		//Tag:Upload GroundData object
-		if(IsLightOff(LUX_THRESHOLD))
-		{
-			cc_rtc_get(&time_now);
-			g_TimeStamp_DoorClosed = time_now.secs * 1000 + time_now.nsec / 1000000;
-		}
-
-		g_TimeStamp_maxAngle = g_Struct_TimeStamp_MaxAngle.secs * 1000 + g_Struct_TimeStamp_MaxAngle.nsec / 1000000;
-		g_TimeStamp_minAngle = g_Struct_TimeStamp_MinAngle.secs * 1000 + g_Struct_TimeStamp_MinAngle.nsec / 1000000;
-
-		//If clienthandle does not already exist, connect to WiFi and initialize parse
-		if(clientHandle == NULL)
-		{
-			//Connect to WiFi
-			lRetVal = WiFi_Connect();
-			if (lRetVal < 0)
-			{
-				NWP_SwitchOff();
-				ASSERT_ON_ERROR(lRetVal);
-			}
-
-			//	Parse initialization
-			clientHandle = InitialiseParse();
-
-			Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from unique MAC
-												//ID of the CC3200 device
-		}
-
-		UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
-
-		free((void*)clientHandle);	//malloc() in InitializeParse()
-
-		//free((void*)clientHandle_1);	//malloc() in InitializeParse()
-		NWP_SwitchOff();*/
 	}
 
 	return lRetVal;

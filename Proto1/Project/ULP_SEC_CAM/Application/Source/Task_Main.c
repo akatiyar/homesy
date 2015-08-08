@@ -27,16 +27,6 @@ extern OsiTaskHandle g_UserConfigTaskHandle;
 
 extern int32_t sendUserConfigData();
 
-Reset_byStarvingWDT()
-{
-	g_ucFeedWatchdog = 0;
-	while(1)
-	{
-		osi_Sleep(100);
-		UART_PRINT("@");
-	}
-}
-
 void Main_Task_withHibernate(void *pvParameters)
 {
 	WDT_init();
@@ -59,8 +49,6 @@ void Main_Task_withHibernate(void *pvParameters)
     	UART_PRINT("*** %s ***\n\r", FIRMWARE_VERSION);
 
     	//Give time to press the push button for OTA or MobileApp config
-		//LED_Blink(10, 1);
-    	LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
 #ifndef	DEBUG_MODE
     	osi_Sleep(10000);	//10 second wait for user to press a button
 #endif
@@ -205,7 +193,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		OTA_CommitImage();
 	}
 
-    //A way to reset the device without removing the battery
+    /*//A way to reset the device without removing the battery
     if(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
     {
     	UART_PRINT("Reset button press detected\nRelease button now\n");
@@ -220,7 +208,7 @@ void Main_Task_withHibernate(void *pvParameters)
 #else
     	PRCMSOCReset();
 #endif
-    }
+    }*/
 
     // Hibernate. Setting up wake-up source is part of this function
 	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);
