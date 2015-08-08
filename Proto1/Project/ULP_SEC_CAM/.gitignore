@@ -1,2 +1,9 @@
-/Release
-/Debug
+
+*.obj
+*.mk
+*.pp
+*.opt
+*.xml
+*.out
+*.map
+makefile
