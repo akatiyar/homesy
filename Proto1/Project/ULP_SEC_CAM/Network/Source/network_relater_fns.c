@@ -8,9 +8,69 @@ extern volatile unsigned char g_CaptureImage;
 char Token[100]="";
 char Value[100]="";
 
+
+
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 extern int32_t NWP_SwitchOn();
 extern int32_t NWP_SwitchOff();
+
+//!    ######################### list of SNTP servers ##################################
+//!    ##
+//!    ##          hostname         |        IP       |       location
+//!    ## -----------------------------------------------------------------------------
+//!    ##   nist1-nj2.ustiming.org  | 165.193.126.229 |  Weehawken, NJ
+//!    ##   nist1-pa.ustiming.org   | 206.246.122.250 |  Hatfield, PA
+//!    ##   time-a.nist.gov         | 129.6.15.28     |  NIST, Gaithersburg, Maryland
+//!    ##   time-b.nist.gov         | 129.6.15.29     |  NIST, Gaithersburg, Maryland
+//!    ##   time-c.nist.gov         | 129.6.15.30     |  NIST, Gaithersburg, Maryland
+//!    ##   ntp-nist.ldsbc.edu      | 198.60.73.8     |  LDSBC, Salt Lake City, Utah
+//!    ##   nist1-macon.macon.ga.us | 98.175.203.200  |  Macon, Georgia
+//!
+//!    ##   For more SNTP server link visit 'http://tf.nist.gov/tf-cgi/servers.cgi'
+//!    ###################################################################################
+const char g_acSNTPserver[30] = "nist1-macon.macon.ga.us"; //Add any one of the above servers
+
+// Tuesday is the 1st day in 2013 - the relative year
+const char g_acDaysOfWeek2013[7][3] = {{"Tue"},
+                                    {"Wed"},
+                                    {"Thu"},
+                                    {"Fri"},
+                                    {"Sat"},
+                                    {"Sun"},
+                                    {"Mon"}};
+
+const char g_acMonthOfYear[12][3] = {{"Jan"},
+                                  {"Feb"},
+                                  {"Mar"},
+                                  {"Apr"},
+                                  {"May"},
+                                  {"Jun"},
+                                  {"Jul"},
+                                  {"Aug"},
+                                  {"Sep"},
+                                  {"Oct"},
+                                  {"Nov"},
+                                  {"Dec"}};
+
+const char g_acNumOfDaysPerMonth[12] = {31, 28, 31, 30, 31, 30,
+                                        31, 31, 30, 31, 30, 31};
+
+const char g_acDigits[] = "0123456789";
+
+struct
+{
+    unsigned long ulDestinationIP;
+    int iSockID;
+    unsigned long ulElapsedSec;
+    short isGeneralVar;
+    unsigned long ulGeneralVar;
+    unsigned long ulGeneralVar1;
+    char acTimeStore[30];
+    char *pcCCPtr;
+    unsigned short uisCCLen;
+}g_TimeData;
+
+
 //****************************************************************************
 //
 //!    \brief This function initializes the application variables
@@ -220,6 +280,320 @@ int ConfigureMode(int iMode)
     return NWP_SwitchOn();
 }
 
+long GetSNTPTime(SlDateTime_t *dateTime, unsigned char ucGmtDiffHr, unsigned char ucGmtDiffMins)
+{
+
+	SlSockAddr_t sAddr;
+	SlSockAddrIn_t sLocalAddr;
+
+/*
+                            NTP Packet Header:
+
+
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9  0  1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |LI | VN  |Mode |    Stratum    |     Poll      |   Precision    |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                          Root  Delay                           |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                       Root  Dispersion                         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                     Reference Identifier                       |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                                |
+      |                    Reference Timestamp (64)                    |
+      |                                                                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                                |
+      |                    Originate Timestamp (64)                    |
+      |                                                                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                                |
+      |                     Receive Timestamp (64)                     |
+      |                                                                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                                |
+      |                     Transmit Timestamp (64)                    |
+      |                                                                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                 Key Identifier (optional) (32)                 |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                                |
+      |                                                                |
+      |                 Message Digest (optional) (128)                |
+      |                                                                |
+      |                                                                |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+    char cDataBuf[48];
+    long lRetVal = 0;
+    int iAddrSize;
+    //
+    // Send a query ? to the NTP server to get the NTP time
+    //
+    memset(cDataBuf, 0, sizeof(cDataBuf));
+    cDataBuf[0] = '\x1b';
+
+    sAddr.sa_family = AF_INET;
+    // the source port
+    sAddr.sa_data[0] = 0x00;
+    sAddr.sa_data[1] = 0x7B;    // UDP port number for NTP is 123
+    sAddr.sa_data[2] = (char)((g_TimeData.ulDestinationIP>>24)&0xff);
+    sAddr.sa_data[3] = (char)((g_TimeData.ulDestinationIP>>16)&0xff);
+    sAddr.sa_data[4] = (char)((g_TimeData.ulDestinationIP>>8)&0xff);
+    sAddr.sa_data[5] = (char)(g_TimeData.ulDestinationIP&0xff);
+
+    lRetVal = sl_SendTo(g_TimeData.iSockID,
+                     cDataBuf,
+                     sizeof(cDataBuf), 0,
+                     &sAddr, sizeof(sAddr));
+    if (lRetVal != sizeof(cDataBuf))
+    {
+        // could not send SNTP request
+        ASSERT_ON_ERROR(-2050);
+    }
+
+    //
+    // Wait to receive the NTP time from the server
+    //
+    sLocalAddr.sin_family = SL_AF_INET;
+    sLocalAddr.sin_port = 0;
+    sLocalAddr.sin_addr.s_addr = 0;
+    if(g_TimeData.ulElapsedSec == 0)
+    {
+        lRetVal = sl_Bind(g_TimeData.iSockID,
+                (SlSockAddr_t *)&sLocalAddr,
+                sizeof(SlSockAddrIn_t));
+    }
+
+    iAddrSize = sizeof(SlSockAddrIn_t);
+
+    lRetVal = sl_RecvFrom(g_TimeData.iSockID,
+                       cDataBuf, sizeof(cDataBuf), 0,
+                       (SlSockAddr_t *)&sLocalAddr,
+                       (SlSocklen_t*)&iAddrSize);
+    ASSERT_ON_ERROR(lRetVal);
+
+    //
+    // Confirm that the MODE is 4 --> server
+    //
+    if ((cDataBuf[0] & 0x7) != 4)    // expect only server response
+    {
+         ASSERT_ON_ERROR(-2050);  // MODE is not server, abort
+    }
+    else
+    {
+        unsigned char iIndex;
+
+        //
+        // Getting the data from the Transmit Timestamp (seconds) field
+        // This is the time at which the reply departed the
+        // server for the client
+        //
+        g_TimeData.ulElapsedSec = cDataBuf[40];
+        g_TimeData.ulElapsedSec <<= 8;
+        g_TimeData.ulElapsedSec += cDataBuf[41];
+        g_TimeData.ulElapsedSec <<= 8;
+        g_TimeData.ulElapsedSec += cDataBuf[42];
+        g_TimeData.ulElapsedSec <<= 8;
+        g_TimeData.ulElapsedSec += cDataBuf[43];
+
+        //
+        // seconds are relative to 0h on 1 January 1900
+        //
+        g_TimeData.ulElapsedSec -= TIME2013;
+
+        //
+        // in order to correct the timezone
+        //
+        g_TimeData.ulElapsedSec += (ucGmtDiffHr * SEC_IN_HOUR);
+        g_TimeData.ulElapsedSec += (ucGmtDiffMins * SEC_IN_MIN);
+
+        g_TimeData.pcCCPtr = &g_TimeData.acTimeStore[0];
+
+        //
+        // day, number of days since beginning of 2013
+        //
+        g_TimeData.isGeneralVar = g_TimeData.ulElapsedSec/SEC_IN_DAY;
+        memcpy(g_TimeData.pcCCPtr,
+               g_acDaysOfWeek2013[g_TimeData.isGeneralVar%7], 3);
+        g_TimeData.pcCCPtr += 3;
+        *g_TimeData.pcCCPtr++ = '\x20';
+
+        //
+        // month
+        //
+        g_TimeData.isGeneralVar %= 365;
+        for (iIndex = 0; iIndex < 12; iIndex++)
+        {
+        	g_TimeData.isGeneralVar -= g_acNumOfDaysPerMonth[iIndex];
+            if (g_TimeData.isGeneralVar < 0)
+                    break;
+        }
+        if(iIndex == 12)
+        {
+            iIndex = 0;
+        }
+
+
+        	dateTime->sl_tm_mon = iIndex + 1;
+
+
+
+        memcpy(g_TimeData.pcCCPtr, g_acMonthOfYear[iIndex], 3);
+        g_TimeData.pcCCPtr += 3;
+        *g_TimeData.pcCCPtr++ = '\x20';
+
+        //
+        // date
+        // restore the day in current month
+        //
+        g_TimeData.isGeneralVar += g_acNumOfDaysPerMonth[iIndex];
+        g_TimeData.uisCCLen = intToASCII(g_TimeData.isGeneralVar + 1,
+        		g_TimeData.pcCCPtr);
+        g_TimeData.pcCCPtr += g_TimeData.uisCCLen;
+        *g_TimeData.pcCCPtr++ = '\x20';
+
+        dateTime->sl_tm_day = g_TimeData.isGeneralVar + 1;
+        //
+        // time
+        //
+        g_TimeData.ulGeneralVar = g_TimeData.ulElapsedSec%SEC_IN_DAY;
+
+        // number of seconds per hour
+        g_TimeData.ulGeneralVar1 = g_TimeData.ulGeneralVar%SEC_IN_HOUR;
+
+        // number of hours
+        g_TimeData.ulGeneralVar /= SEC_IN_HOUR;
+
+        dateTime->sl_tm_hour = g_TimeData.ulGeneralVar;
+
+        g_TimeData.uisCCLen = intToASCII(g_TimeData.ulGeneralVar,
+        		g_TimeData.pcCCPtr);
+        g_TimeData.pcCCPtr += g_TimeData.uisCCLen;
+        *g_TimeData.pcCCPtr++ = ':';
+
+        // number of minutes per hour
+        g_TimeData.ulGeneralVar = g_TimeData.ulGeneralVar1/SEC_IN_MIN;
+
+        // number of seconds per minute
+        g_TimeData.ulGeneralVar1 %= SEC_IN_MIN;
+        g_TimeData.uisCCLen = intToASCII(g_TimeData.ulGeneralVar,
+        		g_TimeData.pcCCPtr);
+        g_TimeData.pcCCPtr += g_TimeData.uisCCLen;
+        *g_TimeData.pcCCPtr++ = ':';
+        g_TimeData.uisCCLen = intToASCII(g_TimeData.ulGeneralVar1,
+        		g_TimeData.pcCCPtr);
+        g_TimeData.pcCCPtr += g_TimeData.uisCCLen;
+        *g_TimeData.pcCCPtr++ = '\x20';
+
+        //
+        // year
+        // number of days since beginning of 2013
+        //
+        g_TimeData.ulGeneralVar = g_TimeData.ulElapsedSec/SEC_IN_DAY;
+        g_TimeData.ulGeneralVar /= 365;
+        g_TimeData.uisCCLen = intToASCII(YEAR2013 + g_TimeData.ulGeneralVar,
+        		g_TimeData.pcCCPtr);
+        g_TimeData.pcCCPtr += g_TimeData.uisCCLen;
+
+        dateTime->sl_tm_year = YEAR2013 + g_TimeData.ulGeneralVar;
+
+        *g_TimeData.pcCCPtr++ = '\0';
+
+        UART_PRINT("response from server: ");
+        UART_PRINT((char *)g_acSNTPserver);
+        UART_PRINT(":");
+        UART_PRINT(g_TimeData.acTimeStore);
+    }
+    return SUCCESS;
+}
+
+long Network_IF_GetHostIP( char* pcHostName,unsigned long * pDestinationIP )
+{
+
+	long lStatus=-1;
+	lStatus = sl_NetAppDnsGetHostByName((signed char *) pcHostName,
+                                            strlen(pcHostName),
+                                            pDestinationIP, SL_AF_INET);
+    ASSERT_ON_ERROR(lStatus);
+
+    return lStatus;
+
+//    UART_PRINT("Get Host IP succeeded.\n\rHost: %s IP: %d.%d.%d.%d \n\r\n\r",
+//                    pcHostName, SL_IPV4_BYTE(*pDestinationIP,3),
+//                    SL_IPV4_BYTE(*pDestinationIP,2),
+//                    SL_IPV4_BYTE(*pDestinationIP,1),
+//                    SL_IPV4_BYTE(*pDestinationIP,0));
+
+}
+
+int32_t GetTimeNTP(SlDateTime_t *dateTime)
+{
+    int iSocketDesc;
+    long lRetVal = -1;
+    int count=0;
+
+    //
+    // Create UDP socket
+    //
+    iSocketDesc = sl_Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if(iSocketDesc < 0)
+    {
+        ERR_PRINT(iSocketDesc);
+    }
+
+    //
+    // Get the NTP server host IP address using the DNS lookup
+    //
+    lRetVal = Network_IF_GetHostIP((char*)g_acSNTPserver, \
+                                    &g_TimeData.ulDestinationIP);
+
+    if( lRetVal >= 0)
+    {
+
+        struct SlTimeval_t timeVal;
+        timeVal.tv_sec =  SERVER_RESPONSE_TIMEOUT;    // Seconds
+        timeVal.tv_usec = 0;     // Microseconds. 10000 microseconds resolution
+        lRetVal = sl_SetSockOpt(g_TimeData.iSockID,SL_SOL_SOCKET,SL_SO_RCVTIMEO,\
+                        (unsigned char*)&timeVal, sizeof(timeVal));
+
+        ASSERT_ON_ERROR(lRetVal);
+
+        do
+        {
+            //
+            // Get the NTP time and display the time
+            //
+            lRetVal = GetSNTPTime(dateTime,GMT_DIFF_TIME_HRS, GMT_DIFF_TIME_MINS);
+            if(lRetVal == 0)
+            {
+                UART_PRINT("\nTime received from NTP server\n\r");
+                break;
+            }
+
+            //
+            // Wait a while before resuming
+            //
+            MAP_UtilsDelay(SLEEP_TIME);
+            count++;
+        }
+        while(count < 5);
+        ASSERT_ON_ERROR(lRetVal);
+    }
+    else
+    {
+        UART_PRINT("DNS lookup failed. \n\r");
+    }
+
+    //
+    // Close the socket
+    //
+    close(iSocketDesc);
+    return SUCCESS;
+}
+
 
 int32_t WiFi_Connect()
 {
@@ -261,10 +635,16 @@ int32_t WiFi_Connect()
 	// TODO: Set to current date/time (within an hour precision)
 	SlDateTime_t dateTime;
 	memset(&dateTime, 0, sizeof(dateTime));
+
+
+
 	dateTime.sl_tm_year = 2015;
-	dateTime.sl_tm_mon = 4;
-	dateTime.sl_tm_day = 30;
-	dateTime.sl_tm_hour = 19;
+	dateTime.sl_tm_mon = 8;
+	dateTime.sl_tm_day = 12;
+	dateTime.sl_tm_hour = 10;
+
+	GetTimeNTP(&dateTime);
+
 	sl_DevSet(SL_DEVICE_GENERAL_CONFIGURATION,
 				SL_DEVICE_GENERAL_CONFIGURATION_DATE_TIME,
 				sizeof(SlDateTime_t), (unsigned char *)&dateTime);
@@ -673,8 +1053,6 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         	UART_PRINT("Token : %s\n\r",Token);
         	UART_PRINT("Value : %s\n\r",Value);
 
-
-
         	//angle90 , angle40
         	if(0 == memcmp(Token, TOK_ANGLE, Token_Len))
 			{
@@ -703,7 +1081,6 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         	//Security Type
         	else if(0 == memcmp(Token, TOK_KEYTYPE, Token_Len))		//__SL_P_USE
         	{
-        		//memcpy(g_cWlanSSID,  Token, Token_Len);
 				if(Value[0] == '0')
 				{
 					g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
@@ -732,7 +1109,7 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
 				g_SecParams.Key = g_cWlanSecurityKey;
 				g_SecParams.KeyLen = Value_Len;
 			}
-        	else if(0 == memcmp(Token, TOK_CONFIG_DONE, Token_Len))		//__SL_P_US0
+        	else if(0 == memcmp(Token, TOK_CONFIG_WIFI, Token_Len))		//__SL_P_US0
         	{
         		g_ucConfig = BUTTON_PRESSED;
             }
@@ -744,90 +1121,6 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
 				}
         	}
         }
-//        {
-//        	 if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//        	                     "Done_Configs", \
-//        	                     pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-//			{
-//				memcpy(g_cWlanSSID,  \
-//				pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-//				pSlHttpServerEvent->EventData.httpPostData.token_value.len);
-//				g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
-//			}
-//
-//            if((0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//                          "__SL_P_USC", \
-//                 pSlHttpServerEvent->EventData.httpPostData.token_name.len)) && \
-//            (0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-//                     "Add", \
-//                     pSlHttpServerEvent->EventData.httpPostData.token_value.len)))
-//            {
-//                g_ucProfileAdded = 1;
-//
-//            }
-//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//                     "__SL_P_USD", \
-//                     pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-//            {
-//                memcpy(g_cWlanSSID,  \
-//                pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-//                pSlHttpServerEvent->EventData.httpPostData.token_value.len);
-//                g_cWlanSSID[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
-//            }
-//
-//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//                         "__SL_P_USE", \
-//                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-//            {
-//
-//                if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
-//                                                                        == '0')
-//                {
-//                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
-//
-//                }
-//                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] \
-//                                                                        == '1')
-//                {
-//                    g_SecParams.Type =  SL_SEC_TYPE_WEP;//SL_SEC_TYPE_WEP
-//
-//                }
-//                else if(pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] == '2')
-//                {
-//                    g_SecParams.Type =  SL_SEC_TYPE_WPA;//SL_SEC_TYPE_WPA
-//
-//                }
-//                else
-//                {
-//                    g_SecParams.Type =  SL_SEC_TYPE_OPEN;//SL_SEC_TYPE_OPEN
-//                }
-//                g_cWlanSecurityType[0] = g_SecParams.Type;
-//                g_cWlanSecurityType[1] = 0;
-//            }
-//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//                         "__SL_P_USF", \
-//                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-//            {
-//                memcpy(g_cWlanSecurityKey, \
-//                    pSlHttpServerEvent->EventData.httpPostData.token_value.data, \
-//                    pSlHttpServerEvent->EventData.httpPostData.token_value.len);
-//                g_cWlanSecurityKey[pSlHttpServerEvent->EventData.httpPostData.token_value.len] = 0;
-//                g_SecParams.Key = g_cWlanSecurityKey;
-//                g_SecParams.KeyLen = pSlHttpServerEvent->EventData.httpPostData.token_value.len;
-//            }
-//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//                        "__SL_P_USG", \
-//                        pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-//            {
-//                g_ucPriority = pSlHttpServerEvent->EventData.httpPostData.token_value.data[0] - 48;
-//            }
-//            if(0 == memcmp(pSlHttpServerEvent->EventData.httpPostData.token_name.data, \
-//                         "__SL_P_US0", \
-//                         pSlHttpServerEvent->EventData.httpPostData.token_name.len))
-//            {
-//                g_ucProvisioningDone = 1;
-//            }
-//        }
         break;
 
       default:

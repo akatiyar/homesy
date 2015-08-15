@@ -23,8 +23,8 @@
 
 //#define FIRMWARE_VERSION 		"F30 Robust Angle"
 //#define FIRMWARE_VERSION 		"F30 Reset with button"
-//#define FIRMWARE_VERSION 		"Release 0.0.12"
-#define FIRMWARE_VERSION 		"F31 switch funcitons"
+#define FIRMWARE_VERSION 		"Release 0.0.13"
+//#define FIRMWARE_VERSION 		"Uthra Testing 0.15"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -63,7 +63,7 @@
 #define PI				(3.141592654F)
 
 #define TEST_MODULES_INCLUDE
-#define USB_DEBUG
+//#define USB_DEBUG
 #define DEBUG_ENABLE
 #ifndef DEBUG_ENABLE
 #define NOTERM

@@ -66,108 +66,6 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Check_I2CDevices();		//Tag:Remove once I2C issues are resolved
 
-		/*//DBG - having to read out first few angle values
-		NWP_SwitchOn();
-		angleCheck_Initializations();
-		magnetometer_initialize();
-		int i;
-		while(1)
-		{
-			for(i=0;i<200;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-//			for(i=0;i<20;i++){get_angle();check_doorpos();}
-		}
-
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-//			get_angle();
-//			check_doorpos();
-
-		//RdSensData_Init();
-		//uint32_t ulTimeDuration_ms;*/
-/*		while(1)
-		{
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-			get_angle();
-			check_doorpos();
-		}*/
-/*		while(1)
-		{
-			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
-			get_angle();
-			ulTimeDuration_ms = get_timeDuration();
-			stop_100mSecTimer();
-			UART_PRINT("1. Time - %d ms\n\r", ulTimeDuration_ms);
-
-			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
-			get_angle();
-			ulTimeDuration_ms = get_timeDuration();
-			stop_100mSecTimer();
-			UART_PRINT("2. Time - %d ms\n\r", ulTimeDuration_ms);
-
-			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
-			get_angle();
-			ulTimeDuration_ms = get_timeDuration();
-			stop_100mSecTimer();
-			UART_PRINT("3. Time - %d ms\n\r", ulTimeDuration_ms);
-
-			start_100mSecTimer();	//Tag:Remove when waketime optimization is over
-			get_angle();
-			ulTimeDuration_ms = get_timeDuration();
-			stop_100mSecTimer();
-			UART_PRINT("4. Time - %d ms\n\r", ulTimeDuration_ms);
-		}*/
-
 		//Configure Light sensor for reading Lux. It has to be done the first time
 		configureISL29035(0, NULL, NULL);
 
@@ -181,13 +79,21 @@ void Main_Task_withHibernate(void *pvParameters)
 		Standby_ImageSensor();
 
 //Use the folowing code to test without hibernate
-/*
+
+#ifdef USB_DEBUG
+		OTA_CommitImage();
+
   		while(1)
 		{
+  			Wakeup_ImageSensor();		//Wake the image sensor
+  			ReStart_CameraCapture();	//Restart image capture
+  			ImagCapture_Init();			//Initialize image capture
+
   			application_fn();
   			//MAP_UtilsDelay(3*80000000/6);
 		}
-*/
+
+#endif
 
   		//Commits image if running in test mode
 		OTA_CommitImage();

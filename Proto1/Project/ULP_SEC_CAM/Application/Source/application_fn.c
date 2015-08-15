@@ -76,6 +76,10 @@ int32_t application_fn()
 		//Initialize magnetometer for angle calculation
 		angleCheck_Initializations();
 
+#ifdef USB_DEBUG
+		magnetometer_initialize();
+#endif
+
 		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
 
 		// Open Image file in Flash to write image. File open for write takes
@@ -110,6 +114,8 @@ int32_t application_fn()
 		g_Task3_Notification = MAGNTMTRINIT_DONE;
 */
 
+#ifndef USB_DEBUG
+
 		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
 		{
 			UART_PRINT("#");
@@ -121,6 +127,9 @@ int32_t application_fn()
 			UART_PRINT("&&&&\n");
 			osi_Sleep(1);
 		}
+
+#endif
+
 //		ulTimeDuration_ms = get_timeDuration();
 //		stop_100mSecTimer();
 //		UART_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);

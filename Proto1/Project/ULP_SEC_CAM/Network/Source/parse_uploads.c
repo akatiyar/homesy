@@ -323,6 +323,9 @@ int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucGroundDataObject)
 {
+	char ObjectID[OBJECT_ID_MAX_LEN];
+	memset(ObjectID, '\0', OBJECT_ID_MAX_LEN);
+	memset(ObjectID, 'x', 5);
 	memset(pucGroundDataObject, '\0', GROUND_DATA_OBJECT_SIZE);
 
 	strncat((char*)pucGroundDataObject, "{\"deviceId\":\"",

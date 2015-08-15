@@ -25,7 +25,17 @@
 #define TOK_KEYTYPE				"__SL_P_USE"
 #define TOK_SSID				"__SL_P_USD"
 #define TOK_KEY					"__SL_P_USF"
-#define TOK_CONFIG_DONE			"__SL_P_US0"
+#define TOK_CONFIG_WIFI			"__SL_P_US0"
+
+#define TIME2013                3565987200u      /* 113 years + 28 days(leap) */
+#define YEAR2013                2013
+#define SEC_IN_MIN              60
+#define SEC_IN_HOUR             3600
+#define SEC_IN_DAY              86400
+
+#define SERVER_RESPONSE_TIMEOUT 10
+#define GMT_DIFF_TIME_HRS       5
+#define GMT_DIFF_TIME_MINS      30
 
 typedef enum
 {
