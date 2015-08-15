@@ -95,6 +95,8 @@ extern int gdoor_snap_angle;
 extern struct MagCalibration thisMagCal;
 
 extern OsiTaskHandle g_ImageCaptureConfigs_TaskHandle;
+
+bool g_bCameraOn= true;
 //*****************************************************************************
 // Macros
 //*****************************************************************************
@@ -354,6 +356,7 @@ int32_t Standby_ImageSensor()
 	MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
 	UART_PRINT("-$-$-\n");	//Tag:Rm
+	g_bCameraOn = false;
 	return lRetVal;
 }
 
@@ -373,6 +376,8 @@ int32_t Wakeup_ImageSensor()
 	//lRetVal = ExitStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = ExitStandby_mt9d111(SOFT_STANDBY);
 	ASSERT_ON_ERROR(lRetVal);
+
+	g_bCameraOn = true;
 
 	return lRetVal;
 }
@@ -403,27 +408,15 @@ int32_t Start_CameraCapture()
 	return lRetVal;
 }
 
-int32_t ReStart_CameraCapture()
+int32_t ReStart_CameraCapture(uint16_t* pImageConfig)
 {
 	int32_t lRetVal;
 
 	UART_PRINT("\n\rCam Start2\n\r");
 
-//	lRetVal = disableAE();
-//	ASSERT_ON_ERROR(lRetVal);
-//	lRetVal = disableAWB();
-//	ASSERT_ON_ERROR(lRetVal);
+	lRetVal = RestartSensorInJpegMode(pImageConfig);
 
-	lRetVal = RestartSensorInJpegMode();
 	ASSERT_ON_ERROR(lRetVal);
-
-//	lRetVal = WriteAllAEnAWBRegs();
-//	ASSERT_ON_ERROR(lRetVal);
-//
-	lRetVal = Refresh_mt9d111Firmware();
-	ASSERT_ON_ERROR(lRetVal);
-
-	//UtilsDelay(80000000/6);
 
 	return lRetVal;
 }
@@ -521,20 +514,6 @@ void ImagCapture_Init()
 	//
 	DMAConfig();
 
-//	ulTimeDuration_ms = get_timeDuration();
-//	stop_100mSecTimer();
-//	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
-
-//	start_100mSecTimer();
-//	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
-//	{
-//		UART_PRINT("{");
-//		osi_Sleep(10);
-//	}
-//	//Tag:Remove when waketime optimization is over
-//	ulTimeDuration_ms = get_timeDuration();
-//	stop_100mSecTimer();
-//	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
 	return;
 }
@@ -550,9 +529,7 @@ int32_t CaptureImage(int32_t lFileHandle)
 	//
     // Perform Image Capture
     //
-    //UART_PRINT("sB");
-    //InitializeTimer();
-    //StartTimer();
+
     MAP_CameraCaptureStart(CAMERA_BASE);
    // HWREG(0x4402609C) |= 1 << 8;
 
@@ -1031,4 +1008,70 @@ static void CameraIntHandler()
             //UART_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
         }
     }
+}
+
+int32_t CaptureandSavePreviewImage()
+{
+	SlFsFileInfo_t fileInfo;
+	long lFileHandle;
+	unsigned long ulToken = 0;
+	long lRetVal;
+
+	uint8_t* databuf = (uint8_t*)g_image_buffer;
+	sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &fileInfo);
+	lRetVal = ReadFile_FromFlash((uint8_t*)g_image_buffer, JPEG_HEADER_FILE_NAME, fileInfo.FileLen, 0);
+
+	databuf[159] = 0x01;
+	databuf[160] = 0xE0;
+	databuf[161] = 0x02;
+	databuf[162] = 0x80;
+    //
+    // Open the file for Write Operation
+    //
+    lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
+                        FS_MODE_OPEN_WRITE,
+                        &ulToken,
+                        &lFileHandle);
+    //
+    // Error handling if File Operation fails
+    //
+    if(lRetVal < 0)
+    {
+        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+    }
+
+    lRetVal = sl_FsWrite(lFileHandle, 0,(uint8_t*) g_image_buffer,  fileInfo.FileLen+1);
+
+
+	ImagCapture_Init();
+    //
+    // Perform Image Capture
+    //
+    MAP_CameraCaptureStart(CAMERA_BASE);
+    while(g_frame_end == 0);
+
+    MAP_CameraCaptureStop(CAMERA_BASE, true);
+
+    //
+    // Write the Image Buffer
+    //
+    lRetVal =  sl_FsWrite(lFileHandle,  fileInfo.FileLen+1,
+                      (unsigned char *)g_image_buffer, g_frame_size_in_bytes);
+    //
+    // Error handling if file operation fails
+    //
+    if (lRetVal <0)
+    {
+        lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+    }
+    //
+    // Close the file post writing the image
+    //
+    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+    ASSERT_ON_ERROR(lRetVal);
+
+    return SUCCESS;
+
 }

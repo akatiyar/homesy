@@ -4,6 +4,7 @@
 #include "network_related_fns.h"
 #include "camera_app.h"
 #include "flash_files.h"
+#include "mt9d111.h"
 extern volatile unsigned char g_CaptureImage;
 char Token[100]="";
 char Value[100]="";
@@ -13,6 +14,7 @@ char Value[100]="";
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 extern int32_t NWP_SwitchOn();
 extern int32_t NWP_SwitchOff();
+extern int32_t CaptureandSavePreviewImage();
 
 //!    ######################### list of SNTP servers ##################################
 //!    ##
@@ -968,6 +970,7 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
 void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         SlHttpServerResponse_t *pSlHttpServerResponse)
 {
+	uint8_t G1Gain,RGain,BGain,G2Gain;
 
     switch (pSlHttpServerEvent->Event)
     {
@@ -1120,6 +1123,96 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         			g_ucExitButton = BUTTON_PRESSED;
 				}
         	}
+        	else if(0 == memcmp(Token, TOK_ACTION1, Token_Len))		//__SL_P_US0
+        	{
+        		if(0 == memcmp(Value,"Integ",5))
+        		{
+        			//Copy shutter Width
+        			uint16_t ShutterWidth = atoi(&Value[6]);
+        			SetShutterWidth(ShutterWidth);
+        		}
+
+            }
+        	else if(0 == memcmp(Token, TOK_ACTION2, Token_Len))		//__SL_P_US0
+        	{
+        		if(0 == memcmp(Value,"AGain",5))
+        		{
+        			//Copy Analog Gain
+        			G1Gain = atoi(&Value[6]);
+        			RGain = atoi(&Value[9]);
+        			BGain = atoi(&Value[12]);
+        			G2Gain = atoi(&Value[15]);
+        			SetAnalogGain(G1Gain,RGain,BGain,G2Gain);
+        		}
+        		if(0 == memcmp(Value,"DGain",5))
+        		{
+        			//Copy Digital Gain
+
+					//Copy Analog Gain
+					G1Gain = atoi(&Value[6]);
+					RGain = atoi(&Value[9]);
+					BGain = atoi(&Value[12]);
+					G2Gain = atoi(&Value[15]);
+					SetDigitalGain(G1Gain,RGain,BGain,G2Gain);
+
+
+        		}
+        		if(0 == memcmp(Value,"IGain",5))
+        		{
+        			//Copy Initial Gain
+					//Copy Analog Gain
+					G1Gain = atoi(&Value[6]);
+					RGain = atoi(&Value[9]);
+					BGain = atoi(&Value[12]);
+					G2Gain = atoi(&Value[15]);
+					SetInitialGain(G1Gain,RGain,BGain,G2Gain);
+        		}
+
+            }
+        	else if(0 == memcmp(Token, TOK_ACTION3, Token_Len))		//__SL_P_US0
+        	{
+
+        		if(0 == memcmp(Value, "Restart", Value_Len))
+				{
+        			g_ucActionButton = BUTTON_PRESSED;
+					g_ucAction = CAM_RESTART_CAPTURE;
+				}
+            }
+        	else if(0 == memcmp(Token, TOK_ACTION4, Token_Len))		//__SL_P_US0
+        	{
+
+            }
+        	else if(0 == memcmp(Token, TOK_PREVIEW, Token_Len))		//__SL_P_US0
+        	{
+        		if(0 == memcmp(Value, "Start", Value_Len))
+				{
+        			g_ucPreviewStart = BUTTON_PRESSED;
+				}
+        		else if(0 == memcmp(Value, "Stop", Value_Len))
+				{
+        			g_ucPreviewStop = BUTTON_PRESSED;
+				}
+            }
+        	else if(0 == memcmp(Token, TOK_AWB, Token_Len))		//__SL_P_US0
+        	{
+        		if(0 == memcmp(Value, "AWBON", Value_Len))
+				{
+        			g_ucAWBOn = BUTTON_PRESSED;
+				}
+        		else if(0 == memcmp(Value, "AWBOFF", Value_Len))
+				{
+        			g_ucAWBOff = BUTTON_PRESSED;
+				}
+            }
+        	else if(0 == memcmp(Token, TOK_SAVE, Token_Len))		//__SL_P_US0
+        	{
+        		if(0 == memcmp(Value, "SAVE", Value_Len))
+				{
+        			g_ucSAVE = BUTTON_PRESSED;
+				}
+
+            }
+
         }
         break;
 

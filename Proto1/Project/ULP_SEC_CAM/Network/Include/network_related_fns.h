@@ -26,6 +26,13 @@
 #define TOK_SSID				"__SL_P_USD"
 #define TOK_KEY					"__SL_P_USF"
 #define TOK_CONFIG_WIFI			"__SL_P_US0"
+#define TOK_ACTION1				"__SL_P_UA1"
+#define TOK_ACTION2				"__SL_P_UA2"
+#define TOK_ACTION3				"__SL_P_UA3"
+#define TOK_ACTION4				"__SL_P_UA4"
+#define TOK_PREVIEW				"__SL_P_UPR"
+#define TOK_AWB					"__SL_P_UAW"
+#define TOK_SAVE				"__SL_P_USA"
 
 #define TIME2013                3565987200u      /* 113 years + 28 days(leap) */
 #define YEAR2013                2013
@@ -43,6 +50,12 @@ typedef enum
 	BUTTON_PRESSED,
 	ANGLE_VALUE_COLLECTED
 }doorbuttonstatus;
+
+typedef enum
+{
+	NONE =0,
+	CAM_RESTART_CAPTURE =1,
+}ButtonAction;
 
 extern unsigned long  g_ulGatewayIP; //Network Gateway IP address
 extern unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
@@ -63,6 +76,14 @@ unsigned char g_ucPushButtonPressedTwice;
 unsigned char g_PhoneConnected_ToCC3200AP_flag;
 extern unsigned char g_ucConnectedToConfAP, g_ucProvisioningDone;
 extern unsigned char g_ucPriority;
+
+unsigned char g_ucPreviewStart;
+unsigned char g_ucPreviewStop;
+unsigned char g_ucAWBOn;
+unsigned char g_ucAWBOff;
+unsigned char g_ucActionButton;
+volatile unsigned char g_ucAction;
+unsigned char g_ucSAVE;
 
 extern Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 extern char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE];

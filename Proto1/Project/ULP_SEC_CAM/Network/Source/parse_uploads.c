@@ -39,6 +39,7 @@ extern char* dataBuffer;
 extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
 extern float gdoor_OpenDeg_angle;
+extern uint16_t g_shutterwidth;
 
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
 int simpleJsonProcessor(const char *data, const char *key, char* value, int size);
@@ -334,6 +335,25 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 					strlen((char*)pucFridgeCamID));
 	strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
 
+	if(g_ucReasonForFailure == SUCCESS)
+	{
+		simpleJsonProcessor(dataBuffer, "objectId", ObjectID, OBJECT_ID_MAX_LEN);
+
+		strncat((char*)pucGroundDataObject, "\"DevObjectId\":\"",
+						sizeof("\"DevObjectId\":\""));
+		strncat((char*)pucGroundDataObject, (const char*)ObjectID,
+						strlen((char*)ObjectID));
+		strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
+	}
+	else
+	{
+		strncat((char*)pucGroundDataObject, "\"DevObjectId\":\"",
+						sizeof("\"DevObjectId\":\""));
+		strncat((char*)pucGroundDataObject, (const char*)ObjectID,
+						strlen((char*)ObjectID));
+		strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
+	}
+
 	Add_NumberField_ToJSONString(pucGroundDataObject, FAILURE_REASON,
 									g_ucReasonForFailure, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_CC3200UP,
@@ -448,6 +468,9 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 									(long long)fUserConfigData[(OFFSET_ANGLE_40/sizeof(float))], MIDDLE);
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE90,
 									(long long)fUserConfigData[(OFFSET_ANGLE_90/sizeof(float))],MIDDLE);
+
+	Add_NumberField_ToJSONString(pucUserConfigObject, "Shutter_Width",g_shutterwidth,MIDDLE);
+
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE_OPEN,
 									(long long)fUserConfigData[(OFFSET_ANGLE_OPEN/sizeof(float))], LAST);
 

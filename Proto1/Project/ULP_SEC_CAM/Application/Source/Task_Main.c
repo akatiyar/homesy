@@ -78,18 +78,36 @@ void Main_Task_withHibernate(void *pvParameters)
 		Start_CameraCapture();	//Do this once. Not needed after standby wake_up
 		Standby_ImageSensor();
 
+		// To reconfigure with the settings applied
+//		Wakeup_ImageSensor();		//Wake the image sensor
+//		ReStart_CameraCapture();	//Restart image capture
+
 //Use the folowing code to test without hibernate
 
 #ifdef USB_DEBUG
 		OTA_CommitImage();
 
+		float fTemp, fRH;
+			UART_PRINT("Temperature,");
+			UART_PRINT("Humidity");
+
   		while(1)
 		{
-  			Wakeup_ImageSensor();		//Wake the image sensor
-  			ReStart_CameraCapture();	//Restart image capture
-  			ImagCapture_Init();			//Initialize image capture
+//  			NWP_SwitchOn();
+//
+//  			Wakeup_ImageSensor();		//Wake the image sensor
+//  			ReStart_CameraCapture();	//Restart image capture
+//  			ImagCapture_Init();			//Initialize image capture
+//
+//  			application_fn();
 
-  			application_fn();
+  			getTempRH(&fTemp, &fRH);	//Collect Temperature and RH values from
+
+  			UART_PRINT("\n %f,",fTemp);
+  			UART_PRINT("%f",fRH);
+  			osi_Sleep(100);
+
+
   			//MAP_UtilsDelay(3*80000000/6);
 		}
 

@@ -15,6 +15,8 @@
 #include "timer_fns.h"
 
 #include "stdbool.h"
+
+#include "flash_files.h"
 extern bool g_tempflag;
 
 extern OsiTaskHandle g_ImageCaptureConfigs_TaskHandle;
@@ -23,6 +25,9 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 {
 	struct u64_time time_now;
 	uint32_t ulTimeDuration_ms;
+
+	uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
+	ImageConfigData = ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t));
 
 	//UART_PRINT("T3\n\r");
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
@@ -37,13 +42,8 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 		}
 		//g_ulAppStatus = IMAGESENSOR_CAPTURECONFIGS_HAPPENING;
 		g_I2CPeripheral_inUse_Flag = YES;	//However, the flag is not checked hereafter
+
 		Wakeup_ImageSensor();		//Wake the image sensor
-		ReStart_CameraCapture();	//Restart image capture
-		ImagCapture_Init();			//Initialize image capture
-		//Tag:Timestamp Camera module up
-		cc_rtc_get(&time_now);
-		g_TimeStamp_CamUp = time_now.secs * 1000 + time_now.nsec / 1000000;
-		//g_ulAppStatus = IMAGESENSOR_CAPTURECONFIGS_DONE;
 
 		//
 		//	Initialize Angle Check
@@ -57,7 +57,22 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 		}
 		//Configure FXOS and read out first few angle values
 		magnetometer_initialize();
-		g_Task3_Notification = MAGNTMTRINIT_DONE;
+
+		while(g_Task3_Notification != READ_SENSORCONFIGFILE_DONE)
+		{
+			UART_PRINT("%");
+			osi_Sleep(10);
+		}
+
+		ReStart_CameraCapture(ImageConfigData);	//Restart image capture
+
+		g_I2CPeripheral_inUse_Flag = NO;
+
+		ImagCapture_Init();			//Initialize image capture
+		//Tag:Timestamp Camera module up
+		cc_rtc_get(&time_now);
+		g_TimeStamp_CamUp = time_now.secs * 1000 + time_now.nsec / 1000000;
+		//g_ulAppStatus = IMAGESENSOR_CAPTURECONFIGS_DONE;
 
 		ulTimeDuration_ms = get_timeDuration();
 		stop_100mSecTimer();

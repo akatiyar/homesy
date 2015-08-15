@@ -156,6 +156,7 @@ long CaptureinRAM_StoreAfterCapture_Image();
 long CaptureinRAM();
 void CamControllerInit();
 void StartCamera();
+int32_t CaptureandSavePreviewImage();
 int32_t Standby_ImageSensor();
 int32_t Wakeup_ImageSensor();
 int32_t createAndWrite_ImageHeaderFile();
@@ -164,7 +165,7 @@ int32_t Write_JPEGHeader();
 int32_t Config_And_Start_CameraCapture();
 int32_t Start_CameraCapture();
 int32_t Config_CameraCapture();
-int32_t ReStart_CameraCapture();
+int32_t ReStart_CameraCapture(uint16_t* pImageConfig);
 
 int32_t toggle_standby();//Tag:Remove later
 

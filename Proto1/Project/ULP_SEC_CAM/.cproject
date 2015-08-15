@@ -125,6 +125,14 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.hex.797662033" name="ARM Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.hex"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1908027724.407404896" name="f80_sys_mcuimgA.bin" rcbsApplicability="disable" resourcePath="Release/f80_sys_mcuimgA.bin" toolsToInvoke="">
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1981323793" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1348289923" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.2125541460" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
 					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1908027724.FXOS8700 Frescale Lib" name="FXOS8700 Frescale Lib" resourcePath="FXOS8700 Frescale Lib">
 						<toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.DebugToolchain.492105114" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.DebugToolchain" unusedChildren="">
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1921416623.1710736085" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1921416623"/>
@@ -180,8 +188,8 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.compilerDebug.2008401868" name="ARM Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.compilerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DEFINE.60006484" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="HD_FRAME"/>
-									<listOptionValue builtIn="false" value="DEBUG_MODE"/>
 									<listOptionValue builtIn="false" value="USB_DEBUG"/>
+									<listOptionValue builtIn="false" value="DEBUG_MODE"/>
 									<listOptionValue builtIn="false" value="ccs"/>
 									<listOptionValue builtIn="false" value="USE_FREERTOS"/>
 									<listOptionValue builtIn="false" value="ENABLE_JPEG"/>

@@ -23,8 +23,8 @@
 
 //#define FIRMWARE_VERSION 		"F30 Robust Angle"
 //#define FIRMWARE_VERSION 		"F30 Reset with button"
-#define FIRMWARE_VERSION 		"Release 0.0.13"
-//#define FIRMWARE_VERSION 		"Uthra Testing 0.15"
+#define FIRMWARE_VERSION 		"Release 0.0.14"
+//#define FIRMWARE_VERSION 		"Uthra Testing 0.21"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -40,9 +40,9 @@
 
 #define SLEEP_TIME              		8000000
 //#define OSI_STACK_SIZE          		3000
-#define OSI_STACK_SIZE          		3000	//in bytes
-#define OSI_STACK_SIZE_MAIN_TASK			4000	//in bytes
-#define OSI_STACK_SIZE_USERCONFIG_TASK		4000	//in bytes
+#define OSI_STACK_SIZE          		4500	//in bytes
+#define OSI_STACK_SIZE_MAIN_TASK			5000	//in bytes
+#define OSI_STACK_SIZE_USERCONFIG_TASK		4500	//in bytes
 
 #define IMAGE_QUANTIZ_SCALE		(0x0020)
 //#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
@@ -63,7 +63,6 @@
 #define PI				(3.141592654F)
 
 #define TEST_MODULES_INCLUDE
-//#define USB_DEBUG
 #define DEBUG_ENABLE
 #ifndef DEBUG_ENABLE
 #define NOTERM
@@ -180,6 +179,8 @@ typedef enum
 {
 	READ_MAGNTMTRFILE_DONE = 1,
 	MAGNTMTRINIT_DONE,
+	READ_SENSORCONFIGFILE_DONE,
+	CAMERAINIT_DONE,
 }e_Task3_NotificationValues;
 
 typedef enum

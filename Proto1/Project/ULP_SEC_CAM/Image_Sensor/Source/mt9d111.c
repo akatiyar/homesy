@@ -327,7 +327,7 @@ static  const s_RegList capture_cmds_list[]= {
     {100, 0x00, 0x01F4  },  // Delay =500ms
     {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
 #ifdef HD_FRAME
-    {1, 0xC8, 1280      },
+    {1, 0xC8, 640      },
     //{1, 0xC8, 640       },	//Debug
 #elif XGA_FRAME
     {1, 0xC8, 1024      },
@@ -338,7 +338,7 @@ static  const s_RegList capture_cmds_list[]= {
 #endif
     {1, 0xC6, 0x2709    },  // MODE_OUTPUT_HEIGHT_B
 #ifdef HD_FRAME
-    {1, 0xC8, 720       },
+    {1, 0xC8, 480       },
     //{1, 0xC8, 480       },	//Debug
 #elif XGA_FRAME
     {1, 0xC8, 768       },
@@ -413,57 +413,57 @@ static  const s_RegList capture_cmds_list[]= {
     //{100, 0x00, 0x01F4  },  // Delay =500ms
 };
 
-static  const s_RegList recapture_cmds_list[]= {
-
+//static  const s_RegList recapture_cmds_list[]= {
+//
+////	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
+////    {0,  0x65,  0x2000  },  // Enable PLL
+////    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+////	{100, 0x00, 0x0064  },  // Delay =100ms
+////    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
+////    {1, 0xC8, 0x0002    },
+////    {1, 0xC6, 0xA104    },  // wait till become capture
+////    {111, 0xC8, 0x0007   }
+//
 //	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
-//    {0,  0x65,  0x2000  },  // Enable PLL
-//    {0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+//	{0,  0x65,  0x2000  },  // Enable PLL
+//	{0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
 //	{100, 0x00, 0x0064  },  // Delay =100ms
-//    {1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture	//Moving this part after maual time and exposure settings
-//    {1, 0xC8, 0x0002    },
-//    {1, 0xC6, 0xA104    },  // wait till become capture
-//    {111, 0xC8, 0x0007   }
-
-	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
-	{0,  0x65,  0x2000  },  // Enable PLL
-	{0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
-	{100, 0x00, 0x0064  },  // Delay =100ms
-
-	{0x00, 0x2B, ((0x0024<<1)|0x0080)},        //Lines exist. tfss-9203b65b-f7ea-42b8-b9e8-be5366de68bf-myPic1.jpg
-	{0x00, 0x2C, ((0x003A<<1)|0x0080)},
-	{0x00, 0x2D, ((0x0024<<1)|0x0080)},
-	{0x00, 0x2E, ((0x0024<<1)|0x0080)},
-
-	//{0x00, 0x09, (0x005F)},         //Integration time = 5mS
-//	{0x00, 0x09, (200)},         //Integration time = 10mS
-	{0x00, 0x09, (270)},         //Integration time = 15mS
-	{0x00, 0x0C, 0x0000},
-
-	{0x01, 0x6E, 0x0085},
-	{0x01, 0x6A, 0x008D},
-	{0x01, 0x6B, 0x008D},
-	{0x01, 0x6C, 0x0093},
-	{0x01, 0x6D, 0x008d},
-	{0x01, 0x4E, 0x0020},
-
-
-
-	{0x01, 0x60, 0x291A},
-	{0x01, 0x61, 0x04E4},
-	{0x01, 0x62, 0xbab5},
-	{0x01, 0x63, 0xb001},
-	{0x01, 0x64, 0x4089},
-	{0x01, 0x65, 0xf17c},
-	//        {0x01, 0x48, 0x0101},
-	{0x00, 0x05, 0x015c},	//Hblank
-	{0x00, 0x06, 0x0020},	//Vblank
-
-
-	{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
-	{1, 0xC8, 0x0002    },
-	{1, 0xC6, 0xA104    },  // wait till become capture
-	{111, 0xC8, 0x0007   }
-};
+//
+//	{0x00, 0x2B, ((0x0024<<1)|0x0080)},        //Lines exist. tfss-9203b65b-f7ea-42b8-b9e8-be5366de68bf-myPic1.jpg
+//	{0x00, 0x2C, ((0x003A<<1)|0x0080)},
+//	{0x00, 0x2D, ((0x0024<<1)|0x0080)},
+//	{0x00, 0x2E, ((0x0024<<1)|0x0080)},
+//
+//	//{0x00, 0x09, (0x005F)},         //Integration time = 5mS
+////	{0x00, 0x09, (200)},         //Integration time = 10mS
+//	{0x00, 0x09, (270)},         //Integration time = 15mS
+//	{0x00, 0x0C, 0x0000},
+//
+//	{0x01, 0x6E, 0x0085},
+//	{0x01, 0x6A, 0x008D},
+//	{0x01, 0x6B, 0x008D},
+//	{0x01, 0x6C, 0x0093},
+//	{0x01, 0x6D, 0x008d},
+//	{0x01, 0x4E, 0x0020},
+//
+//
+//
+//	{0x01, 0x60, 0x291A},
+//	{0x01, 0x61, 0x04E4},
+//	{0x01, 0x62, 0xbab5},
+//	{0x01, 0x63, 0xb001},
+//	{0x01, 0x64, 0x4089},
+//	{0x01, 0x65, 0xf17c},
+//	//        {0x01, 0x48, 0x0101},
+//	{0x00, 0x05, 0x015c},	//Hblank
+//	{0x00, 0x06, 0x0020},	//Vblank
+//
+//
+//	{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
+//	{1, 0xC8, 0x0002    },
+//	{1, 0xC6, 0xA104    },  // wait till become capture
+//	{111, 0xC8, 0x0007  }
+//};
 
 static  const s_RegList snap[]= {
 
@@ -653,15 +653,66 @@ long StartSensorInJpegMode()
     return 0;
 }
 
-long RestartSensorInJpegMode()
+long RestartSensorInJpegMode(uint16_t *ImageConfig)
 {
-#ifdef ENABLE_JPEG
     long lRetVal = -1;
+
+    s_RegList recapture_cmds_list[]= {
+
+    	{1, 0xC6, 0xA102},{1, 0xC8, 0x0000 },  // SEQ_MODE Will turn off AE, AWB
+    	{0, 0x65,  0x2000  },  // Enable PLL
+    	{0, 0x20, 0x0000    },  // READ_MODE_B (Image flip settings)
+    	{100, 0x00, 0x0064  },  // Delay =100ms
+
+		{0x00, 0x2B, (ImageConfig[0])},
+		{0x00, 0x2C, (ImageConfig[1])},
+		{0x00, 0x2D, ImageConfig[2]},
+		{0x00, 0x2E, ImageConfig[3]},
+		{0x00, 0x09, ImageConfig[4]},
+		{0x00, 0x0C, ImageConfig[5]},
+		{0x01, 0x4E, ImageConfig[6]},
+		{0x01, 0x60, ImageConfig[7]},
+		{0x01, 0x61, ImageConfig[8]},
+		{0x01, 0x62, ImageConfig[9]},
+		{0x01, 0x63, ImageConfig[10]},
+		{0x01, 0x64, ImageConfig[11]},
+		{0x01, 0x65, ImageConfig[12]},
+		{0x01, 0x6E, ImageConfig[13]},
+		{0x01, 0x6A, ImageConfig[14]},
+		{0x01, 0x6B, ImageConfig[15]},
+		{0x01, 0x6C, ImageConfig[16]},
+		{0x01, 0x6D, ImageConfig[17]},
+
+		{0x01, 0x30, ImageConfig[18]},
+		{0x01, 0x31, ImageConfig[19]},
+		{0x01, 0x32, ImageConfig[20]},
+		{0x01, 0x35, ImageConfig[21]},
+		{0x01, 0x36, ImageConfig[22]},
+		{0x01, 0x3B, ImageConfig[23]},
+		{0x01, 0x3C, ImageConfig[24]},
+		{0x01, 0x66, ImageConfig[25]},
+
+		{0x00, 0x05, 0x015c},	//Hblank
+    	{0x00, 0x06, 0x0020},	//Vblank
+	    {1, 0xC6, 0x2707    },  // MODE_OUTPUT_WIDTH_B
+	    {1, 0xC8, 1280      },
+	    {1, 0xC6, 0x2709    },  // MODE_OUTPUT_WIDTH_B
+	    {1, 0xC8, 720      },
+
+
+    	{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
+    	{1, 0xC8, 0x0002    },
+    	{1, 0xC6, 0xA104    },  // wait till become capture
+    	{111, 0xC8, 0x0007  }
+    };
+
+
+//    for(lRetVal =0; lRetVal<26;lRetVal++)
+//    	UART_PRINT("\nRegVal %x",ImageConfig[lRetVal]);
 
     lRetVal = RegLstWrite((s_RegList *)recapture_cmds_list,
                         sizeof(recapture_cmds_list)/sizeof(s_RegList));
     ASSERT_ON_ERROR(lRetVal);
-#endif
     return 0;
 }
 
@@ -791,7 +842,7 @@ int32_t Read_AllRegisters()
 		for (i = 0; i < (sizeof(reg_list)/sizeof(s_RegList)); i++)
 		{
 			Register_Read(&reg_list[i], &regVal);
-			UART_PRINT("%d:%x ", i, regVal);
+			UART_PRINT("\n%d:%x ", i, regVal);
 		}
 
 		i = 0;
@@ -1376,6 +1427,145 @@ long PCLK_Rate_read()
 	return lRetVal;
 }
 
+int32_t ReadImageConfigReg(uint16_t *RegValues)
+{
+	long lRetVal;
+	int i;
+
+	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0xBADD},
+								{0x00, 0x2C, 0xBADD},
+								{0x00, 0x2D, 0xBADD},
+								{0x00, 0x2E, 0xBADD},
+								{0x00, 0x09, 0xBADD},
+								{0x00, 0x0C, 0xBADD},
+								{0x01, 0x4E, 0xBADD},
+								{0x01, 0x60, 0xBADD},
+								{0x01, 0x61, 0xBADD},
+								{0x01, 0x62, 0xBADD},
+								{0x01, 0x63, 0xBADD},
+								{0x01, 0x64, 0xBADD},
+								{0x01, 0x65, 0xBADD},
+								{0x01, 0x6E, 0xBADD},
+								{0x01, 0x6A, 0xBADD},
+								{0x01, 0x6B, 0xBADD},
+								{0x01, 0x6C, 0xBADD},
+								{0x01, 0x6D, 0xBADD},
+
+								{0x01, 0x30, 0xBADD},
+								{0x01, 0x31, 0xBADD},
+								{0x01, 0x32, 0xBADD},
+								{0x01, 0x35, 0xBADD},
+								{0x01, 0x36, 0xBADD},
+								{0x01, 0x3B, 0xBADD},
+								{0x01, 0x3C, 0xBADD},
+								{0x01, 0x66, 0xBADD},
+
+								};
+
+
+	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = Register_Read(&StatusRegLst[i], RegValues);
+		UART_PRINT("Register Val %x: %x\n\r",StatusRegLst[i].ucRegAddr , *RegValues);
+		RegValues++;
+	}
+	return lRetVal;
+}
+
+int32_t SetShutterWidth(uint16_t ShutterWidth)
+{
+	return Reg_Write(0x00,0x09,ShutterWidth);
+
+}
+
+int32_t SetAnalogGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
+{
+	int32_t lRetVal;
+	uint16_t tempVal=0;
+
+	lRetVal = Reg_Read(0x00,0x2B,&tempVal);
+	tempVal = tempVal & ~ANALOG_GAIN_BITS;
+	tempVal = tempVal | (G1Gain << 7);
+	lRetVal = Reg_Write(0x00,0x2B,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2C,&tempVal);
+	tempVal = tempVal & ~ANALOG_GAIN_BITS;
+	tempVal = tempVal | (BGain <<7) ;
+	lRetVal = Reg_Write(0x00,0x2C,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2D,&tempVal);
+	tempVal = tempVal & ~ANALOG_GAIN_BITS;
+	tempVal = tempVal | (RGain<<7);
+	lRetVal = Reg_Write(0x00,0x2D,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2E,&tempVal);
+	tempVal = tempVal & ~ANALOG_GAIN_BITS;
+	tempVal = tempVal | (G2Gain<<7);
+	lRetVal = Reg_Write(0x00,0x2E,tempVal);
+
+	return lRetVal;
+
+}
+
+int32_t SetDigitalGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
+{
+	int32_t lRetVal;
+	uint16_t tempVal=0;
+
+	lRetVal = Reg_Read(0x00,0x2B,&tempVal);
+	tempVal = tempVal & ~DIGITAL_GAIN_BITS;
+	tempVal = tempVal | (G1Gain << 9);
+	lRetVal = Reg_Write(0x00,0x2B,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2C,&tempVal);
+	tempVal = tempVal & ~DIGITAL_GAIN_BITS;
+	tempVal = tempVal | (BGain <<9) ;
+	lRetVal = Reg_Write(0x00,0x2C,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2D,&tempVal);
+	tempVal = tempVal & ~DIGITAL_GAIN_BITS;
+	tempVal = tempVal | (RGain<<9);
+	lRetVal = Reg_Write(0x00,0x2D,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2E,&tempVal);
+	tempVal = tempVal & ~DIGITAL_GAIN_BITS;
+	tempVal = tempVal | (G2Gain<<9);
+	lRetVal = Reg_Write(0x00,0x2E,tempVal);
+
+	return lRetVal;
+
+}
+
+int32_t SetInitialGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
+{
+	int32_t lRetVal;
+	uint16_t tempVal=0;
+
+	lRetVal = Reg_Read(0x00,0x2B,&tempVal);
+	tempVal = tempVal & ~INITIAL_GAIN_BITS;
+	tempVal = tempVal | (G1Gain);
+	lRetVal = Reg_Write(0x00,0x2B,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2C,&tempVal);
+	tempVal = tempVal & ~INITIAL_GAIN_BITS;
+	tempVal = tempVal | (BGain ) ;
+	lRetVal = Reg_Write(0x00,0x2C,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2D,&tempVal);
+	tempVal = tempVal & ~INITIAL_GAIN_BITS;
+	tempVal = tempVal | (RGain);
+	lRetVal = Reg_Write(0x00,0x2D,tempVal);
+
+	lRetVal = Reg_Read(0x00,0x2E,&tempVal);
+	tempVal = tempVal & ~INITIAL_GAIN_BITS;
+	tempVal = tempVal | (G2Gain);
+	lRetVal = Reg_Write(0x00,0x2E,tempVal);
+
+	return lRetVal;
+
+}
+
+
 long JPEGDataLength_read()
 {
 	long lRetVal;
@@ -1513,14 +1703,58 @@ long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal)
 {
 	long lRetVal;
 
-	s_RegList RegLst[] = {	{1, 0xC6, 0xBADD},
+	s_RegList RegLst[] = {	{1, 0xC6, usVariableName},
 			    			{1, 0xC8, 0xBADD}	};
-	RegLst[0].usValue = usVariableName;
+//	RegLst[0].usValue = usVariableName;
 
 	lRetVal = RegLstWrite(RegLst, 1);
 	lRetVal = Register_Read(&RegLst[1], &(RegLst[1].usValue));
 
 	*pusRegVal = RegLst[1].usValue;
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	Variable_Write(): Writes value into one variable in MT9D111
+//
+//	param[in]	usVariableName:	16-bit variable name that contains driverID,
+//									offset, etc.
+//	param[out]	usRegVal	Value of Register
+//
+//	return SUCCESS or failure value
+//
+//******************************************************************************
+long Variable_Write(uint16_t usVariableName, uint16_t usRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{1, 0xC6, usVariableName},
+			    			{1, 0xC8, usRegVal}	};
+
+	lRetVal = RegLstWrite(RegLst, 2);
+
+	return lRetVal;
+}
+
+long Reg_Write(uint8_t RegPage, uint16_t usRegAddr, uint16_t usRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{RegPage, usRegAddr, usRegVal} };
+
+	lRetVal = RegLstWrite(RegLst, 1);
+
+	return lRetVal;
+}
+
+long Reg_Read(uint8_t RegPage, uint16_t usRegAddr, uint16_t* usRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{RegPage, usRegAddr, 0xBADD} };
+
+	lRetVal = Register_Read(RegLst,usRegVal);
 
 	return lRetVal;
 }

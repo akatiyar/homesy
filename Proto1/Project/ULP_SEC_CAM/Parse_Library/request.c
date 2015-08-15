@@ -518,7 +518,8 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         socketClose(socketHandle);
 #ifdef REQUEST_DEBUG
     } else {
-    	socketClose(socketHandle);
+		if(socketHandle != -1)
+			socketClose(socketHandle);
         DEBUG_PRINT("Request write error: %d\r\n", status);
 #endif /* REQUEST_DEBUG */
     }

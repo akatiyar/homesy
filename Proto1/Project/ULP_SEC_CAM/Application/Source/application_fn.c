@@ -76,11 +76,18 @@ int32_t application_fn()
 		//Initialize magnetometer for angle calculation
 		angleCheck_Initializations();
 
+		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
+
 #ifdef USB_DEBUG
 		magnetometer_initialize();
 #endif
 
-		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
+		ReadFile_FromFlash((uint8_t*)g_image_buffer,
+							(uint8_t*)FILENAME_SENSORCONFIGS,
+							CONTENT_LENGTH_SENSORS_CONFIGS, 0);
+
+		g_Task3_Notification = READ_SENSORCONFIGFILE_DONE;
+
 
 		// Open Image file in Flash to write image. File open for write takes
 		//time, so we do it ahead of angle check, so that at the instant angle
@@ -116,11 +123,11 @@ int32_t application_fn()
 
 #ifndef USB_DEBUG
 
-		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
-		{
-			UART_PRINT("#");
-			osi_Sleep(10);
-		}
+//		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
+//		{
+//			UART_PRINT("#");
+//			osi_Sleep(10);
+//		}
 
 		while(g_I2CPeripheral_inUse_Flag == YES)
 		{

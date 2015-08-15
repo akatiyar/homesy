@@ -11,6 +11,7 @@
 #include "appFns.h"
 #include "watchdog.h"
 #include "timer_fns.h"
+#include "mt9d111.h"
 
 #define ANGLE_90		0
 #define ANGLE_40		1
@@ -21,6 +22,7 @@ extern int gdoor_snap_angle;//120
 struct MagCalibration thisMagCal;
 extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 volatile uint8_t g_ucMagCalb;
+extern bool g_bCameraOn;
 
 int32_t create_AngleValuesFile();
 extern float_t get_angle();
@@ -36,6 +38,8 @@ static int32_t WiFiProvisioning();
 static long WlanConnect();
 static int32_t Get_Calibration_MagSensor();
 static int32_t CollectAngle(uint8_t ucAngle);
+int32_t SaveImageConfig();
+uint16_t g_shutterwidth=0;
 
 float_t* g_pfUserConfigData = (float_t *) g_image_buffer;
 #define CONFIG_MODE_USER_ACTION_TIMEOUT		600	//in units of 100ms
@@ -58,13 +62,27 @@ int32_t User_Configure()
 	long lRetVal = -1;
 	bool run_flag=true;
 	int32_t lFileHandle;
+	bool bCapturePreviewImage= false;
+	uint16_t tempReg=0;
+	uint16_t tempCnt=0;
 
 	//So the user gets USERCONFIG_TIMEOUT amount of time to do the configurations
 	g_ulWatchdogCycles = 0;
 	g_ulAppTimeout_ms = USERCONFIG_TIMEOUT;
 
-	AccessPtMode_HTTPServer_Start();
+	// Initialize the camera
+	if(g_bCameraOn == false)
+	{
+		Wakeup_ImageSensor();
+	}
 
+	SoftReset_ImageSensor();
+	Config_CameraCapture();
+	Start_CameraCapture();	//Do this once. Not needed after standby wake_up
+//	Standby_ImageSensor();
+
+
+	AccessPtMode_HTTPServer_Start();
 	// Reading the file, since write erases contents already present
 	ReadFile_FromFlash((uint8_t*)g_pfUserConfigData,
 						(uint8_t*)USER_CONFIGS_FILENAME,
@@ -150,6 +168,66 @@ int32_t User_Configure()
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
 		}
 
+		if(g_ucAWBOn == BUTTON_PRESSED)
+		{
+
+//
+//			//Refresh_mt9d111Firmware();
+//			osi_Sleep(100);
+			enableAWB();
+		//	enableAE();
+			Variable_Read(0xA102,&tempReg);
+			UART_PRINT("Reg %x : %x",0xA102,tempReg);
+
+			//Enable AWB in capture mode
+			Variable_Write(0xA120,0x22);
+			Variable_Read(0xA120,&tempReg);
+			UART_PRINT("Reg %x : %x",0xA120,tempReg);
+
+			Refresh_mt9d111Firmware();
+
+			g_ucAWBOn = BUTTON_NOT_PRESSED;
+		}
+
+		if(g_ucAWBOff == BUTTON_PRESSED)
+		{
+//			Variable_Write(0xA912,0x00);
+//			Refresh_mt9d111Firmware();
+			disableAWB();
+			Variable_Read(0xA102,&tempReg);
+			UART_PRINT("Reg %x : %x",0xA102,tempReg);
+
+			//Disable AWB in capture mode
+			Variable_Write(0xA120,0x02);
+			Variable_Read(0xA120,&tempReg);
+			UART_PRINT("Reg %x : %x",0xA120,tempReg);
+
+			Refresh_mt9d111Firmware();
+
+			g_ucAWBOff = BUTTON_NOT_PRESSED;
+		}
+
+		if(g_ucPreviewStart == BUTTON_PRESSED)
+		{
+			//	Wakeup_ImageSensor();
+
+			// Set the IMage size to 640x480
+
+			// Enable boolean to capture Image and save
+			bCapturePreviewImage = true;
+			tempCnt=0;
+			g_ucPreviewStart = BUTTON_NOT_PRESSED;
+
+		}
+
+		if(g_ucPreviewStop == BUTTON_PRESSED)
+		{
+			bCapturePreviewImage = false;
+			g_ucPreviewStop = BUTTON_NOT_PRESSED;
+			// Enable HD Image
+
+		}
+
 		if((g_ucExitButton == BUTTON_PRESSED)/*||(Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT)*/)
 		{
 			LED_On();
@@ -179,6 +257,53 @@ int32_t User_Configure()
 			//break;
 		}
 
+		if(g_ucActionButton == BUTTON_PRESSED)
+		{
+			if(g_ucAction ==  CAM_RESTART_CAPTURE)
+			{
+				Standby_ImageSensor();
+				osi_Sleep(20);
+				Wakeup_ImageSensor();
+
+				uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
+				ImageConfigData = ImageConfigData +4096;
+				// Reading the file, since write erases contents already present
+				ReadFile_FromFlash((uint8_t*)ImageConfigData,
+									(uint8_t*)FILENAME_SENSORCONFIGS,
+									CONTENT_LENGTH_SENSORS_CONFIGS, 0);
+
+				ReStart_CameraCapture(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
+
+				Variable_Write(0x2707,640);
+				Variable_Write(0x2709,480);
+
+				Refresh_mt9d111Firmware();
+				osi_Sleep(200);
+			}
+			g_ucAction = NONE;
+			g_ucActionButton = BUTTON_NOT_PRESSED;
+		}
+		if(g_ucSAVE == BUTTON_PRESSED)
+		{
+			SaveImageConfig();
+		//	Read_AllRegisters();
+			g_ucSAVE = BUTTON_NOT_PRESSED;
+		}
+
+		if(bCapturePreviewImage)
+		{
+			osi_Sleep(300);
+//			Variable_Read(0xA912,&tempReg);
+//			UART_PRINT("\nReg %x : %x",0xA102,tempReg);
+//			Variable_Read(0xA120,&tempReg);
+//			UART_PRINT("\nReg %x : %x",0xA120,tempReg);
+//			Reg_Read(0x00,0x09,&tempReg);
+//			UART_PRINT("\nReg %x : %x",0x09,tempReg);
+			UART_PRINT("%d",tempCnt++);
+			CaptureandSavePreviewImage();
+
+		}
+
 		osi_Sleep(10);
     }
 
@@ -194,6 +319,13 @@ int32_t User_Configure()
 	{
 		UART_PRINT("Unable to set to Station mode\n\r");
 	}
+
+
+	Reg_Read(0x00,0x09,&g_shutterwidth);
+	Standby_ImageSensor();
+
+//	Wakeup_ImageSensor();		//Wake the image sensor
+//	ReStart_CameraCapture();	//Restart image capture
 
 	NWP_SwitchOff();
 
@@ -564,5 +696,28 @@ static int32_t CollectAngle(uint8_t ucAngle)
 	}
 
 	return lRetVal;
+}
+
+int32_t SaveImageConfig()
+{
+	int32_t lFileHandle;
+	int32_t lRetVal;
+	uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
+	ImageConfigData = ImageConfigData + 4096;
+	// Reading the file, since write erases contents already present
+	ReadFile_FromFlash((uint8_t*)ImageConfigData,
+						(uint8_t*)FILENAME_SENSORCONFIGS,
+						CONTENT_LENGTH_SENSORS_CONFIGS, 0);
+
+	ReadImageConfigReg(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
+
+	lRetVal = WriteFile_ToFlash((uint8_t*)ImageConfigData,
+							(uint8_t*)FILENAME_SENSORCONFIGS,
+							CONTENT_LENGTH_SENSORS_CONFIGS, 0,
+							SINGLE_WRITE, &lFileHandle);
+	ASSERT_ON_ERROR(lRetVal);
+	//ReadAllAEnAWBRegs();
+	return lRetVal;
+
 }
 
