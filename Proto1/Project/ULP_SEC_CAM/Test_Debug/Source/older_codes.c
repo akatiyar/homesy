@@ -91,7 +91,7 @@ long ConnectToNetwork()
         //
         if(ConfigureMode(ROLE_AP) !=ROLE_AP)
         {
-            UART_PRINT("Unable to set AP mode...\n\r");
+            DEBG_PRINT("Unable to set AP mode...\n\r");
             lRetVal = sl_Stop(SL_STOP_TIMEOUT);
             CLR_STATUS_BIT_ALL(g_ulStatus);
             ASSERT_ON_ERROR(DEVICE_NOT_IN_AP_MODE);
@@ -183,7 +183,7 @@ long ConnectToNetwork()
 //	lRetVal = ConnectToNetwork_2();
 //	if(lRetVal < 0)
 //	{
-//		UART_PRINT("Failed to establish connection w/ an AP \n\r");
+//		DEBG_PRINT("Failed to establish connection w/ an AP \n\r");
 //		LOOP_FOREVER();
 //	}
 //}
@@ -207,7 +207,7 @@ long ConnectToNetwork()
 //						&lFileHandle);
 //	if(lRetVal < 0)
 //	{
-//		UART_PRINT("File Open Error: %i", lRetVal);
+//		DEBG_PRINT("File Open Error: %i", lRetVal);
 //		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 //		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 //	}
@@ -239,7 +239,7 @@ int32_t createAndWrite_ImageHeaderFile()
 						&lFileHandle);
 	if(lRetVal < 0)
 	{
-		UART_PRINT("File Open Error: %i", lRetVal);
+		DEBG_PRINT("File Open Error: %i", lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
@@ -277,7 +277,7 @@ int32_t createAndWrite_ImageHeaderFile()
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
-	//UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
+	//DEBG_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
 
 	// Close the file post writing the image
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -309,7 +309,7 @@ int32_t create_JpegImageFile()
 						&lFileHandle);
 	if(lRetVal < 0)
 	{
-		UART_PRINT("File Open Error: %i", lRetVal);
+		DEBG_PRINT("File Open Error: %i", lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
@@ -383,7 +383,7 @@ static int JfifApp0Marker(char *pbuf)
 {
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     *pbuf++= 0xFF;                  // APP0 marker
@@ -425,7 +425,7 @@ static int FrameHeaderMarker(char *pbuf, int width, int height, int format)
     int length;
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer");
+        DEBG_PRINT("Null pointer");
         LOOP_FOREVER();
     }
     if (format == FORMAT_MONOCHROME)
@@ -497,7 +497,7 @@ static int ScanHeaderMarker(char *pbuf, int format)
 
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     if (format == FORMAT_MONOCHROME)
@@ -555,7 +555,7 @@ static int DefineQuantizationTableMarker (unsigned char *pbuf, int qscale, int f
 
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer");
+        DEBG_PRINT("Null pointer");
         LOOP_FOREVER();
     }
 
@@ -632,7 +632,7 @@ static int DefineHuffmanTableMarkerDC(char *pbuf, unsigned int *htable,
 
     if((pbuf == NULL) || (htable == NULL))
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     *pbuf++= 0xFF;                  // define huffman table marker
@@ -697,7 +697,7 @@ static int DefineHuffmanTableMarkerAC(char *pbuf, unsigned int *htable,
 
     if((pbuf == NULL) || (htable == NULL))
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -785,7 +785,7 @@ static int DefineRestartIntervalMarker(char *pbuf, int ri)
 {
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -821,7 +821,7 @@ static int CreateJpegHeader(char *header, int width, int height,
     int length;
     if(header == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -892,7 +892,7 @@ static int CreateJpegHeader(char *header, int width, int height,
 //	long OptionLen;
 //    unsigned char OptionVal;
 //
-//    UART_PRINT("Entered OTA_BootImg2()\n\r");
+//    DEBG_PRINT("Entered OTA_BootImg2()\n\r");
 //	sl_Start(0,0,0);
 //
 //	OTA_Init();
@@ -907,7 +907,7 @@ static int CreateJpegHeader(char *header, int width, int height,
 
 //int32_t OTA_Update_2()
 //{
-//	UART_PRINT("Entered OTA_Update_2()\n\r");
+//	DEBG_PRINT("Entered OTA_Update_2()\n\r");
 //
 //	int32_t lRetVal;
 //
@@ -938,32 +938,32 @@ static int CreateJpegHeader(char *header, int width, int height,
 //    //	Check if this image is booted in test mode
 //    //
 //    sl_extLib_OtaGet(pvOtaApp, EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT, &OptionLen,(_u8*)&OptionVal);
-//    UART_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
+//    DEBG_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
 //    if(OptionVal == true)
 //    {
-//    	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
+//    	DEBG_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
 //    	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
 //    	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
 //    }
 //    else
 //    {
-//    	UART_PRINT("Starting OTA\n\r");
+//    	DEBG_PRINT("Starting OTA\n\r");
 //    	lRetVal = 0;
 //
 //    	while(!lRetVal)
 //    	{
 //    		lRetVal = sl_extLib_OtaRun(pvOtaApp);
-//    		UART_PRINT("%d\n\r", lRetVal);
+//    		DEBG_PRINT("%d\n\r", lRetVal);
 //    	}
 //
-//    	UART_PRINT("OTA run = %d\n\r", lRetVal);
+//    	DEBG_PRINT("OTA run = %d\n\r", lRetVal);
 //    	if(lRetVal < 0)
 //    	{
-//    		UART_PRINT("OTA:Error with OTA Server\n\r");
+//    		DEBG_PRINT("OTA:Error with OTA Server\n\r");
 //    	}
 //    	else if(lRetVal == RUN_STAT_NO_UPDATES)
 //    	{
-//    		UART_PRINT("OTA: RUN_STAT_NO_UPDATES");
+//    		DEBG_PRINT("OTA: RUN_STAT_NO_UPDATES");
 //    	}
 //    	else if((lRetVal & RUN_STAT_DOWNLOAD_DONE))
 //    	{
@@ -971,8 +971,8 @@ static int CreateJpegHeader(char *header, int width, int height,
 //    		//	Set OTA File for testing
 //    		//
 //    		lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_TEST, sizeof(int), (_u8 *)&SetCommitInt);
-//    		UART_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
-//    		UART_PRINT("Rebooting...\n\r");
+//    		DEBG_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
+//    		DEBG_PRINT("Rebooting...\n\r");
 //    		RebootMCU();
 //    	}
 //    }
@@ -981,11 +981,11 @@ static int CreateJpegHeader(char *header, int width, int height,
 //    return 0;
 //}
 
-//Did not work. long long UART_PRINT
-//		UART_PRINT("g_TimeStamp_cc3200Up: %d milli sec\n", g_TimeStamp_cc3200Up);
-//		UART_PRINT("g_TimeStamp_NWPUp : %d milli sec\n", g_TimeStamp_NWPUp);
-//		UART_PRINT("g_TimeStamp_CamUp : %d milli sec\n", g_TimeStamp_CamUp);
-//		UART_PRINT("g_TimeStamp_PhotoSnap : %d milli sec\n", g_TimeStamp_PhotoSnap);
-//		UART_PRINT("g_TimeStamp_PhotoUploaded: %d milli sec\n", g_TimeStamp_PhotoUploaded);
-//		UART_PRINT("g_TimeStamp_maxAngle: %d milli sec\n", g_TimeStamp_maxAngle);
-//		UART_PRINT("g_TimeStamp_minAngle: %d milli sec\n", g_TimeStamp_minAngle);
+//Did not work. long long DEBG_PRINT
+//		DEBG_PRINT("g_TimeStamp_cc3200Up: %d milli sec\n", g_TimeStamp_cc3200Up);
+//		DEBG_PRINT("g_TimeStamp_NWPUp : %d milli sec\n", g_TimeStamp_NWPUp);
+//		DEBG_PRINT("g_TimeStamp_CamUp : %d milli sec\n", g_TimeStamp_CamUp);
+//		DEBG_PRINT("g_TimeStamp_PhotoSnap : %d milli sec\n", g_TimeStamp_PhotoSnap);
+//		DEBG_PRINT("g_TimeStamp_PhotoUploaded: %d milli sec\n", g_TimeStamp_PhotoUploaded);
+//		DEBG_PRINT("g_TimeStamp_maxAngle: %d milli sec\n", g_TimeStamp_maxAngle);
+//		DEBG_PRINT("g_TimeStamp_minAngle: %d milli sec\n", g_TimeStamp_minAngle);

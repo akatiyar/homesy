@@ -26,12 +26,12 @@ long CaptureinRAM()
 	//
 	// Perform Image Capture
 	//
-	UART_PRINT("sB");
+	DEBG_PRINT("sB");
 	MAP_CameraCaptureStart(CAMERA_BASE);
 	// HWREG(0x4402609C) |= 1 << 8;
 	while(g_frame_end == 0);
 	MAP_CameraCaptureStop(CAMERA_BASE, true);
-	UART_PRINT("pA");
+	DEBG_PRINT("pA");
 
 	return 0;
 }
@@ -58,12 +58,12 @@ long CaptureinRAM_StoreAfterCapture_Image()
 	//
 	// Perform Image Capture
 	//
-	UART_PRINT("sB");
+	DEBG_PRINT("sB");
 	MAP_CameraCaptureStart(CAMERA_BASE);
 	// HWREG(0x4402609C) |= 1 << 8;
 	while(g_frame_end == 0);
 	MAP_CameraCaptureStop(CAMERA_BASE, true);
-	UART_PRINT("pA");
+	DEBG_PRINT("pA");
 
 	lRetVal = sl_Start(0, 0, 0);
 	ASSERT_ON_ERROR(lRetVal);
@@ -94,7 +94,7 @@ long CaptureinRAM_StoreAfterCapture_Image()
 	   lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
-	UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
+	DEBG_PRINT("Image Write No of bytes: %ld\n", lRetVal);
 
 	//
 	// Close the file post writing the image
@@ -106,7 +106,7 @@ long CaptureinRAM_StoreAfterCapture_Image()
 	//lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 	ASSERT_ON_ERROR(lRetVal);
 
-	UART_PRINT("DONE: Image Write to Flash\n\r");
+	DEBG_PRINT("DONE: Image Write to Flash\n\r");
 
 	return lRetVal;
 }

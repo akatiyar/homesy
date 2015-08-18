@@ -40,7 +40,6 @@ int32_t sendUserConfigData()
 	NWP_SwitchOff();
 
 	return 0;
-
 }
 
 

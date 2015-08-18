@@ -20,7 +20,7 @@ extern int gdoor_90deg_angle;//290
 extern int gdoor_close_angle; //110
 extern int gdoor_snap_angle;//120
 struct MagCalibration thisMagCal;
-extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
+//extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 volatile uint8_t g_ucMagCalb;
 extern bool g_bCameraOn;
 
@@ -41,9 +41,12 @@ static int32_t CollectAngle(uint8_t ucAngle);
 int32_t SaveImageConfig();
 uint16_t g_shutterwidth=0;
 
-float_t* g_pfUserConfigData = (float_t *) g_image_buffer;
+float_t* g_pfUserConfigData;
 #define CONFIG_MODE_USER_ACTION_TIMEOUT		600	//in units of 100ms
 												//1 minute = 1*60*10 = 600
+
+#define PREVIEWIMAGE_MARGINBUFFER_SZ		5120
+#define MT9D111CONFIGS_OFFSET_INBUFFER		(PREVIEWIMAGE_MARGINBUFFER_SZ + PREVIEW_IMAGE_MAXSZ)
 //******************************************************************************
 // This function calls the function corresponding to button presses (button
 //	presses are translated to global flag changes in network_related_fns.c) from
@@ -81,6 +84,7 @@ int32_t User_Configure()
 	Start_CameraCapture();	//Do this once. Not needed after standby wake_up
 //	Standby_ImageSensor();
 
+	g_pfUserConfigData = (float_t*)malloc(CONTENT_LENGTH_USER_CONFIGS);
 
 	AccessPtMode_HTTPServer_Start();
 	// Reading the file, since write erases contents already present
@@ -101,7 +105,7 @@ int32_t User_Configure()
 		}
 		if((Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT))
 		{
-			UART_PRINT("Timeout... User did not connect phone\n");
+			RELEASE_PRINT("Timeout... No phone connected\n");
 			return 0;
 		}
 		osi_Sleep(10);
@@ -116,7 +120,7 @@ int32_t User_Configure()
 		//it will not be saved.
 		if(IS_PUSHBUTTON_PRESSED)
 		{
-			UART_PRINT("User pressed button to exit\n");
+			RELEASE_PRINT("Exit button pressed\n");
 			LED_On();	//Indicating to user
 			run_flag = false;
 			//break;
@@ -124,12 +128,10 @@ int32_t User_Configure()
 
 		if(g_ucCalibration == BUTTON_PRESSED)
 		{
-			UART_PRINT("*** Calibration\n\r");
-			UART_PRINT("***ROTATE DEVICE NOW***\n\r");
+			RELEASE_PRINT("*** Calibration - ROTATE DEVICE NOW ***\n");
 			LED_On();
 			Get_Calibration_MagSensor();
 			standby_accelMagn_fxos8700();
-			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucCalibration = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
@@ -137,10 +139,8 @@ int32_t User_Configure()
 		if(g_ucAngle40 == BUTTON_PRESSED)
 		{
 			LED_On();
-			UART_PRINT("*** Angle40\n\r");
 			CollectAngle(ANGLE_40);
 			standby_accelMagn_fxos8700();
-			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle40 = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
@@ -149,10 +149,8 @@ int32_t User_Configure()
 		if(g_ucAngle90 == BUTTON_PRESSED)
 		{
 			LED_On();
-			UART_PRINT("*** Angle90\n\r");
 			CollectAngle(ANGLE_90);
 			standby_accelMagn_fxos8700();
-			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucAngle90 = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
@@ -162,7 +160,6 @@ int32_t User_Configure()
 		{
 			LED_On();
 			WiFiProvisioning();
-			UART_PRINT("***WAITING FOR BUTTON PRESS***");
 			g_ucConfig = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
@@ -170,19 +167,18 @@ int32_t User_Configure()
 
 		if(g_ucAWBOn == BUTTON_PRESSED)
 		{
-
-//
+			LED_On();
 //			//Refresh_mt9d111Firmware();
 //			osi_Sleep(100);
 			enableAWB();
 		//	enableAE();
 			Variable_Read(0xA102,&tempReg);
-			UART_PRINT("Reg %x : %x",0xA102,tempReg);
+			DEBG_PRINT("Reg %x : %x",0xA102,tempReg);
 
 			//Enable AWB in capture mode
 			Variable_Write(0xA120,0x22);
 			Variable_Read(0xA120,&tempReg);
-			UART_PRINT("Reg %x : %x",0xA120,tempReg);
+			DEBG_PRINT("Reg %x : %x",0xA120,tempReg);
 
 			Refresh_mt9d111Firmware();
 
@@ -195,16 +191,17 @@ int32_t User_Configure()
 //			Refresh_mt9d111Firmware();
 			disableAWB();
 			Variable_Read(0xA102,&tempReg);
-			UART_PRINT("Reg %x : %x",0xA102,tempReg);
+			DEBG_PRINT("Reg %x : %x",0xA102,tempReg);
 
 			//Disable AWB in capture mode
 			Variable_Write(0xA120,0x02);
 			Variable_Read(0xA120,&tempReg);
-			UART_PRINT("Reg %x : %x",0xA120,tempReg);
+			DEBG_PRINT("Reg %x : %x",0xA120,tempReg);
 
 			Refresh_mt9d111Firmware();
 
 			g_ucAWBOff = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 		}
 
 		if(g_ucPreviewStart == BUTTON_PRESSED)
@@ -217,7 +214,6 @@ int32_t User_Configure()
 			bCapturePreviewImage = true;
 			tempCnt=0;
 			g_ucPreviewStart = BUTTON_NOT_PRESSED;
-
 		}
 
 		if(g_ucPreviewStop == BUTTON_PRESSED)
@@ -225,7 +221,57 @@ int32_t User_Configure()
 			bCapturePreviewImage = false;
 			g_ucPreviewStop = BUTTON_NOT_PRESSED;
 			// Enable HD Image
+		}
 
+		if(g_ucActionButton == BUTTON_PRESSED)
+		{
+			LED_On();
+			if(g_ucAction ==  CAM_RESTART_CAPTURE)
+			{
+				Standby_ImageSensor();
+				osi_Sleep(20);
+				Wakeup_ImageSensor();
+
+				uint16_t* ImageConfigData = (uint16_t *) (g_image_buffer[MT9D111CONFIGS_OFFSET_INBUFFER/sizeof(long)]);
+				//ImageConfigData = ImageConfigData +4096;
+				// Reading the file, since write erases contents already present
+				ReadFile_FromFlash((uint8_t*)ImageConfigData,
+									(uint8_t*)FILENAME_SENSORCONFIGS,
+									CONTENT_LENGTH_SENSORS_CONFIGS, 0);
+
+				ReStart_CameraCapture(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
+
+				Variable_Write(0x2707,640);
+				Variable_Write(0x2709,480);
+
+				Refresh_mt9d111Firmware();
+				osi_Sleep(200);
+			}
+			g_ucAction = NONE;
+			g_ucActionButton = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
+		}
+
+		if(g_ucSAVE == BUTTON_PRESSED)
+		{
+			LED_On();
+			SaveImageConfig();
+		//	Read_AllRegisters();
+			g_ucSAVE = BUTTON_NOT_PRESSED;
+			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
+		}
+
+		if(bCapturePreviewImage)
+		{
+			osi_Sleep(300);
+//			Variable_Read(0xA912,&tempReg);
+//			DEBG_PRINT("\nReg %x : %x",0xA102,tempReg);
+//			Variable_Read(0xA120,&tempReg);
+//			DEBG_PRINT("\nReg %x : %x",0xA120,tempReg);
+//			Reg_Read(0x00,0x09,&tempReg);
+//			DEBG_PRINT("\nReg %x : %x",0x09,tempReg);
+			DEBG_PRINT("%d",tempCnt++);
+			CaptureandSavePreviewImage();
 		}
 
 		if((g_ucExitButton == BUTTON_PRESSED)/*||(Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT)*/)
@@ -244,69 +290,22 @@ int32_t User_Configure()
 			{
 				fAngle = 0;
 				ReadFile_FromFlash((uint8_t*)&fAngle, (uint8_t*)USER_CONFIGS_FILENAME, sizeof(float), (i)*sizeof(float));
-				UART_PRINT("%d:%3.2f\n\r",i,fAngle);
-			}*/
+				DEBG_PRINT("%d:%3.2f\n\r",i,fAngle);
+			}
 			// For verification - DBG
 			lRetVal = ReadFile_FromFlash(((uint8_t*)g_pfUserConfigData+3),
 											(uint8_t*)USER_CONFIGS_FILENAME,
 											CONTENT_LENGTH_USER_CONFIGS,
-											0);
+											0);*/
 
 			g_ucExitButton = BUTTON_NOT_PRESSED;
 			run_flag = false;
-			//break;
-		}
-
-		if(g_ucActionButton == BUTTON_PRESSED)
-		{
-			if(g_ucAction ==  CAM_RESTART_CAPTURE)
-			{
-				Standby_ImageSensor();
-				osi_Sleep(20);
-				Wakeup_ImageSensor();
-
-				uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
-				ImageConfigData = ImageConfigData +4096;
-				// Reading the file, since write erases contents already present
-				ReadFile_FromFlash((uint8_t*)ImageConfigData,
-									(uint8_t*)FILENAME_SENSORCONFIGS,
-									CONTENT_LENGTH_SENSORS_CONFIGS, 0);
-
-				ReStart_CameraCapture(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
-
-				Variable_Write(0x2707,640);
-				Variable_Write(0x2709,480);
-
-				Refresh_mt9d111Firmware();
-				osi_Sleep(200);
-			}
-			g_ucAction = NONE;
-			g_ucActionButton = BUTTON_NOT_PRESSED;
-		}
-		if(g_ucSAVE == BUTTON_PRESSED)
-		{
-			SaveImageConfig();
-		//	Read_AllRegisters();
-			g_ucSAVE = BUTTON_NOT_PRESSED;
-		}
-
-		if(bCapturePreviewImage)
-		{
-			osi_Sleep(300);
-//			Variable_Read(0xA912,&tempReg);
-//			UART_PRINT("\nReg %x : %x",0xA102,tempReg);
-//			Variable_Read(0xA120,&tempReg);
-//			UART_PRINT("\nReg %x : %x",0xA120,tempReg);
-//			Reg_Read(0x00,0x09,&tempReg);
-//			UART_PRINT("\nReg %x : %x",0x09,tempReg);
-			UART_PRINT("%d",tempCnt++);
-			CaptureandSavePreviewImage();
-
 		}
 
 		osi_Sleep(10);
     }
 
+	free(g_pfUserConfigData);
 	//Stop Internal HTTP Server
 	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
 	if(lRetVal < 0)
@@ -317,9 +316,8 @@ int32_t User_Configure()
 
 	if(ConfigureMode(ROLE_STA) !=ROLE_STA)
 	{
-		UART_PRINT("Unable to set to Station mode\n\r");
+		ASSERT_ON_ERROR(ROLE_STA_ERR);
 	}
-
 
 	Reg_Read(0x00,0x09,&g_shutterwidth);
 	Standby_ImageSensor();
@@ -359,19 +357,19 @@ static int32_t AccessPtMode_HTTPServer_Start()
    {
 	   if (DEVICE_NOT_IN_STATION_MODE == lRetVal)
 	   {
-		   UART_PRINT("Failed to configure the device in its default state\n\r");
+		   DEBG_PRINT("Failed to configure NWP in default state\n");
 	   }
 
 	   LOOP_FOREVER();
    }
-	//UART_PRINT("Device is configured in default state \n\r");
+	//DEBG_PRINT("Device is configured in default state \n\r");
 
 	//	Start NWP
 	//lRetVal = sl_Start(0, 0, 0);
     lRetVal = NWP_SwitchOn();
 	if (lRetVal < 0)
 	{
-	   UART_PRINT("Failed to start the device \n\r");
+	   DEBG_PRINT("Failed to start NWP\n");
 	   LOOP_FOREVER();
 	}
 
@@ -385,15 +383,15 @@ static int32_t AccessPtMode_HTTPServer_Start()
 	//
 	if(ConfigureMode(ROLE_AP) !=ROLE_AP)
 	{
-		UART_PRINT("Unable to set AP mode...\n\r");
+		DEBG_PRINT("Unable to set AP mode...\n");
 		lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 		//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
 		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+		DEBG_PRINT("SL3: %x\n", g_ulSimplelinkStatus);
 		LOOP_FOREVER();
 	}
 	while(!IS_IP_ACQUIRED(g_ulSimplelinkStatus));	//looping till ip is acquired
-	UART_PRINT("CC3200 in APmode\n\r");
+	DEBG_PRINT("CC3200 in APmode\n");
 
 	//Stop Internal HTTP Server
 	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
@@ -410,7 +408,7 @@ static int32_t AccessPtMode_HTTPServer_Start()
 		LOOP_FOREVER();
 	}
 
-	UART_PRINT("HTTPServer Started\n\r");
+	DEBG_PRINT("HTTPServer Started\n");
 
 	return lRetVal;
 }
@@ -445,11 +443,11 @@ static int32_t WiFiProvisioning()
 	// Configure to STA Mode
 	if(ConfigureMode(ROLE_STA) !=ROLE_STA)
 	{
-		UART_PRINT("Unable to set STA mode...\n\r");
+		DEBG_PRINT("Unable to set STA mode\n");
 		lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 		//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
 		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+		DEBG_PRINT("SL3: %x\n", g_ulSimplelinkStatus);
 		LOOP_FOREVER();
 	}
 	// Connect to the Configured Access Point
@@ -458,15 +456,15 @@ static int32_t WiFiProvisioning()
 	{
 		g_ucProvisioningDone = 1;	//Set the global variable
 		g_ucConnectedToConfAP = IS_CONNECTED(g_ulSimplelinkStatus);
+		RELEASE_PRINT("User WiFi connection success\n");
 
 		//Disconnect back
-		UART_PRINT("WLAN Connect Done\n\r");
 		lRetVal = sl_WlanDisconnect();
 		if(0 == lRetVal)
 		{
 			while(IS_CONNECTED(g_ulSimplelinkStatus));
 		}
-		//UART_PRINT("WLAN Disconnected back\n\r");
+		//DEBG_PRINT("WLAN Disconnected back\n\r");
 
 /*		//Write to Flash file
 		lRetVal = ReadFile_FromFlash(ucConfigFileData,
@@ -497,7 +495,9 @@ static int32_t WiFiProvisioning()
 	}
 	else
 	{
-		UART_PRINT("WiFi connect test failed\n\r***TRY AGAIN*** \n\r");
+		RELEASE_PRINT("User WiFi connect test failed\nSSID:%s, Key:%s, "
+						"SecurityType:%s\n***TRY AGAIN*** \n", g_cWlanSSID,
+						g_cWlanSecurityType, g_cWlanSecurityKey);
 		//Switch off LED for 5 sec to indicate the WiFi config didnt go well
 		LED_Off();
 		osi_Sleep(5000);	//5 seconds
@@ -508,15 +508,15 @@ static int32_t WiFiProvisioning()
 	//
 	if(ConfigureMode(ROLE_AP) !=ROLE_AP)
 	{
-		UART_PRINT("Unable to set AP mode...\n\r");
+		DEBG_PRINT("Unable to set AP mode...\n");
 		lRetVal = sl_Stop(SL_STOP_TIMEOUT);
 		//CLR_STATUS_BIT_ALL(g_ulSimplelinkStatus);
 		g_ulSimplelinkStatus = 0;
-		UART_PRINT("Simplelink Status3: %x\n", g_ulSimplelinkStatus);
+		DEBG_PRINT("SL3: %x\n", g_ulSimplelinkStatus);
 		LOOP_FOREVER();
 	}
 	while(!IS_IP_ACQUIRED(g_ulSimplelinkStatus));	//looping till ip is acquired
-	UART_PRINT("WiFi Testing over\n\rConfigd APmode\n\r");
+	DEBG_PRINT("User WiFi Testing over\nConfigd APmode\n");
 
 	//Stop Internal HTTP Server
 	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
@@ -532,7 +532,7 @@ static int32_t WiFiProvisioning()
 		ERR_PRINT(lRetVal);
 		LOOP_FOREVER();
 	}
-	UART_PRINT("HTTPServer Started again\n\r");
+	DEBG_PRINT("HTTPServer Started again\n");
 	MAP_UtilsDelay(80000000);	//Wait for some time to let http msgs txit
 
 	return 0;
@@ -622,8 +622,9 @@ static int32_t Get_Calibration_MagSensor()
 	g_pfUserConfigData[(OFFSET_FIT_ERROR/sizeof(float_t))] = thisMagCal.fFitErrorpc;
 
 	uint8_t i=0;
-		for(i=OFFSET_MAG_CALB; i<13;i++)
-			UART_PRINT("%f\n",g_pfUserConfigData[i]);
+	for(i=OFFSET_MAG_CALB; i<12;i++)
+		DEBG_PRINT("%3.2f\n",g_pfUserConfigData[i]);
+	RELEASE_PRINT("%3.2f%%\n",g_pfUserConfigData[i]);
 
 #define ACCEPTABLE_FITERROR		5
 	//Switch off LED for 5 sec to indicate that the fit error was not within acceptable limits
@@ -664,7 +665,7 @@ static int32_t CollectAngle(uint8_t ucAngle)
 //	for(tmpCnt =0;tmpCnt<75;tmpCnt++)
 //	{
 //		fAngleTemp = get_angle();
-//		//UART_PRINT("Measured Angle: %f\n\r",fAngleTemp);
+//		//DEBG_PRINT("Measured Angle: %f\n\r",fAngleTemp);
 //	}
 
 	fAngleTemp = get_angle();
@@ -681,18 +682,18 @@ static int32_t CollectAngle(uint8_t ucAngle)
 	//Save it in flash in the right place
 	if(ucAngle == ANGLE_90)
 	{
-		//UART_PRINT("90deg: %f\n\r",fAngleTemp);
-		//UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		//DEBG_PRINT("90deg: %f\n\r",fAngleTemp);
+		//DEBG_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
 		*(g_pfUserConfigData+(OFFSET_ANGLE_90/sizeof(float))) = fAngleTemp;
-		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[(OFFSET_ANGLE_90/sizeof(float))], g_pfUserConfigData[(OFFSET_ANGLE_40/sizeof(float))]);
+		RELEASE_PRINT("90deg: %3.2f\n",g_pfUserConfigData[(OFFSET_ANGLE_90/sizeof(float))]);
 	}
 	else if (ucAngle == ANGLE_40)
 	{
-		//UART_PRINT("40deg: %f\n\r",fAngleTemp);
-		//UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
+		//DEBG_PRINT("40deg: %f\n\r",fAngleTemp);
+		//DEBG_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[0], g_pfUserConfigData[1]);
 		*(g_pfUserConfigData+(OFFSET_ANGLE_40/sizeof(float))) = fAngleTemp;
-		//UART_PRINT("40deg: %f\n\r",g_pfUserConfigData[1]);
-		UART_PRINT("90deg: %f, 40deg: %f\n\r",g_pfUserConfigData[(OFFSET_ANGLE_90/sizeof(float))], g_pfUserConfigData[(OFFSET_ANGLE_40/sizeof(float))]);
+		//DEBG_PRINT("40deg: %f\n\r",g_pfUserConfigData[1]);
+		RELEASE_PRINT("40deg: %3.2f\n",g_pfUserConfigData[(OFFSET_ANGLE_40/sizeof(float))]);
 	}
 
 	return lRetVal;
@@ -718,6 +719,5 @@ int32_t SaveImageConfig()
 	ASSERT_ON_ERROR(lRetVal);
 	//ReadAllAEnAWBRegs();
 	return lRetVal;
-
 }
 

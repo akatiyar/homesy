@@ -35,7 +35,7 @@ void Main_Task_withHibernate(void *pvParameters)
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
 		LED_On();
-		UART_PRINT("\n\rI'm up\n\r");
+		DEBG_PRINT("\nI'm up\n");
 
 		//Enter the application funcitonality
 		application_fn();
@@ -46,7 +46,7 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UART_PRINT("*** %s ***\n\r", FIRMWARE_VERSION);
+    	RELEASE_PRINT("*** %s ***\n\r", FIRMWARE_VERSION);
 
     	//Give time to press the push button for OTA or MobileApp config
 #ifndef	DEBUG_MODE
@@ -62,7 +62,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		osi_TaskDelete(&g_UserConfigTaskHandle);
 
     	LED_On();
-		UART_PRINT("!!Application running!!\n\r");
+		RELEASE_PRINT("App Inits\n");
 
 		Check_I2CDevices();		//Tag:Remove once I2C issues are resolved
 
@@ -88,8 +88,8 @@ void Main_Task_withHibernate(void *pvParameters)
 		OTA_CommitImage();
 
 		float fTemp, fRH;
-			UART_PRINT("Temperature,");
-			UART_PRINT("Humidity");
+			DEBG_PRINT("Temperature,");
+			DEBG_PRINT("Humidity");
 
   		while(1)
 		{
@@ -103,14 +103,13 @@ void Main_Task_withHibernate(void *pvParameters)
 
   			getTempRH(&fTemp, &fRH);	//Collect Temperature and RH values from
 
-  			UART_PRINT("\n %f,",fTemp);
-  			UART_PRINT("%f",fRH);
+  			DEBG_PRINT("\n %f,",fTemp);
+  			DEBG_PRINT("%f",fRH);
   			osi_Sleep(100);
 
 
   			//MAP_UtilsDelay(3*80000000/6);
 		}
-
 #endif
 
   		//Commits image if running in test mode
@@ -120,13 +119,13 @@ void Main_Task_withHibernate(void *pvParameters)
     /*//A way to reset the device without removing the battery
     if(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
     {
-    	UART_PRINT("Reset button press detected\nRelease button now\n");
+    	RELEASE_PRINT("Reset button press detected\nRelease button now\n");
     	LED_Off();
     	while(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
     	{
     		osi_Sleep(100);
     	}
-    	UART_PRINT("Button released\n");
+    	RELEASE_PRINT("Button released\n");
 #ifdef WATCHDOG_ENABLE
     	Reset_byStarvingWDT();
 #else

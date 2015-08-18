@@ -90,19 +90,19 @@ int32_t CollectTxit_ImgTempRH()
 		//	Collect Temperature and RH values from Si7020 IC
 		//
 		getTempRH(&fTemp, &fRH);
-		UART_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
+		DEBG_PRINT("Temperature: %f\n\rRH: %f\n\r", fTemp, fRH);
 
 		ucBatteryLvl = Get_BatteryPercent();
 
 		Get_FridgeCamID(ucFridgeCamID);
-		UART_PRINT("FridgeCam ID: %s\n\r",ucFridgeCamID);
+		DEBG_PRINT("FridgeCam ID: %s\n\r",ucFridgeCamID);
 
 		//
 		// Construct the JSON object string
 		//
 		memset(ucSensorDataTxt, '\0', DEVICE_STATE_OBJECT_SIZE);
 		ConstructDeviceStateObject(&ucFridgeCamID[0], &ucParseImageUrl[0], fTemp, fRH, ucBatteryLvl, &ucSensorDataTxt[0]);
-		UART_PRINT("OBJECT: %s\n", ucSensorDataTxt);
+		DEBG_PRINT("OBJECT: %s\n", ucSensorDataTxt);
 
 		//
 		//	Collect and Upload sensor data to Parse

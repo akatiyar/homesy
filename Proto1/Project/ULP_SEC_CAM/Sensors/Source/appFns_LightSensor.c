@@ -13,7 +13,7 @@ int16_t IsLightOff(uint16_t usThresholdLux)
 {
 	if (getLightsensor_data() <= usThresholdLux )
 	{
-		UART_PRINT("Light's off. %d Lux\n\r", getLightsensor_data());
+		DEBG_PRINT("Light:off Lux:%d\n", getLightsensor_data());
 		return 1;
 	}
 	else
@@ -24,7 +24,7 @@ int32_t PowerDown_LightSensor()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("Powering down light sensor\n");
+	DEBG_PRINT("LightSens Power down\n");
 	lRetVal = PowerDown_ISL29035();
 	PRINT_ON_ERROR(lRetVal);
 

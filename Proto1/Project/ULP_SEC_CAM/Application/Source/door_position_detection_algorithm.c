@@ -27,6 +27,7 @@ float angle_avg;
 float gdoor_90deg_angle;//290
 float gdoor_40deg_angle; //110
 float gdoor_OpenDeg_angle;
+float g_angleOffset_to180;
 
 
 //extern int32_t CollectTxit_ImgTempRH();
@@ -42,6 +43,7 @@ extern struct MQXLiteGlobals mqxglobals;
 void check_doorpos()
 {
 	float angle_reg = 0;
+	float angle_reg_afterOffset = 0;
 
 	if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
 	{
@@ -56,42 +58,55 @@ void check_doorpos()
 		angle_reg = thisSV_6DOF_GB_BASIC.fLPRho;// temp angle variable.. dont change the actual angle readings structure
 	}
 
-	if(angle_reg < g_fMinAngle)
+	//*****************Min and max angles and their timestamps
+	//Offset to get angles in Q2 and Q3
+	angle_reg_afterOffset = angle_reg + g_angleOffset_to180;
+	if(angle_reg_afterOffset > 360)
 	{
-		g_fMinAngle = angle_reg;
-		cc_rtc_get(&g_Struct_TimeStamp_MinAngle);
-		//UART_PRINT("%d milli sec\n", g_TimeStamp_minAngle);
+		angle_reg_afterOffset -= 360;
 	}
-	if(angle_reg > g_fMaxAngle)
+	else if(angle_reg_afterOffset < 0)
 	{
-		g_fMaxAngle = angle_reg;
+		angle_reg_afterOffset += 360;
+	}
+	//if(angle_reg < g_fMinAngle)
+	if(angle_reg_afterOffset < g_fMinAngle)
+	{
+		g_fMinAngle = angle_reg_afterOffset;
+		cc_rtc_get(&g_Struct_TimeStamp_MinAngle);
+		//DEBG_PRINT("%d milli sec\n", g_TimeStamp_minAngle);
+	}
+	//if(angle_reg > g_fMaxAngle)
+	if (angle_reg_afterOffset > g_fMaxAngle)
+	{
+		g_fMaxAngle = angle_reg_afterOffset;
 		cc_rtc_get(&g_Struct_TimeStamp_MaxAngle);
-		//UART_PRINT("%d milli sec\n", g_TimeStamp_maxAngle);
+		//DEBG_PRINT("%d milli sec\n", g_TimeStamp_maxAngle);
 	}
 
 	print_count++;
 	if(print_count==20)
 	{
-		//UART_PRINT("ANGLE=%3.2f\n", angle_reg);
-		UART_PRINT("%3.2f\n", angle_reg);
-		//UART_PRINT("%3.2f  %3.2f\n", angle_reg, thisSV_6DOF_GB_BASIC.fLPRho);
+		//DEBG_PRINT("ANGLE=%3.2f\n", angle_reg);
+		RELEASE_PRINT("%3.2f\n", angle_reg);
+		//DEBG_PRINT("%3.2f  %3.2f\n", angle_reg, thisSV_6DOF_GB_BASIC.fLPRho);
 
 		/*//----------------------Print all angle related values------------------
 		int i,j;
-		UART_PRINT("Magnetic fld:\n");
-		UART_PRINT("%3.2f  %3.2f  %3.2f\n", thisMag.fBc[X], thisMag.fBc[Y], thisMag.fBc[Z]);
+		DEBG_PRINT("Magnetic fld:\n");
+		DEBG_PRINT("%3.2f  %3.2f  %3.2f\n", thisMag.fBc[X], thisMag.fBc[Y], thisMag.fBc[Z]);
 
-		UART_PRINT("Acceleration:\n");
-		UART_PRINT("%3.2f  %3.2f  %3.2f\n", thisAccel.fGp[X], thisAccel.fGp[Y], thisAccel.fGp[Z]);
+		DEBG_PRINT("Acceleration:\n");
+		DEBG_PRINT("%3.2f  %3.2f  %3.2f\n", thisAccel.fGp[X], thisAccel.fGp[Y], thisAccel.fGp[Z]);
 
-		UART_PRINT("Rotation Matrix:\n");
+		DEBG_PRINT("Rotation Matrix:\n");
 		for(i=0;i<3;i++)
 		{
 			for(j=0;j<3;j++)
-				UART_PRINT("%3.2f   ", thisSV_6DOF_GB_BASIC.fR[i][j]);
-			UART_PRINT("\n");
+				DEBG_PRINT("%3.2f   ", thisSV_6DOF_GB_BASIC.fR[i][j]);
+			DEBG_PRINT("\n");
 		}
-		UART_PRINT("phi = %3.2f, theta = %3.2f, psi = %3.2f, rho = %3.2f, chi = %3.2f, del = %3.2f\n",
+		DEBG_PRINT("phi = %3.2f, theta = %3.2f, psi = %3.2f, rho = %3.2f, chi = %3.2f, del = %3.2f\n",
 				thisSV_6DOF_GB_BASIC.fLPPhi, thisSV_6DOF_GB_BASIC.fLPThe, thisSV_6DOF_GB_BASIC.fLPPsi,
 				thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPChi, thisSV_6DOF_GB_BASIC.fLPDelta);*/
 		//----------------------
@@ -130,8 +145,7 @@ void check_doorpos()
 	if(  (angle_avg < (gdoor_OpenDeg_angle+3)) && (angle_avg > (gdoor_OpenDeg_angle-3)) && (valid_case == 0) )
 	{
 		valid_case = 1;
-		UART_PRINT("O \n");
-		UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
+		RELEASE_PRINT("O  %3.2f\n", angle_avg);
 		g_ucReasonForFailure = OPEN_NOTCLOSED;
 		LED_Blink_2(.25,.25,BLINK_FOREVER);
 	}
@@ -143,7 +157,8 @@ void check_doorpos()
 		if ( valid_case == 1 )
 		{
 			valid_case = 0;
-			UART_PRINT("S<>ANGLE=%3.2f \n", thisSV_6DOF_GB_BASIC.fLPRho);
+			RELEASE_PRINT("S  %3.2f\n", angle_avg);
+			cc_rtc_get(&g_Struct_TimeStamp_SnapAngle);
 			g_flag_door_closing_45degree = 1;
 			LED_On();
 		}
@@ -169,37 +184,27 @@ float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 	float_t angle_openThreshold, angle_40_temp = 0, angle_90_temp = 0;
 	float_t offset;
 
-	UART_PRINT("Interpolation fn\n");
-	UART_PRINT("40:%f 90:%f\n",angle_40, angle_90);
 	if(abs(angle_40-angle_90) < A40_A90_DIFFMAG_MAX)	//No 360 degree crossover
 	{
-		UART_PRINT("No 360degree crossover\n");
 		//Same interpolation formula works for both angle_90>angle_40 and
 		//angle_90<angle_40
 		angle_openThreshold = angle_40 + ((OPEN - FORTY_DEGREES) * ((angle_40 - angle_90)/(FORTY_DEGREES - NINETY_DEGREES)));
 	}
 	else		//i.e if there is a 360 degree crossover
 	{
-		UART_PRINT("360degree crossover\n");
 		if(angle_40 > angle_90) //i.e if angle_40 in Q4 (300s) and angle_90 in Q1 (<90)
 		{
-			UART_PRINT("case1\n");
 			//Calculate offset as the degrees between angle_40 and 360, plus a
 			//margin to tip angle_40 over to Q1
 			offset = (360 - angle_40 + 1);
-			UART_PRINT("Offset: %f\n", offset);
 
 			//Offset the angles so that crossover is eliminated
 			angle_40_temp = angle_40 + offset; //should be 361 here. this can be removed
-			UART_PRINT("40(=361):%f\n", angle_40_temp);
 			angle_40_temp -= 360;	//should be 1 here. . this can be removed
-			UART_PRINT("40(=1):%f\n", angle_40_temp);
 			angle_90_temp += angle_90 + offset;
-			UART_PRINT("90(+offset):%f\n", angle_90_temp);
 
 			//Calculate the OpenAngle using the interpolation equation
 			angle_openThreshold = angle_40_temp + ((OPEN - FORTY_DEGREES) * ((angle_40_temp - angle_90_temp)/(FORTY_DEGREES - NINETY_DEGREES)));
-			UART_PRINT("Open:%f\n", angle_openThreshold);
 
 			//Undo the offset
 			angle_openThreshold -= offset;
@@ -207,28 +212,21 @@ float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 			{
 				angle_openThreshold += 360;
 			}
-			UART_PRINT("Open(-offset):%f\n", angle_openThreshold);
 
 		}
 		if(angle_90 > angle_40) //i.e if angle_90 in Q4 (300s) and angle_40 in Q1 (<90)
 		{
-			UART_PRINT("case2\n");
 			//Calculate offset as the degrees between angle_90 and 360, plus a
 			//margin(1) to tip angle_90 over to Q1
 			offset = (360 - angle_90 + 1);
-			UART_PRINT("Offset: %f\n", offset);
 
 			//Offset the angles so that crossover is eliminated
 			angle_90_temp = angle_90 + offset; //should be 361 here. this can be removed
-			UART_PRINT("90(=361):%f\n", angle_90_temp);
 			angle_90_temp -= 360;	//should be 1 here. . this can be removed
-			UART_PRINT("90(=1):%f\n", angle_90_temp);
 			angle_40_temp = angle_40 + offset;
-			UART_PRINT("40(+offset):%f\n", angle_40_temp);
 
 			//Calculate the OpenAngle using the interpolation equation
 			angle_openThreshold = angle_40_temp + ((OPEN - FORTY_DEGREES) * ((angle_40_temp - angle_90_temp)/(FORTY_DEGREES - NINETY_DEGREES)));
-			UART_PRINT("Open:%f\n", angle_openThreshold);
 
 			//Undo the offset
 			angle_openThreshold -= offset;
@@ -236,9 +234,10 @@ float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 			{
 				angle_openThreshold += 360;
 			}
-			UART_PRINT("Open(-offset):%f\n", angle_openThreshold);
 		}
 	}
+
+	DEBG_PRINT("60 degree: %f\n",angle_openThreshold);
 
 	return angle_openThreshold;
 }

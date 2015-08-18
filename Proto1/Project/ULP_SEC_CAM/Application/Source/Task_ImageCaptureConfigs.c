@@ -29,7 +29,7 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 	uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
 	ImageConfigData = ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t));
 
-	//UART_PRINT("T3\n\r");
+	//DEBG_PRINT("T3\n\r");
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
 		//
@@ -52,7 +52,7 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 		//in global variables
 		while(g_Task3_Notification != READ_MAGNTMTRFILE_DONE)
 		{
-			UART_PRINT("$");
+			DEBG_PRINT("$");
 			osi_Sleep(10);
 		}
 		//Configure FXOS and read out first few angle values
@@ -60,7 +60,7 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 
 		while(g_Task3_Notification != READ_SENSORCONFIGFILE_DONE)
 		{
-			UART_PRINT("%");
+			DEBG_PRINT("%");
 			osi_Sleep(10);
 		}
 
@@ -76,7 +76,7 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 
 		ulTimeDuration_ms = get_timeDuration();
 		stop_100mSecTimer();
-		UART_PRINT("Time to begin angle check - %d ms\n\r", ulTimeDuration_ms);
+		DEBG_PRINT("Till angle: %dms\n", ulTimeDuration_ms);
 		//ulTimeDuration_ms = 0;
 		start_100mSecTimer();
 
@@ -100,7 +100,7 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 
 		ulTimeDuration_ms = get_timeDuration();
 		stop_100mSecTimer();
-		UART_PRINT("File open is over - %d ms\n\r", ulTimeDuration_ms);
+		DEBG_PRINT("Fileopen over: %dms\n", ulTimeDuration_ms);
 		//g_I2CPeripheral_inUse_Flag = NO;
 	}
 

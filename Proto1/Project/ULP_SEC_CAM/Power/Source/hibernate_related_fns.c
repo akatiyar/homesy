@@ -50,7 +50,7 @@ void HIBernate(uint32_t ulWakeSources,
 {
 //	uint8_t count=0;
 
-	UART_PRINT("Entering HIBernate...\n\r");
+	RELEASE_PRINT("HIBernating\n");
 	//
     // Setup Wake Source
     //
@@ -73,24 +73,22 @@ void HIBernate(uint32_t ulWakeSources,
 		//if(ucGPIOWakeCondition == WAKEON_LIGHT_OFF)
 		if(IsLightOff(LUX_THRESHOLD))
 		{
-			UART_PRINT("Light Off.\n");
 			configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
 			//while(!IsLightOff(LUX_THRESHOLD));
-			UART_PRINT("***OPEN DOOR TO CAPTURE IMAGE***\n\r");
+			RELEASE_PRINT("***OPEN DOOR TO CAPTURE IMAGE***\n");
 			UtilsDelay(800000);
 			sensorsTriggerSetup();
-			//UART_PRINT("Cleared sensors\n\r");
+			//DEBG_PRINT("Cleared sensors\n\r");
 		}
 		else
 		//if(ucGPIOWakeCondition == WAKEON_LIGHT_ON)
 		{
-			UART_PRINT("Light On.\n");
 			configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
 			//while(IsLightOff(LUX_THRESHOLD));
-			UART_PRINT("***CLOSE DOOR TO WAKE DEVICE***\n\r");
+			RELEASE_PRINT("***CLOSE DOOR TO WAKE DEVICE***\n");
 			UtilsDelay(800000);
 			sensorsTriggerSetup();
-			//UART_PRINT("Cleared sensors\n\r");
+			//DEBG_PRINT("Cleared sensors\n\r");
 		}
 #ifdef IOEXPANDER_PRESENT
 		ClearInterrupt_IOExpander();
@@ -102,6 +100,27 @@ void HIBernate(uint32_t ulWakeSources,
     //
     MAP_PRCMHibernateEnter();
 }
+
+void sensorsTriggerSetup()
+{
+	//
+	// If Light sensor is to be used
+	//
+	//DEBG_PRINT("\n\rLIGHT SENSOR:\n\r");
+	//verifyISL29035();
+	//configureISL29035(0);
+	getLightsensor_intrptStatus(); //To clear the interrupt
+	//DEBG_PRINT("Configured Light Sensor for wake up\n\r");
+
+	//
+	// If Accelerometer trigger is to be used
+	//
+	//	verifyAccelMagnSensor();
+	//	clearAccelMotionIntrpt();
+	//	configureFXOS8700(MODE_ACCEL_INTERRUPT);
+	//	DEBG_PRINT("Configured Accelerometer for wake up\n\r");
+}
+
 /*{
     //
     // Setup Wake Source
@@ -129,7 +148,7 @@ void HIBernate(uint32_t ulWakeSources,
 		//	Configure or clear interrupts of wake-up trigger sensors
 		//
 		sensorsTriggerSetup();
-		UART_PRINT("Cleared sensors\n\r");
+		DEBG_PRINT("Cleared sensors\n\r");
 	}
 	else
 	{
@@ -147,22 +166,4 @@ void HIBernate(uint32_t ulWakeSources,
 }*/
 
 
-void sensorsTriggerSetup()
-{
-	//
-	// If Light sensor is to be used
-	//
-	//UART_PRINT("\n\rLIGHT SENSOR:\n\r");
-	//verifyISL29035();
-	//configureISL29035(0);
-	getLightsensor_intrptStatus(); //To clear the interrupt
-	//UART_PRINT("Configured Light Sensor for wake up\n\r");
 
-	//
-	// If Accelerometer trigger is to be used
-	//
-	//	verifyAccelMagnSensor();
-	//	clearAccelMotionIntrpt();
-	//	configureFXOS8700(MODE_ACCEL_INTERRUPT);
-	//	UART_PRINT("Configured Accelerometer for wake up\n\r");
-}

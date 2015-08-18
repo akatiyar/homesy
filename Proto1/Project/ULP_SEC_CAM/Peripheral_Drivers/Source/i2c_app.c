@@ -53,7 +53,7 @@ int32_t i2cReadRegisters(uint8_t ucDevI2CAddr,
 
 	if(MAP_I2CMasterErr(I2CA0_BASE) != I2C_MASTER_ERR_NONE)
 	{
-		DBG_PRINT("I2C Master Error: %x Read()",MAP_I2CMasterErr(I2CA0_BASE));
+		DEBG_PRINT("I2C Master Error: %x Read()",MAP_I2CMasterErr(I2CA0_BASE));
 		//return FAILURE;
 		//LOOP_FOREVER();
 	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
@@ -112,7 +112,7 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 
 	if(MAP_I2CMasterErr(I2CA0_BASE) != I2C_MASTER_ERR_NONE)
 	{
-		DBG_PRINT("I2C Master Error: %x Write()",MAP_I2CMasterErr(I2CA0_BASE));
+		DEBG_PRINT("I2C Master Error: %x Write()",MAP_I2CMasterErr(I2CA0_BASE));
 		//return FAILURE;
 		//LOOP_FOREVER();
 	    MAP_PRCMPeripheralReset(PRCM_I2CA0);
@@ -170,7 +170,7 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 
 	if(MAP_I2CMasterErr(I2CA0_BASE) != I2C_MASTER_ERR_NONE)
 	{
-		DBG_PRINT("I2C Master Error: %x ReadTwo()",MAP_I2CMasterErr(I2CA0_BASE));
+		DEBG_PRINT("I2C Master Error: %x ReadTwo()",MAP_I2CMasterErr(I2CA0_BASE));
 		//return FAILURE;
 		//LOOP_FOREVER();
 	    MAP_PRCMPeripheralReset(PRCM_I2CA0);

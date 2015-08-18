@@ -59,7 +59,7 @@ void check_doorpos()
 	//---------------------------------------------
 
 	float angle_reg = thisSV_6DOF_GB_BASIC.fLPRho;// temp angle variable.. dont change the actual angle readings structure
-	UART_PRINT("ANGLE=%3.2f\n", angle_reg);
+	DEBG_PRINT("ANGLE=%3.2f\n", angle_reg);
 
 	//------------------------------------------------------
 	// If the measured angle is less than the minimum angle then add 360 to it considering 360 cross over
@@ -89,7 +89,7 @@ void check_doorpos()
 	//vv Remove Noise from getting in to the buffer
 //	if( abs(angle_avg - angle_reg) > 100)
 //	{
-//		UART_PRINT("NOISE \n\r");// just ignore and exit this function
+//		DEBG_PRINT("NOISE \n\r");// just ignore and exit this function
 //	}
 //	else// If noise free
 	{
@@ -111,7 +111,7 @@ void check_doorpos()
 		angle_reading_del1 = angle_avg;
 		//-------------------------------------------------------------------
 
-		//UART_PRINT("ANGLE=%3.2f\n", angle_avg);
+		//DEBG_PRINT("ANGLE=%3.2f\n", angle_avg);
 
 
 		//--------  Detect closing or opening of fridge -------------------------
@@ -129,7 +129,7 @@ void check_doorpos()
 		else// invalid
 		{
 			open1_close0_invalid2 = 2;  // no constant increase or decrease so invalid
-			//UART_PRINT("INVALID\n");
+			//DEBG_PRINT("INVALID\n");
 		}
 		//------------------------------------------------------------------------
 
@@ -142,8 +142,8 @@ void check_doorpos()
 			if(  (angle_avg < gdoor_90deg_angle) && (angle_avg > (gdoor_90deg_angle-10)) && (valid_case == 0)/* & (open1_close0_invalid2 == 1)*/ )
 			{
 				valid_case = 1;
-				UART_PRINT("O \n");
-				UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
+				DEBG_PRINT("O \n");
+				DEBG_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
 				LED_Off();
 			}
 			//-----------------
@@ -152,8 +152,8 @@ void check_doorpos()
 			if( (angle_avg > gdoor_40deg_angle) &&  (angle_avg < (gdoor_40deg_angle+10)) &&/* (open1_close0_invalid2 == 0) &*/ (valid_case == 1 ) && gdoor_dirCW )
 			{
 				valid_case = 0;
-				UART_PRINT("\nS\n");
-				UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
+				DEBG_PRINT("\nS\n");
+				DEBG_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
 				g_flag_door_closing_45degree = 1;
 			}
 			//---------------------------
@@ -164,8 +164,8 @@ void check_doorpos()
 			if(  (angle_avg > gdoor_90deg_angle) && (angle_avg < (gdoor_90deg_angle+10)) && (valid_case == 0) /* & (open1_close0_invalid2 == 1) */)
 			{
 				valid_case = 1;
-				UART_PRINT("O \n");
-				UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
+				DEBG_PRINT("O \n");
+				DEBG_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
 				LED_Off();
 			}
 			//-----------------
@@ -174,8 +174,8 @@ void check_doorpos()
 			if( (angle_avg < gdoor_40deg_angle) &&  (angle_avg > (gdoor_40deg_angle-10)) && /*(open1_close0_invalid2 == 0) &*/ (valid_case == 1 ) && !gdoor_dirCW)
 			{
 				valid_case = 0;
-				UART_PRINT("\nS\n");
-				UART_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
+				DEBG_PRINT("\nS\n");
+				DEBG_PRINT("ANGLE=%3.2f\n", thisSV_6DOF_GB_BASIC.fLPRho);
 				g_flag_door_closing_45degree = 1;
 			}
 			//------------------------------

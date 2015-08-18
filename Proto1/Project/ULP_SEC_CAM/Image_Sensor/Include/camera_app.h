@@ -64,6 +64,8 @@ extern "C"
 //#define IMAGE_BUF_SIZE_BYTES			25600
 #define IMAGE_BUF_SIZE_BYTES			81920	//80K //Image buffer
 
+#define PREVIEW_IMAGE_MAXSZ				40960	//40K
+
 #define ONE_KB                      	(1024)
 
 #ifdef ENABLE_JPEG

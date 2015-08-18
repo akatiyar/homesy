@@ -31,7 +31,7 @@
 //    lRetVal = Network_IF_InitDriver(ROLE_STA);
 //    if(lRetVal < 0)
 //    {
-//       UART_PRINT("Failed to start SimpleLink Device\n\r");
+//       DEBG_PRINT("Failed to start SimpleLink Device\n\r");
 //       return;
 //    }
 //
@@ -46,7 +46,7 @@
 //    lRetVal = Network_IF_ConnectAP(SSID_NAME,SecurityParams);
 //    if(lRetVal < 0)
 //    {
-//       UART_PRINT("Connection to an AP failed\n\r");
+//       DEBG_PRINT("Connection to an AP failed\n\r");
 //       LOOP_FOREVER();
 //    }
 //
@@ -74,10 +74,10 @@
 //    lRetVal = send(iSocketDesc, ucData, sizeof(ucData), 0);
 //    if(lRetVal < 0)
 //	{
-//		UART_PRINT("Failed to send data \n\r",lRetVal);
+//		DEBG_PRINT("Failed to send data \n\r",lRetVal);
 //		goto end;
 //	}
-//    UART_PRINT("\nTest send() return %ld\n\r", lRetVal);
+//    DEBG_PRINT("\nTest send() return %ld\n\r", lRetVal);
 //
 //    // Initialization of accelerometer/Magnetometer
 //    verifyAccelMagnSensor();
@@ -91,29 +91,29 @@
 //    {
 //    	//if(GPIOPinRead(GPIOA2_BASE,0x40))
 //    	{
-//    		UART_PRINT("\n\rCollecting Sensor data\n\r");
+//    		DEBG_PRINT("\n\rCollecting Sensor data\n\r");
 //
-//    		UART_PRINT("\n\rTemperature RH Sensor\n\r");
+//    		DEBG_PRINT("\n\rTemperature RH Sensor\n\r");
 //    		float_t fTemp, fRH;
 //    		softResetTempRHSensor();
 // 		    configureTempRHSensor();
 //    		getTempRH( &fTemp, &fRH );
-//    		UART_PRINT("Temp: %f\n RH: %f\n", fTemp, fRH);
+//    		DEBG_PRINT("Temp: %f\n RH: %f\n", fTemp, fRH);
 //
-//    		UART_PRINT("\n\r\n\rAcceleration, Magnetic Fld Sensor\n\r");
+//    		DEBG_PRINT("\n\r\n\rAcceleration, Magnetic Fld Sensor\n\r");
 //    		float_t fAccel;
 //    		getAccelerationMagnitude( &fAccel );
-//    		UART_PRINT( "\nAcceleration: %f\n\r", fAccel);
+//    		DEBG_PRINT( "\nAcceleration: %f\n\r", fAccel);
 //
-//    		UART_PRINT("\n\rLight Sensor\n\r");
+//    		DEBG_PRINT("\n\rLight Sensor\n\r");
 //    		uint16_t usLightIntensity;
 //    		float_t fLightIntensity;
 //    		verifyISL29035();
 //    		configureISL29035(0);
 //    		usLightIntensity = getLightsensor_data();
 //    		fLightIntensity = (float)usLightIntensity;
-//    		UART_PRINT( "\nLight Intensity: %d\n\r", usLightIntensity);
-//    		UART_PRINT( "\nLight Intensity: %f\n\r", fLightIntensity);
+//    		DEBG_PRINT( "\nLight Intensity: %d\n\r", usLightIntensity);
+//    		DEBG_PRINT( "\nLight Intensity: %f\n\r", fLightIntensity);
 //
 ////    		pvTcpData = ucData;
 ////    		*(float_t*)pvTcpData = fTemp;
@@ -129,7 +129,7 @@
 //    		fTcpData[2] = fAccel;
 //    		fTcpData[3] = fLightIntensity;
 //
-//    		UART_PRINT("Sending Sensor data\n\r");
+//    		DEBG_PRINT("Sending Sensor data\n\r");
 //    		lRetVal = send(iSocketDesc,
 ////    						ucData,
 //    						(char* )pfTcpData,
@@ -138,10 +138,10 @@
 //    						0);
 //			if(lRetVal < 0)
 //			{
-//				UART_PRINT("Failed to send data \n\r",lRetVal);
+//				DEBG_PRINT("Failed to send data \n\r",lRetVal);
 //				goto end;
 //			}
-//			UART_PRINT("Sent Sensor data\n\r");
+//			DEBG_PRINT("Sent Sensor data\n\r");
 //
 //    		UtilsDelay(2*8000000/3);
 //    	}
@@ -165,7 +165,7 @@
 //    lRetVal = Network_IF_DeInitDriver();
 //    if(lRetVal < 0)
 //    {
-//       UART_PRINT("Failed to stop SimpleLink Device\n\r");
+//       DEBG_PRINT("Failed to stop SimpleLink Device\n\r");
 //       LOOP_FOREVER();
 //    }
 //
@@ -191,19 +191,19 @@ void TestFxosApiReadWrite(void *pvParameters)
 	{
 		//while(!GPIOPinRead(GPIOA0_BASE,0x80))
 		{
-			//UART_PRINT("*");
+			//DEBG_PRINT("*");
 		}
 		getAccelerationMagnitude( &fAccel );
 		UtilsDelay(80000000 * .001);
-//		UART_PRINT( "\nAcceleration: %f", fAccel);
+//		DEBG_PRINT( "\nAcceleration: %f", fAccel);
 //		getDoorDirection( &fDoorDirectionAngle );
-//		UART_PRINT("\nAngle:%f\n\n", fDoorDirectionAngle);
+//		DEBG_PRINT("\nAngle:%f\n\n", fDoorDirectionAngle);
 		//UtilsDelay( 8000000/3 ); 	// Can uncomment this if data ready
 									// interrupt is not set up
 	}
 //	if( setMotionDetectionThreshold(2) != 0 )
 //	{
-//		UART_PRINT("\nFailed\n");
+//		DEBG_PRINT("\nFailed\n");
 //	}
 }
 
@@ -220,7 +220,7 @@ void TestFxosMovementDetection(void *pvParameters)
 		{
 		}
 
-		UART_PRINT("MD	");
+		DEBG_PRINT("MD	");
 
 		clearAccelMotionIntrpt();
 	}
@@ -240,7 +240,7 @@ void TestSi7020ApiReadWrite(void *pvParameters)
 	while(1)
 	{
 		getTempRH(&fTemp, &fRH);
-		UART_PRINT("\nTemp: %2.2f\n RH: %2.2f\n", fTemp, fRH);
+		DEBG_PRINT("\nTemp: %2.2f\n RH: %2.2f\n", fTemp, fRH);
 		//UtilsDelay(8000000*10);
 	}
 }
@@ -250,7 +250,7 @@ void TestIsl29035Api(void *pvParameters)
 {
 	if(!verifyISL29035())
 	{
-		UART_PRINT("Device Connection success");
+		DEBG_PRINT("Device Connection success");
 	}
 	configureISL29035(0);
 
@@ -261,12 +261,12 @@ void TestIsl29035Api(void *pvParameters)
 	   {
 		   if(GPIOPinRead(GPIOA0_BASE,0x04))
 		   {
-			   UART_PRINT("Low Lux");
+			   DEBG_PRINT("Low Lux");
 			   getLightsensor_data();
 		   }
 		   else
 		   {
-			   UART_PRINT("Hi Lux");
+			   DEBG_PRINT("Hi Lux");
 			   getLightsensor_intrptStatus();
 			   getLightsensor_data();
 		   }
@@ -276,7 +276,7 @@ void TestIsl29035Api(void *pvParameters)
 //	while(1)
 //	{
 //		usData = getLightsensor_data();
-//		UART_PRINT("Light Sensor Data: %d", usData);
+//		DEBG_PRINT("Light Sensor Data: %d", usData);
 //		UtilsDelay(8000000/3);
 //	}
 }
@@ -323,7 +323,7 @@ void TestIsl29035Api(void *pvParameters)
 				break;
 			}
 		}
-		UART_PRINT("%d 	%3.2f 	%x %x\n\r", i, fYaw, flag_U, flag_L);
+		DEBG_PRINT("%d 	%3.2f 	%x %x\n\r", i, fYaw, flag_U, flag_L);
 	}
 	return;
 

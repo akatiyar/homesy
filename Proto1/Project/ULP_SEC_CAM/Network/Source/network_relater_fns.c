@@ -130,12 +130,8 @@ long ConfigureSimpleLinkToDefaultState()
     long lRetVal = -1;
     long lMode = -1;
 
-    UART_PRINT("b sl_start()1\n\r");	//Tag:Rm
-    //lMode = sl_Start(0, 0, 0);
-    //ASSERT_ON_ERROR(lMode);
     lRetVal = NWP_SwitchOn();
     ASSERT_ON_ERROR(lRetVal);
-    UART_PRINT("a sl_start()1\n\r");	//Tag:Rm
 
     // If the device is not in station-mode, try configuring it in station-mode
     if (ROLE_STA != lMode)
@@ -178,8 +174,8 @@ long ConfigureSimpleLinkToDefaultState()
                                 &ucConfigLen, (unsigned char *)(&ver));
     ASSERT_ON_ERROR(lRetVal);
 
-//    UART_PRINT("Host Driver Version: %s\n\r",SL_DRIVER_VERSION);
-//    UART_PRINT("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n\r",
+//    DEBG_PRINT("Host Driver Version: %s\n\r",SL_DRIVER_VERSION);
+//    DEBG_PRINT("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n\r",
 //    ver.NwpVersion[0],ver.NwpVersion[1],ver.NwpVersion[2],ver.NwpVersion[3],
 //    ver.ChipFwAndPhyVersion.FwVersion[0],ver.ChipFwAndPhyVersion.FwVersion[1],
 //    ver.ChipFwAndPhyVersion.FwVersion[2],ver.ChipFwAndPhyVersion.FwVersion[3],
@@ -504,10 +500,12 @@ long GetSNTPTime(SlDateTime_t *dateTime, unsigned char ucGmtDiffHr, unsigned cha
 
         *g_TimeData.pcCCPtr++ = '\0';
 
-        UART_PRINT("response from server: ");
-        UART_PRINT((char *)g_acSNTPserver);
-        UART_PRINT(":");
-        UART_PRINT(g_TimeData.acTimeStore);
+        DEBG_PRINT("Server: ");
+        DEBG_PRINT((char *)g_acSNTPserver);
+        DEBG_PRINT("\n");
+        DEBG_PRINT("Response: ");
+        DEBG_PRINT(g_TimeData.acTimeStore);
+        DEBG_PRINT("\n");
     }
     return SUCCESS;
 }
@@ -523,7 +521,7 @@ long Network_IF_GetHostIP( char* pcHostName,unsigned long * pDestinationIP )
 
     return lStatus;
 
-//    UART_PRINT("Get Host IP succeeded.\n\rHost: %s IP: %d.%d.%d.%d \n\r\n\r",
+//    DEBG_PRINT("Get Host IP succeeded.\n\rHost: %s IP: %d.%d.%d.%d \n\r\n\r",
 //                    pcHostName, SL_IPV4_BYTE(*pDestinationIP,3),
 //                    SL_IPV4_BYTE(*pDestinationIP,2),
 //                    SL_IPV4_BYTE(*pDestinationIP,1),
@@ -571,7 +569,7 @@ int32_t GetTimeNTP(SlDateTime_t *dateTime)
             lRetVal = GetSNTPTime(dateTime,GMT_DIFF_TIME_HRS, GMT_DIFF_TIME_MINS);
             if(lRetVal == 0)
             {
-                UART_PRINT("\nTime received from NTP server\n\r");
+                DEBG_PRINT("Time received\n");
                 break;
             }
 
@@ -586,7 +584,7 @@ int32_t GetTimeNTP(SlDateTime_t *dateTime)
     }
     else
     {
-        UART_PRINT("DNS lookup failed. \n\r");
+        DEBG_PRINT("DNS lookup failed\n");
     }
 
     //
@@ -608,10 +606,8 @@ int32_t WiFi_Connect()
 	SlSecParams_t keyParams;
 
 	ConfigureSimpleLinkToDefaultState();
-	UART_PRINT("b sl_start\n\r");
 	//lRetVal = sl_Start(0, 0, 0);
 	lRetVal = NWP_SwitchOn();
-	UART_PRINT("a sl_start\n\r");
 	ASSERT_ON_ERROR(lRetVal);
 
 	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
@@ -637,8 +633,6 @@ int32_t WiFi_Connect()
 	// TODO: Set to current date/time (within an hour precision)
 	SlDateTime_t dateTime;
 	memset(&dateTime, 0, sizeof(dateTime));
-
-
 
 	dateTime.sl_tm_year = 2015;
 	dateTime.sl_tm_mon = 8;
@@ -683,7 +677,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 	status = sl_WlanSetMode(ROLE_STA);
 	ASSERT_ON_ERROR(status);
 
-	//UART_PRINT("\r\n[QuickStart] Network init\r\n");
+	//DEBG_PRINT("\r\n[QuickStart] Network init\r\n");
 
 //	ssid = "Soliton";
 //	keyParams->Key = "37203922bb";
@@ -698,8 +692,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 //	keyParams->KeyLen = sizeof("cfuclcxjfdi");
 //	keyParams->Type = SL_SEC_TYPE_WPA_WPA2;
 
-	UART_PRINT("WiFi\n");
-	UART_PRINT("SSID:%s\nPassword:%s\nSecurity Type:%x\n", ssid, keyParams->Key, keyParams->Type);
+	DEBG_PRINT("WiFi SSID:%s\nPassword:%s\nSecurity Type:%x\n", ssid, keyParams->Key, keyParams->Type);
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
 	ASSERT_ON_ERROR(status);
 
@@ -737,7 +730,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 {
     if(pWlanEvent == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        //DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     switch(pWlanEvent->Event)
@@ -763,12 +756,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
                    pWlanEvent->EventData.STAandP2PModeWlanConnected.bssid,
                    SL_BSSID_LENGTH);
 
-            UART_PRINT("[WLAN EVENT] STA Connected to the AP: %s ,"
-            		"BSSID: %x:%x:%x:%x:%x:%x\n\r",
-                      g_ucConnectionSSID,g_ucConnectionBSSID[0],
-                      g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
-                      g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
-                      g_ucConnectionBSSID[5]);
+            RELEASE_PRINT("Connected to AP: %s\n", g_ucConnectionSSID);
         }
         break;
 
@@ -787,61 +775,51 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
             //'reason_code' is SL_USER_INITIATED_DISCONNECTION
             if(SL_USER_INITIATED_DISCONNECTION == pEventData->reason_code)
             {
-                UART_PRINT("[WLAN EVENT]Device disconnected from the AP: %s,"
-                "BSSID: %x:%x:%x:%x:%x:%x on application's request \n\r",
-                           g_ucConnectionSSID,g_ucConnectionBSSID[0],
-                           g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
-                           g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
-                           g_ucConnectionBSSID[5]);
+            	RELEASE_PRINT("Disconnected from AP on app request\n",
+                           g_ucConnectionSSID);
             }
             else
             {
-                UART_PRINT("[WLAN ERROR]Device disconnected from the AP AP: %s,"
-                "BSSID: %x:%x:%x:%x:%x:%x on an ERROR..!! \n\r",
-                           g_ucConnectionSSID,g_ucConnectionBSSID[0],
-                           g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
-                           g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
-                           g_ucConnectionBSSID[5]);
-                UART_PRINT("Reason Code: %x\n\r", pEventData->reason_code);
+                RELEASE_PRINT("Disconnected from AP on ERROR: %x\n",
+                		pEventData->reason_code);
 
-                if(SL_INVALID_INFORMATION_ELEMENT == pEventData->reason_code)
-                {
-                	UART_PRINT("Reason: SL_INVALID_INFORMATION_ELEMENT\n\r");
-                }
-                else if(SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE == pEventData->reason_code)
-                {
-					UART_PRINT("Reason: SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE\n\r");
-				}
-                else if(SL_FOUR_WAY_HANDSHAKE_TIMEOUT == pEventData->reason_code)
-				{
-					UART_PRINT("Reason: SL_FOUR_WAY_HANDSHAKE_TIMEOUT\n\r");
-				}
-//                else if (SL_ROAMING_TRIGGER_BSS_LOSS == pEventData->reason_code)
+//				if(SL_INVALID_INFORMATION_ELEMENT == pEventData->reason_code)
 //				{
-//					UART_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
+//					DEBG_PRINT("Reason: SL_INVALID_INFORMATION_ELEMENT\n\r");
+//				}
+//				else if(SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE == pEventData->reason_code)
+//				{
+//					DEBG_PRINT("Reason: SL_MESSAGE_INTEGRITY_CODE_MIC_FAILURE\n\r");
+//				}
+//				else if(SL_FOUR_WAY_HANDSHAKE_TIMEOUT == pEventData->reason_code)
+//				{
+//					DEBG_PRINT("Reason: SL_FOUR_WAY_HANDSHAKE_TIMEOUT\n\r");
+//				}
+//              else if (SL_ROAMING_TRIGGER_BSS_LOSS == pEventData->reason_code)
+//				{
+//					DEBG_PRINT("Reason: SL_ROAMING_TRIGGER_BSS_LOSS\n\r");
 //				}
                 // cc3200 gets stuck after this. So, a workaround is to reset
                 //and begin again
                 PRCMSOCReset();
                 /*sl_Stop(0);
-                UART_PRINT("NWP stop done");
+                DEBG_PRINT("NWP stop done");
                 sl_Start(0,0,0);
-                UART_PRINT("NWP restart done");*/
+                DEBG_PRINT("NWP restart done");*/
             }
         }
         break;
 
         case SL_WLAN_STA_CONNECTED_EVENT:
         {
-        	UART_PRINT("[WLAN EVENT] Mobile Station connected to CC3200-AP\n\r");
+        	RELEASE_PRINT("Mobile Station connected to CC3200-AP\n");
         	g_PhoneConnected_ToCC3200AP_flag = 1;
         	LED_Blink_2(.5,.5,BLINK_FOREVER);
         }
         break;
         default:
         {
-            UART_PRINT("[WLAN EVENT] Unexpected event [0x%x]\n\r",
-                       pWlanEvent->Event);
+            DEBG_PRINT("Unexpected WLANEvent:0x%x\n", pWlanEvent->Event);
         }
         break;
     }
@@ -861,7 +839,6 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
 {
     if(pNetAppEvent == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -879,27 +856,21 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
             //Gateway IP address
             g_ulGatewayIP = pEventData->gateway;
 
-            UART_PRINT("[NETAPP EVENT] IP Acquired: IP=%d.%d.%d.%d , "
-            "Gateway=%d.%d.%d.%d\n\r",
+            RELEASE_PRINT("IP Acquired: IP=%d.%d.%d.%d\n",
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,3),
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,2),
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,1),
-            SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,0),
-            SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.gateway,3),
-            SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.gateway,2),
-            SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.gateway,1),
-            SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.gateway,0));
+            SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,0));
         }
         break;
         case SL_NETAPP_IP_LEASED_EVENT:
         {
-        	UART_PRINT("[NETAPP EVENT] CC3200-AP has leased IP to Mobile Station\n\r");
+        	RELEASE_PRINT("CC3200-AP has leased IP to Mobile Station\n");
         }
         break;
         default:
         {
-            UART_PRINT("[NETAPP EVENT] Unexpected event [0x%x] \n\r",
-                       pNetAppEvent->Event);
+            DEBG_PRINT("Unexpected NetAppEvent:0x%x\n", pNetAppEvent->Event);
         }
         break;
     }
@@ -919,7 +890,7 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
 {
     if(pSock == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        //DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -929,31 +900,25 @@ void SimpleLinkSockEventHandler(SlSockEvent_t *pSock)
             switch( pSock->socketAsyncEvent.SockTxFailData.status )
             {
                 case SL_ECLOSE:
-                    UART_PRINT("\n[SOCK ERROR] - close socket (%d) operation "
+                    DEBG_PRINT("Close socket (%d) operation "
                     "failed to transmit all queued packets\n",
 					pSock->socketAsyncEvent.SockTxFailData.sd);
                     break;
                 default:
-                    UART_PRINT("\n[SOCK ERROR] - TX FAILED : socket %d , reason"
-                        "(%d) \n",
-						pSock->socketAsyncEvent.SockTxFailData.sd, pSock->socketAsyncEvent.SockTxFailData.status);
-                    if(SL_ENOTCONN == pSock->socketAsyncEvent.SockTxFailData.status)
-                    {
-                    	UART_PRINT("-107 = SL_ENOTCONN = "
-                    			"Transport endpoint is not connected\n\r");
-                    }
+                    DEBG_PRINT("TX FAILED reason: (%d)\n",
+                    		pSock->socketAsyncEvent.SockTxFailData.status);
+//                    if(SL_ENOTCONN == pSock->socketAsyncEvent.SockTxFailData.status)
+//                    {
+//                    	DEBG_PRINT("-107 = SL_ENOTCONN = "
+//                    			"Transport endpoint is not connected\n\r");
+//                    }
             }
             break;
 
         default:
-            UART_PRINT("\n[SOCK EVENT] "
-            			"- Unexpected Event [%x0x]\n",pSock->Event);
+            DEBG_PRINT("Unexpected SockEvent: 0x%x\n",pSock->Event);
     }
-//    UART_PRINT("[SOCK EVENT/ERROR]:\n Event: %x\n Socket: %x\n EventStatus: "
-//    				"%d\n AsynchEventValue: %x\n AsynchEventType: %x\n\r\n\r",
-//    				pSock->Event, pSock->EventData.sd, pSock->EventData.status,
-//    				pSock->EventData.socketAsyncEvent.val,
-//    				pSock->EventData.socketAsyncEvent.type);
+
 }
 
 //*****************************************************************************
@@ -974,9 +939,9 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
 
     switch (pSlHttpServerEvent->Event)
     {
-        case SL_NETAPP_HTTPGETTOKENVALUE_EVENT:
+        /*case SL_NETAPP_HTTPGETTOKENVALUE_EVENT:
         {
-        	UART_PRINT("Received GET Token");
+        	//DEBG_PRINT("Received GET Token");
             if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [0], pSlHttpServerEvent->EventData.httpTokenName.len))
             {
                 if(g_ucConnectedToConfAP == 1)
@@ -1041,20 +1006,17 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
             }
 
         }
-        break;
+        break;*/
 
         case SL_NETAPP_HTTPPOSTTOKENVALUE_EVENT:
         {
-
-        	UART_PRINT("\nReceived POST Token\n\r");
         	uint16_t Token_Len = pSlHttpServerEvent->EventData.httpPostData.token_name.len;
         	uint16_t Value_Len =  pSlHttpServerEvent->EventData.httpPostData.token_value.len;
         	memcpy(Value,  pSlHttpServerEvent->EventData.httpPostData.token_value.data,Value_Len);
         	memcpy(Token,  pSlHttpServerEvent->EventData.httpPostData.token_name.data,Token_Len);
         	Token[Token_Len] = '\0';
         	Value[Value_Len] = '\0';
-        	UART_PRINT("Token : %s\n\r",Token);
-        	UART_PRINT("Value : %s\n\r",Value);
+        	DEBG_PRINT("POST Token: %s Value : %s\n",Token, Value);
 
         	//angle90 , angle40
         	if(0 == memcmp(Token, TOK_ANGLE, Token_Len))
@@ -1147,20 +1109,15 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         		if(0 == memcmp(Value,"DGain",5))
         		{
         			//Copy Digital Gain
-
-					//Copy Analog Gain
 					G1Gain = atoi(&Value[6]);
 					RGain = atoi(&Value[9]);
 					BGain = atoi(&Value[12]);
 					G2Gain = atoi(&Value[15]);
 					SetDigitalGain(G1Gain,RGain,BGain,G2Gain);
-
-
         		}
         		if(0 == memcmp(Value,"IGain",5))
         		{
         			//Copy Initial Gain
-					//Copy Analog Gain
 					G1Gain = atoi(&Value[6]);
 					RGain = atoi(&Value[9]);
 					BGain = atoi(&Value[12]);

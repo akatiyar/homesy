@@ -93,14 +93,14 @@ int32_t application_fn()
 		//time, so we do it ahead of angle check, so that at the instant angle
 		//is detected, image can be clicked
 		g_Task1_Notification = IMAGEFILE_OPEN_BEGUN;
-		UART_PRINT("b Fileopen\n\r");	//Tag:Remove when waketime optimization is over
+		DEBG_PRINT("b Fileopen\n");	//Tag:Remove when waketime optimization is over
 		lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
 						   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
 		if(lRetVal < 0)
 		{
 		   sl_FsClose(lFileHandle, 0, 0, 0); ASSERT_ON_ERROR(lRetVal);
 		}
-		UART_PRINT("a Fileopen\n\r");	//Tag:Remove when waketime optimization is over
+		DEBG_PRINT("a Fileopen\n");	//Tag:Remove when waketime optimization is over
 		g_Task1_Notification = IMAGEFILE_OPEN_COMPLETE;
 
 		//Tag:Timestamp NWP up
@@ -125,13 +125,13 @@ int32_t application_fn()
 
 //		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
 //		{
-//			UART_PRINT("#");
+//			DEBG_PRINT("#");
 //			osi_Sleep(10);
 //		}
 
 		while(g_I2CPeripheral_inUse_Flag == YES)
 		{
-			UART_PRINT("&&&&\n");
+			DEBG_PRINT("&");
 			osi_Sleep(1);
 		}
 
@@ -139,7 +139,7 @@ int32_t application_fn()
 
 //		ulTimeDuration_ms = get_timeDuration();
 //		stop_100mSecTimer();
-//		UART_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
+//		DEBG_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
 
 		LED_Blink_2(.5,.5,BLINK_FOREVER);
 		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
@@ -194,7 +194,7 @@ int32_t application_fn()
 				{
 					g_ulAppStatus = TIMEOUT_BEFORE_IMAGING;
 					g_ucReasonForFailure = TIMEOUT_BEFORE_IMAGESNAP;
-					UART_PRINT("Timeout\n\r");
+					RELEASE_PRINT("Timeout\n\r");
 					break;
 				}
 				//Check for button press to let the user enter UserConfig mode
@@ -206,13 +206,11 @@ int32_t application_fn()
 				}
 			}
 		}
-		UART_PRINT("d\n");
+		DEBG_PRINT("d\n");
 		standby_accelMagn_fxos8700();
-		UART_PRINT("e\n");
+		DEBG_PRINT("e\n");
 		stop_100mSecTimer();
-		UART_PRINT("f\n");
-
-		//g_ulAppStatus = IMAGING_POSITION_DETECTED;
+		DEBG_PRINT("f\n");
 
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
@@ -250,9 +248,7 @@ int32_t application_fn()
 		}
 
 		// Close the file after writing the image into it
-		UART_PRINT("g\n");
 	    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	    UART_PRINT("h\n");
 	    ASSERT_ON_ERROR(lRetVal);
 
 	    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
@@ -264,8 +260,6 @@ int32_t application_fn()
 		//Upload only if image was capture
 		if(g_ulAppStatus == IMAGE_CAPTURED)
 		{
-			UART_PRINT("Inside if\n");	//Tag:Rm
-
   			//Connect to WiFi
 			lRetVal = WiFi_Connect();
 			if (lRetVal < 0)

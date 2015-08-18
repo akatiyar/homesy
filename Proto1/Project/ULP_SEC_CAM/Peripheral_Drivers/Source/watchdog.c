@@ -21,7 +21,7 @@
 //*****************************************************************************
 void WatchdogIntHandler(void)
 {
-	//UART_PRINT("wdt\n");
+	//DEBG_PRINT("wdt\n");
     //
     // If we have been told to stop feeding the watchdog, return immediately
     // without clearing the interrupt.  This will cause the system to reset
@@ -29,7 +29,7 @@ void WatchdogIntHandler(void)
     //
     if(!g_ucFeedWatchdog)
     {
-//    	UART_PRINT("WDT no feed\n");
+//    	DEBG_PRINT("WDT no feed\n");
 //    	MAP_UtilsDelay(100*80000/6);
 //    	//MAP_UtilsDelay(100*80000/6);
 //    	PRCMSOCReset();
@@ -44,7 +44,7 @@ void WatchdogIntHandler(void)
     if(g_ulWatchdogCycles >= (g_ulAppTimeout_ms/WDT_KICK_GAP))
     {
         //MAP_UtilsDelay(800000);
-    	UART_PRINT("WDT app time out\n");
+    	DEBG_PRINT("WDT app time out\n");
     	MAP_UtilsDelay(100*80000/6);
         return;
     }
@@ -60,14 +60,14 @@ void WatchdogIntHandler(void)
     // Increment our interrupt counter.
     //
     g_ulWatchdogCycles++;
-    //UART_PRINT("W*D*T\n");
+    //DEBG_PRINT("W*D*T\n");
 
 }
 
 int16_t WDT_init()
 {
 #ifdef WATCHDOG_ENABLE
-	UART_PRINT("WDT Init\n");
+	DEBG_PRINT("WDT Init\n");
 	WDT_IF_Init(WatchdogIntHandler, MILLISECONDS_TO_TICKS(WDT_KICK_GAP));
 
 	g_ucFeedWatchdog = 1;

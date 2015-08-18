@@ -15,50 +15,7 @@
 
 #define DEVICE_ID						0x28 //xx101xxx
 #define FLASH_CONFIGS					0
-//******************************************************************************
-//
-//  This function does configures ISL29035 registers as needed by the
-//	applicaiton blueprint/mode
-//
-//	\param[in]	ucAppMode - Unique value that determines the Application mode
-//
-//	\return none
-//
-////****************************************************************************
-//void configureISL29035(uint8_t ucAppMode)
-//{
-//	uint8_t i;
-//	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
-//									/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
-//								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16),
-//								INT_LT_LSB_REG, 0x00,
-//								INT_LT_MSB_REG, 0x00,
-//								//INT_HT_LSB_REG, 0XFF, INT_HT_MSB_REG, 0x3F};//Work Table
-//								INT_HT_LSB_REG, 0XFF,INT_HT_MSB_REG, 0x01};//Fridge
-//	uint8_t ucHeader;
-//
-//	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
-//
-//	if(FLASH_CONFIGS)
-//	{
-//		//Read from flash
-//		ReadFile_FromFlash(&ucHeader, FILENAME_SENSORCONFIGS,
-//							1, OFFSET_ISL29035);
-//		ReadFile_FromFlash(ucConfigArray, FILENAME_SENSORCONFIGS,
-//							ucHeader, OFFSET_ISL29035 + 1);
-//		ucNoOfConfgs = ucHeader/2;
-//	}
-//
-//	for (i = 0; i < ucNoOfConfgs; i++)
-//	{
-//		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
-//							ucConfigArray[i*2],
-//							1,
-//							&ucConfigArray[i*2 + 1]);
-//	}
-//
-//	return;
-//}
+
 //******************************************************************************
 //
 //  This function does configures ISL29035 registers as needed by the
@@ -227,11 +184,11 @@ uint16_t getLightsensor_data(void)
 	PRINT_ON_ERROR(lRetVal);
 	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];
 	//data = (uint16_t)((databyte[1]<<8) | databyte[0]);
-	//UART_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
+	//DEBG_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
 	//LUX = [ RANGE/2^(ADC_Res) ] x data
 
 	lux_reading = (LUX_RANGE/ADC_RANGE) * data;	//commented by uthra for testing
-	//UART_PRINT("Lux: %d\n", lux_reading);
+	//DEBG_PRINT("Lux: %d\n", lux_reading);
 
 	return(lux_reading);
 	//return data;
@@ -268,7 +225,7 @@ uint16_t getLightsensor_intrptStatus(void)
 //	\return 16 bit light sensor data
 //
 ////****************************************************************************
-uint16_t verifyISL29035(void)
+int32_t verifyISL29035(void)
 {
 	uint8_t data = 0x00;
 	int32_t lRetVal;
@@ -276,18 +233,20 @@ uint16_t verifyISL29035(void)
 	lRetVal = i2cReadRegisters(ISL29035_I2C_ADDRESS, DEVICE_ID_REG, 1, &data);
 	PRINT_ON_ERROR(lRetVal);
 
-	UART_PRINT("LightSensor Device ID: %x\n\r", data);
+	DEBG_PRINT("LightSens Device ID: %x\n", data);
 
 	if((data & DEVICE_ID_MASK) == DEVICE_ID)
 	{
-		UART_PRINT("I2C communication with ISL29035 SUCCESS\n\r");
+		DEBG_PRINT("I2C comm with ISL29035 SUCCESS\n");
+		lRetVal = SUCCESS;
 	}
 	else
 	{
-		UART_PRINT("ISL29035 I2C communication FAILED! CHECK!\n\r");
+		DEBG_PRINT("ISL29035 I2C comm FAILED!\n");
+		lRetVal = ISL29035_NOT_FOUND;
 	}
 
-	return( !((data & DEVICE_ID_MASK) == DEVICE_ID) );
+	return lRetVal;
 }
 
 //******************************************************************************
@@ -307,3 +266,49 @@ int32_t PowerDown_ISL29035()
 
 	return lRetVal;
 }
+
+
+//******************************************************************************
+//
+//  This function does configures ISL29035 registers as needed by the
+//	applicaiton blueprint/mode
+//
+//	\param[in]	ucAppMode - Unique value that determines the Application mode
+//
+//	\return none
+//
+////****************************************************************************
+//void configureISL29035(uint8_t ucAppMode)
+//{
+//	uint8_t i;
+//	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
+//									/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
+//								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16),
+//								INT_LT_LSB_REG, 0x00,
+//								INT_LT_MSB_REG, 0x00,
+//								//INT_HT_LSB_REG, 0XFF, INT_HT_MSB_REG, 0x3F};//Work Table
+//								INT_HT_LSB_REG, 0XFF,INT_HT_MSB_REG, 0x01};//Fridge
+//	uint8_t ucHeader;
+//
+//	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
+//
+//	if(FLASH_CONFIGS)
+//	{
+//		//Read from flash
+//		ReadFile_FromFlash(&ucHeader, FILENAME_SENSORCONFIGS,
+//							1, OFFSET_ISL29035);
+//		ReadFile_FromFlash(ucConfigArray, FILENAME_SENSORCONFIGS,
+//							ucHeader, OFFSET_ISL29035 + 1);
+//		ucNoOfConfgs = ucHeader/2;
+//	}
+//
+//	for (i = 0; i < ucNoOfConfgs; i++)
+//	{
+//		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
+//							ucConfigArray[i*2],
+//							1,
+//							&ucConfigArray[i*2 + 1]);
+//	}
+//
+//	return;
+//}

@@ -308,7 +308,7 @@ int32_t Standby_ImageSensor()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("\n\rCam Stndby\n\r");
+	DEBG_PRINT("\n\rCam Stndby\n\r");
 
 	//lRetVal = EnterStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
@@ -326,7 +326,7 @@ int32_t Wakeup_ImageSensor()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("\n\rCam Wake\n\r");
+	DEBG_PRINT("\n\rCam Wake\n\r");
 
 	CamControllerInit();
 
@@ -344,7 +344,7 @@ int32_t Config_And_Start_CameraCapture()
 
 	start_100mSecTimer();	//Remove once ...
 
-	UART_PRINT("\n\rConfig Camera:\n\r");
+	DEBG_PRINT("\n\rConfig Camera:\n\r");
 	CamControllerInit();	// Init parallel camera interface of cc3200
 							// since image sensor needs XCLK for
 							//its I2C module to work
@@ -354,14 +354,14 @@ int32_t Config_And_Start_CameraCapture()
 
 	SoftReset_ImageSensor();
 
-	//UART_PRINT("\n\rCam Sensor Init ");
+	//DEBG_PRINT("\n\rCam Sensor Init ");
 	CameraSensorInit();
 
 	Standby_ImageSensor();
 	Wakeup_ImageSensor();
 
 	// Configure Sensor in Capture Mode
-	//UART_PRINT("\n\rStart Sensor ");
+	//DEBG_PRINT("\n\rStart Sensor ");
 	lRetVal = StartSensorInJpegMode();
 	ASSERT_ON_ERROR(lRetVal);
 
@@ -374,7 +374,7 @@ int32_t Config_And_Start_CameraCapture()
 
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
-	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
+	DEBG_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
 
 
 	Standby_ImageSensor();
@@ -399,7 +399,7 @@ int32_t Config_And_Start_CameraCapture()
 //	Variable_Read(0xA116, &x);
 //	Variable_Read(0xA117, &x);
 
-	UART_PRINT("I2C Camera config done\n\r");
+	DEBG_PRINT("I2C Camera config done\n\r");
 
 	MAP_PRCMPeripheralReset(PRCM_CAMERA);
 	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
@@ -414,7 +414,7 @@ int32_t Start_CameraCapture()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("\n\rCam Start\n\r");
+	DEBG_PRINT("\n\rCam Start\n\r");
 
 	lRetVal = StartSensorInJpegMode();
 	ASSERT_ON_ERROR(lRetVal);
@@ -435,7 +435,7 @@ int32_t Config_CameraCapture()
 {
 	int32_t lRetVal;
 
-	UART_PRINT("\n\rCam Config\n\r");
+	DEBG_PRINT("\n\rCam Config\n\r");
 	CamControllerInit();	// Init parallel camera interface of cc3200
 							// since image sensor needs XCLK for
 							//its I2C module to work
@@ -483,18 +483,18 @@ long CaptureAndStore_Image()
 
 	//start_100mSecTimer();	//Remove once delay after wake up is accepted
 
-	UART_PRINT("b sl_start\n\r");
+	DEBG_PRINT("b sl_start\n\r");
 	// Start SimpleLink
     //lRetVal = sl_Start(0, 0, 0);
 	lRetVal = NWP_SwitchOn();
-    UART_PRINT("a sl_start\n\r");
+    DEBG_PRINT("a sl_start\n\r");
     ASSERT_ON_ERROR(lRetVal);
 
 //	ulTimeDuration_ms = get_timeDuration();
 //	stop_100mSecTimer();
-//	UART_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
+//	DEBG_PRINT("sl_start() - %d ms\n\r", ulTimeDuration_ms);
 
-   	UART_PRINT("b Fileopen\n\r");
+   	DEBG_PRINT("b Fileopen\n\r");
    	//
 	// Open the file for Write Operation
 	//
@@ -502,7 +502,7 @@ long CaptureAndStore_Image()
 					   FS_MODE_OPEN_WRITE,
 					   &ulToken,
 					   &lFileHandle);
-	UART_PRINT("a Fileopen\n\r");
+	DEBG_PRINT("a Fileopen\n\r");
 	if(lRetVal < 0)
 	{
 	   sl_FsClose(lFileHandle, 0, 0, 0);
@@ -527,32 +527,32 @@ long CaptureAndStore_Image()
 // Tag:Remove this section when done with parallel task testing
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
-	UART_PRINT("*1* - %d ms *1*\n\r", ulTimeDuration_ms);
+	DEBG_PRINT("*1* - %d ms *1*\n\r", ulTimeDuration_ms);
 	start_100mSecTimer();	//Remove once delay after wake up is accepted
 	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
 	{
 		osi_Sleep(10);
-		UART_PRINT("^");
+		DEBG_PRINT("^");
 	}
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
-	UART_PRINT("*2* - %d ms *2*\n\r", ulTimeDuration_ms);
+	DEBG_PRINT("*2* - %d ms *2*\n\r", ulTimeDuration_ms);
 */
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
-	UART_PRINT("main - over - %d ms\n\r", ulTimeDuration_ms);
+	DEBG_PRINT("main - over - %d ms\n\r", ulTimeDuration_ms);
 
 	start_100mSecTimer();
 
 	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
 	{
-		UART_PRINT("{");
+		DEBG_PRINT("{");
 		osi_Sleep(10);
 	}
 
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
-	UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
+	DEBG_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
 //	int i;
 //	for(i=0; i<100; i++)
@@ -585,7 +585,7 @@ long CaptureAndStore_Image()
 			if(Elapsed_100MilliSecs > (DOORCHECK_TIMEOUT_SEC * 10))
 			{
 				lRetVal = TIMEOUT_BEFORE_IMAGING;
-				UART_PRINT("Timeout\n\r");
+				DEBG_PRINT("Timeout\n\r");
 				break;
 			}
 		}
@@ -606,7 +606,7 @@ long CaptureAndStore_Image()
 	// Wait in case imagesensor capture configs in not over yet
 	while(g_ulAppStatus == IMAGESENSOR_CAPTURECONFIGS_HAPPENING)
 	{
-		UART_PRINT("{");
+		DEBG_PRINT("{");
 	}
 	osi_TaskDelete(&g_ImageCaptureConfigs_TaskHandle);
 */
@@ -617,14 +617,14 @@ long CaptureAndStore_Image()
 //	configureTempRHSensor();
 //	UtilsDelay(80000000);
 //	getTempRH(&fTemp, &fRH);
-//	UART_PRINT("Temperature: %f\n\r", fTemp);
+//	DEBG_PRINT("Temperature: %f\n\r", fTemp);
 
 
 	//UtilsDelay(.25*80000000/6);
 	//
     // Perform Image Capture
     //
-    //UART_PRINT("sB");
+    //DEBG_PRINT("sB");
     //InitializeTimer();
     //StartTimer();
     MAP_CameraCaptureStart(CAMERA_BASE);
@@ -639,8 +639,8 @@ long CaptureAndStore_Image()
     		if((0 == g_image_buffer[0])&&(0 == g_image_buffer[10])&&(0 == g_image_buffer[20]))	//Checking three random positions in the buffer
     		//if(0xFFFFFFFF == g_image_buffer[0])
     		{
-				UART_PRINT("INVALID First Block\n\r ");
-    			//UART_PRINT("s%d ", g_readHeader);
+				DEBG_PRINT("INVALID First Block\n\r ");
+    			//DEBG_PRINT("s%d ", g_readHeader);
 
 				// Write a Block of Image from RAM to Flash
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
@@ -666,12 +666,12 @@ long CaptureAndStore_Image()
     }
     while((g_frame_end == 0))
     {
-    	//UART_PRINT("B");
+    	//DEBG_PRINT("B");
     	while( g_flag_DataBlockFilled )
     	{
     		if(g_flag_blockFull[g_readHeader])
     		{
-    			//UART_PRINT("s%d ", g_readHeader);
+    			//DEBG_PRINT("s%d ", g_readHeader);
 
     			// Write a Block of Image from RAM to Flash
 				lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
@@ -696,20 +696,20 @@ long CaptureAndStore_Image()
     		else
     		{
     			g_flag_DataBlockFilled = 0;
-    			//UART_PRINT("f");
+    			//DEBG_PRINT("f");
     		}
     	}
-		//UART_PRINT("F");
+		//DEBG_PRINT("F");
     }
 
     MAP_CameraCaptureStop(CAMERA_BASE, true);
     //StopTimer();
-    //UART_PRINT("pA");
-    UART_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
+    //DEBG_PRINT("pA");
+    DEBG_PRINT("\n\rDONE: Image Capture from Sensor\n\r");
 
     //float_t fPicCaptureDuration;
     //GetTimeDuration(&fPicCaptureDuration);
-    //UART_PRINT("\n\rImage Capture Duration: %f\n\r", fPicCaptureDuration);
+    //DEBG_PRINT("\n\rImage Capture Duration: %f\n\r", fPicCaptureDuration);
 
     //
     // Write the remaining Image data from RAM to Flash
@@ -727,14 +727,14 @@ long CaptureAndStore_Image()
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(lRetVal);
 
-    UART_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
-    //UART_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
+    DEBG_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
+    //DEBG_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
 
     //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
     lRetVal = sl_Stop(0xFFFF);
 	ASSERT_ON_ERROR(lRetVal);
 
-	UART_PRINT("DONE: Image Write to Flash\n\r");
+	DEBG_PRINT("DONE: Image Write to Flash\n\r");
 
     return SUCCESS;
 }
@@ -855,7 +855,7 @@ void CamControllerInit()
 //*****************************************************************************
 static void CameraIntHandler()
 {
-	//UART_PRINT("\n!");
+	//DEBG_PRINT("\n!");
 
 	//RegStatusRead();
 
@@ -864,13 +864,13 @@ static void CameraIntHandler()
         MAP_CameraIntClear(CAMERA_BASE, CAM_INT_FE);
         g_frame_end = 1;
         MAP_CameraCaptureStop(CAMERA_BASE, true);
-        //UART_PRINT("++++++");
+        //DEBG_PRINT("++++++");
         //JPEGDataLength_read();
     }
     //else if(HWREG(0x440260A0) & (1<<8))
     else if(HWREG(0x440260A4) & (1<<8))
     {
-    	//UART_PRINT(".");
+    	//DEBG_PRINT(".");
     	// Camera DMA Done clear
         HWREG(0x4402609C) |= 1 << 8;
 
@@ -892,7 +892,7 @@ static void CameraIntHandler()
                                  (void *)p_buffer, UDMA_DST_INC_32);
             	p_buffer += TOTAL_DMA_ELEMENTS;
             	g_dma_txn_done = 1;
-                //UART_PRINT("I");
+                //DEBG_PRINT("I");
             }
             else
             {
@@ -906,7 +906,7 @@ static void CameraIntHandler()
                                  UDMA_DST_INC_32);
                 p_buffer += TOTAL_DMA_ELEMENTS;
                 g_dma_txn_done = 0;
-                //UART_PRINT("G");
+                //DEBG_PRINT("G");
             }
 
             /*//
@@ -914,7 +914,7 @@ static void CameraIntHandler()
             //
             // Update block#
 			g_block_lastFilled++;
-			UART_PRINT("%d ", g_block_lastFilled);
+			DEBG_PRINT("%d ", g_block_lastFilled);
 
 			// Set Block full flag
 			g_flag_blockFull[g_block_lastFilled] = 1;
@@ -929,7 +929,7 @@ static void CameraIntHandler()
         	// If buffer end is reached, change write pointer to point top of buffer
         	if(g_block_lastFilled == (LAST_BLOCK_IN_BUFFER - 2 ))
 			{
-				//UART_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
+				//DEBG_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
 				p_buffer = g_image_buffer;
 			}*/
 
@@ -945,7 +945,7 @@ static void CameraIntHandler()
         	{
         		if(g_block_lastFilled == (LAST_BLOCK_IN_BUFFER - 1 ))
 				{
-					//UART_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
+					//DEBG_PRINT("FllBuff:%d ",(p_buffer - g_image_buffer));
 					p_buffer = g_image_buffer;
 				}
         	}
@@ -960,7 +960,7 @@ static void CameraIntHandler()
 
             	// Update block#
             	g_block_lastFilled++;
-            	//UART_PRINT("%d ", g_block_lastFilled);
+            	//DEBG_PRINT("%d ", g_block_lastFilled);
 
             	// Set Block full flag
             	g_flag_blockFull[g_block_lastFilled] = 1;
@@ -980,7 +980,7 @@ static void CameraIntHandler()
             MAP_uDMAChannelDisable(UDMA_CH22_CAMERA);
             HWREG(0x44026090) |= 1 << 8;
             g_frame_end = 1;
-            //UART_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
+            //DEBG_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
         }
     }
 }
@@ -999,7 +999,7 @@ static int JfifApp0Marker(char *pbuf)
 {
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     *pbuf++= 0xFF;                  // APP0 marker 
@@ -1041,7 +1041,7 @@ static int FrameHeaderMarker(char *pbuf, int width, int height, int format)
     int length;
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer");
+        DEBG_PRINT("Null pointer");
         LOOP_FOREVER();
     }
     if (format == FORMAT_MONOCHROME)
@@ -1113,7 +1113,7 @@ static int ScanHeaderMarker(char *pbuf, int format)
     
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     if (format == FORMAT_MONOCHROME)
@@ -1171,7 +1171,7 @@ static int DefineQuantizationTableMarker (unsigned char *pbuf, int qscale, int f
 
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer");
+        DEBG_PRINT("Null pointer");
         LOOP_FOREVER();
     }
 
@@ -1248,7 +1248,7 @@ static int DefineHuffmanTableMarkerDC(char *pbuf, unsigned int *htable,
 
     if((pbuf == NULL) || (htable == NULL))
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
     *pbuf++= 0xFF;                  // define huffman table marker 
@@ -1313,7 +1313,7 @@ static int DefineHuffmanTableMarkerAC(char *pbuf, unsigned int *htable,
 
     if((pbuf == NULL) || (htable == NULL))
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -1401,7 +1401,7 @@ static int DefineRestartIntervalMarker(char *pbuf, int ri)
 {
     if(pbuf == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -1437,7 +1437,7 @@ static int CreateJpegHeader(char *header, int width, int height,
     int length;
     if(header == NULL)
     {
-        UART_PRINT("Null pointer\n\r");
+        DEBG_PRINT("Null pointer\n\r");
         LOOP_FOREVER();
     }
 
@@ -1518,7 +1518,7 @@ int32_t createAndWrite_ImageHeaderFile()
 						&lFileHandle);
 	if(lRetVal < 0)
 	{
-		UART_PRINT("File Open Error: %i", lRetVal);
+		DEBG_PRINT("File Open Error: %i", lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
@@ -1556,7 +1556,7 @@ int32_t createAndWrite_ImageHeaderFile()
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
-	//UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
+	//DEBG_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
 
 	// Close the file post writing the image
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -1589,7 +1589,7 @@ int32_t create_JpegImageFile()
 						&lFileHandle);
 	if(lRetVal < 0)
 	{
-		UART_PRINT("File Open Error: %i", lRetVal);
+		DEBG_PRINT("File Open Error: %i", lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}

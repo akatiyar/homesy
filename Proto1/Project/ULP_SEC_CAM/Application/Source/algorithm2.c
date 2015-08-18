@@ -85,7 +85,7 @@ void check_doorpos()
 		//vv Remove Noise from getting in to the buffer
 		if( abs(angle_avg - angle_reg) > 20)
 		{
-			UART_PRINT("NOISE \n\r");// just ignore and exit this function
+			DEBG_PRINT("NOISE \n\r");// just ignore and exit this function
 		}
 		else// If noise free
 		{
@@ -107,7 +107,7 @@ void check_doorpos()
 			angle_reading_del1 = angle_avg;
 			//-------------------------------------------------------------------
 			
-			UART_PRINT("ANGLE=%3.2f\n", angle_avg);
+			DEBG_PRINT("ANGLE=%3.2f\n", angle_avg);
 			
 			
 			//--------  Detect closing or opening of fridge -------------------------
@@ -125,7 +125,7 @@ void check_doorpos()
 			else// invalid
 			{
 				open1_close0_invalid2 = 2;  // no constant increase or decrease so invalid
-				UART_PRINT("INVALID\n");
+				DEBG_PRINT("INVALID\n");
 			}
 			//------------------------------------------------------------------------
 			
@@ -139,7 +139,7 @@ void check_doorpos()
 				if(  (angle_avg < gdoor_open_angle) & (open1_close0_invalid2 == 1) )
 				{
 					valid_case = 1;
-					UART_PRINT("OPEN\n");
+					DEBG_PRINT("OPEN\n");
 					LED_Off();
 				}
 				//-----------------
@@ -147,7 +147,7 @@ void check_doorpos()
 				if((angle_avg > gdoor_close_angle) && gdoor_dirCW)
 				{
 					valid_case = 0;
-					UART_PRINT("IVCASE\n");
+					DEBG_PRINT("IVCASE\n");
 				}
 				//-------------------------
 				
@@ -155,7 +155,7 @@ void check_doorpos()
 				if( (angle_avg > gdoor_snap_angle) & (open1_close0_invalid2 == 0) & (valid_case == 1 ) & gdoor_dirCW)
 				{
 					valid_case = 0;
-					UART_PRINT("\nS\n");
+					DEBG_PRINT("\nS\n");
 					g_flag_door_closing_45degree = 1;
 				}	
 				//---------------------------				
@@ -166,7 +166,7 @@ void check_doorpos()
 				if(  (angle_avg > gdoor_open_angle) & (open1_close0_invalid2 == 1) )
 				{
 					valid_case = 1;
-					UART_PRINT("OPEN\n");
+					DEBG_PRINT("OPEN\n");
 					LED_Off();
 				}
 				//-----------------
@@ -176,7 +176,7 @@ void check_doorpos()
 				if((angle_avg < gdoor_close_angle) && (!gdoor_dirCW))
 				{
 					valid_case = 0;
-					UART_PRINT("IVCASE\n");
+					DEBG_PRINT("IVCASE\n");
 				}
 				//-----------------------------
 				
@@ -184,7 +184,7 @@ void check_doorpos()
 				if( (angle_avg < gdoor_snap_angle) & (open1_close0_invalid2 == 0) & (valid_case == 1 ) & !gdoor_dirCW)
 				{
 					valid_case = 0;
-					UART_PRINT("\nS\n");
+					DEBG_PRINT("\nS\n");
 					g_flag_door_closing_45degree = 1;
 				}
 				//------------------------------		

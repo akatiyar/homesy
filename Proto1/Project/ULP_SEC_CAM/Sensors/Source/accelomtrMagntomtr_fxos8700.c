@@ -29,7 +29,7 @@
 //	\return none
 //
 //******************************************************************************
-void verifyAccelMagnSensor()
+int32_t verifyAccelMagnSensor()
 {
 	uint8_t ucDeviceID = 0x00;
 
@@ -41,18 +41,21 @@ void verifyAccelMagnSensor()
 						&ucDeviceID);
 	PRINT_ON_ERROR(lRetVal);
 
-	UART_PRINT("A+M Read Device ID: %x\n\r", ucDeviceID);
+	DEBG_PRINT("A+M Device ID: %x\n", ucDeviceID);
 
 	if(DEVICE_ID == ucDeviceID)
 	{
-//		UART_PRINT("Device ID read thru' I2C = expected device ID of FXOS8700\n\r"
-		UART_PRINT("I2C communication with FXOS8700 SUCCESS\n\r");
+//		DEBG_PRINT("Device ID read thru' I2C = expected device ID of FXOS8700\n\r"
+		DEBG_PRINT("I2C comm. with FXOS8700 SUCCESS\n");
+		lRetVal = SUCCESS;
 	}
 	else
 	{
-		UART_PRINT("FXOS8700 I2C communication FAILED! CHECK!\n\r");
+		DEBG_PRINT("FXOS8700 I2C comm. FAILED!\n");
+		lRetVal = FXOS8700_NOT_FOUND;
 	}
-	return;
+
+	return FXOS8700_NOT_FOUND;
 }
 
 //******************************************************************************
@@ -320,7 +323,7 @@ void setMotionDetectionThreshold(float_t fAccelThreshold)
 	}
 	else
 	{
-		UART_PRINT("\nGiven Threshold not within range\n");
+		DEBG_PRINT("\nGiven Threshold not within range\n");
 	}
 	return;
 }
@@ -418,26 +421,26 @@ void getAccelerationMagnitude(float_t* pfAccel)
 	uint8_t ucAccelOut[6];
 
 	getAccelData(&ucAccelOut[0]);
-//	UART_PRINT("\nAcc Data Read: %x %x %x %x %x %x\n\r",
+//	DEBG_PRINT("\nAcc Data Read: %x %x %x %x %x %x\n\r",
 //					ucAccelOut[0],
 //					ucAccelOut[1],
 //					ucAccelOut[2],
 //					ucAccelOut[3],
 //					ucAccelOut[4],
 //					ucAccelOut[5]);
-//	UART_PRINT("x: %f", (SENSITIVITY_ACCEL *
+//	DEBG_PRINT("x: %f", (SENSITIVITY_ACCEL *
 //			(float_t)((int16_t)((ucAccelOut[0] << 8) | ucAccelOut[1]) >> 2)));
-//	UART_PRINT("y: %f", (SENSITIVITY_ACCEL *
+//	DEBG_PRINT("y: %f", (SENSITIVITY_ACCEL *
 //			(float_t)((int16_t)((ucAccelOut[2] << 8) | ucAccelOut[3]) >> 2)));
-//	UART_PRINT("z: %f", (SENSITIVITY_ACCEL *
+//	DEBG_PRINT("z: %f", (SENSITIVITY_ACCEL *
 //			(float_t)((int16_t)((ucAccelOut[4] << 8) | ucAccelOut[5]) >> 2)));
 
 
-	UART_PRINT("%f, ", (SENSITIVITY_ACCEL *
+	DEBG_PRINT("%f, ", (SENSITIVITY_ACCEL *
 			(float_t)((int16_t)((ucAccelOut[0] << 8) | ucAccelOut[1]) >> 2)));
-	UART_PRINT("%f, ", (SENSITIVITY_ACCEL *
+	DEBG_PRINT("%f, ", (SENSITIVITY_ACCEL *
 			(float_t)((int16_t)((ucAccelOut[2] << 8) | ucAccelOut[3]) >> 2)));
-	UART_PRINT("%f, ", (SENSITIVITY_ACCEL *
+	DEBG_PRINT("%f, ", (SENSITIVITY_ACCEL *
 			(float_t)((int16_t)((ucAccelOut[4] << 8) | ucAccelOut[5]) >> 2)));
 
 	*pfAccel = pow( (int16_t)((ucAccelOut[0] << 8) | ucAccelOut[1]) >> 2, 2);
@@ -445,7 +448,7 @@ void getAccelerationMagnitude(float_t* pfAccel)
 	*pfAccel +=  pow( (int16_t)((ucAccelOut[4] << 8) | ucAccelOut[5]) >> 2, 2);
 	*pfAccel = sqrt(*pfAccel) * SENSITIVITY_ACCEL;
 
-	UART_PRINT( "%f\n", *pfAccel);
+	DEBG_PRINT( "%f\n", *pfAccel);
 
 	return;
 }
@@ -502,7 +505,7 @@ void clearAccelMotionIntrpt()
 						A_FFMT_SRC_REG,
 						LENGTH_IS_ONE,
 						&ucMotionIntrptStatus);
-	UART_PRINT("\n\rMotion Detect Intrpt Status: %x\n\r", ucMotionIntrptStatus);
+	DEBG_PRINT("\n\rMotion Detect Intrpt Status: %x\n\r", ucMotionIntrptStatus);
 
 	return;
 }
@@ -559,11 +562,11 @@ void FXOS8700CQ_Mag_Calibration (void)
     	 {
     	 }
 
-    	UART_PRINT("!");
+    	DEBG_PRINT("!");
         {
              //i2cReadRegisters(FXOS8700_I2C_ADDRESS, MOUT_X_MSB_REG, 6, AccelMagData);         // Read data output registers 0x33 - 0x38
              getMagntData(AccelMagData);
-             UART_PRINT("\nMagn Data Read: %x %x %x %x %x %x",
+             DEBG_PRINT("\nMagn Data Read: %x %x %x %x %x %x",
              								AccelMagData[0],
              								AccelMagData[1],
              								AccelMagData[2],
@@ -608,7 +611,7 @@ void FXOS8700CQ_Mag_Calibration (void)
      Xout_Mag_16_bit_avg = (Xout_Mag_16_bit_max + Xout_Mag_16_bit_min) / 2;            // X-axis hard-iron offset
      Yout_Mag_16_bit_avg = (Yout_Mag_16_bit_max + Yout_Mag_16_bit_min) / 2;            // Y-axis hard-iron offset
      Zout_Mag_16_bit_avg = (Zout_Mag_16_bit_max + Zout_Mag_16_bit_min) / 2;            // Z-axis hard-iron offset
-     UART_PRINT("\nCalibrated Offset Val: %x, %x, %x\nWrite one bit left shifted value into register",
+     DEBG_PRINT("\nCalibrated Offset Val: %x, %x, %x\nWrite one bit left shifted value into register",
     		 	 	 	 	 Xout_Mag_16_bit_avg, Yout_Mag_16_bit_avg, Zout_Mag_16_bit_avg);
 
 

@@ -39,16 +39,18 @@ int32_t verifyTempRHSensor()
 							ucDeviceID);
 	PRINT_ON_ERROR(lRetVal);
 
-	UART_PRINT("TempRH Device ID: %x %x %x %x\n",
+	DEBG_PRINT("TempRH Device ID: %x %x %x %x\n",
 						ucDeviceID[0], ucDeviceID[1], ucDeviceID[2], ucDeviceID[3]);
 	if(DEVICE_ID == ucDeviceID[0])
 	{
-		//UART_PRINT("\nDevice ID read thru' I2C = expected device ID of Si7020"
-		UART_PRINT("I2C communication with Si7020 SUCCESS\n");
+		//DEBG_PRINT("\nDevice ID read thru' I2C = expected device ID of Si7020"
+		DEBG_PRINT("I2C comm with Si7020 SUCCESS\n");
+		lRetVal = SUCCESS;
 	}
 	else
 	{
-		UART_PRINT("Si7020 I2C communication FAILED! CHECK!\n");
+		DEBG_PRINT("Si7020 I2C comm FAILED!\n");
+		lRetVal = SI7020_NOT_FOUND;
 	}
 
 	return lRetVal;
@@ -158,13 +160,13 @@ int32_t getTempRH(float_t* pfTemp, float_t* pfRH)
 	usRHCode = (ucData[0] << 8) | (ucData[1]);
 	usTempCode = (ucData[2] << 8) | (ucData[3]);
 
-//	UART_PRINT("\nData Read: %x %x %x %x\n",
+//	DEBG_PRINT("\nData Read: %x %x %x %x\n",
 //					ucData[0], ucData[1], ucData[2], ucData[3]);
 
 	*pfRH = ( (125.0 * usRHCode) / 65536 ) - 6;
 	*pfTemp = ( (175.72 * usTempCode) / 65536 ) - 46.85;
 
-	UART_PRINT("Temperature: %f\n\rRH: %f\n\r", *pfTemp, *pfRH);
+	DEBG_PRINT("Temperature: %f\nRH: %f\n", *pfTemp, *pfRH);
 
 	return lRetVal;
 }

@@ -72,7 +72,7 @@ void check_doorpos()
 		}
 //		if(   abs(angle_avg - thisSV_6DOF_GB_BASIC.fLPRho) > 20 )
 //		{
-//			UART_PRINT("SPIKE \n\r");
+//			DEBG_PRINT("SPIKE \n\r");
 //			ang_buf[0] = thisSV_6DOF_GB_BASIC.fLPRho;
 //			ang_buf[1] = thisSV_6DOF_GB_BASIC.fLPRho;
 //			ang_buf[2]= thisSV_6DOF_GB_BASIC.fLPRho;
@@ -98,13 +98,13 @@ void check_doorpos()
 		angle_reading_del2 = angle_reading_del1;
 		angle_reading_del1 = angle_avg;
 
-		UART_PRINT("ANGLE=%3.2f\n", angle_avg);
+		DEBG_PRINT("ANGLE=%3.2f\n", angle_avg);
 
 		//Find door closing or opening based ont he angle reading change
 		if( (angle_reading_del1 > angle_reading_del2) && (angle_reading_del2 > angle_reading_del3) && (angle_reading_del3 >angle_reading_del4) )
 		{
 			open1_close0_invalid2 = 0;
-			UART_PRINT("Close\n");
+			DEBG_PRINT("Close\n");
 		}
 		else if((angle_reading_del1 < angle_reading_del2) && (angle_reading_del2 < angle_reading_del3) && (angle_reading_del3 < angle_reading_del4) )
 		{
@@ -113,7 +113,7 @@ void check_doorpos()
 		else
 		{
 			open1_close0_invalid2 = 2;
-			UART_PRINT("INVALID\n");
+			DEBG_PRINT("INVALID\n");
 		}
 		//---------------------------
 
@@ -121,13 +121,13 @@ void check_doorpos()
 		if(  (thisSV_6DOF_GB_BASIC.fLPRho < OPEN_DEG) & (open1_close0_invalid2 == 1) )
 		{
 			valid_case = 1;
-			UART_PRINT("OPEN\n");
+			DEBG_PRINT("OPEN\n");
 			LED_Off();
 		}
 		else if(thisSV_6DOF_GB_BASIC.fLPRho>DOORCLOSE_DEG)
 		{
 			valid_case = 0;
-			UART_PRINT("IVCASE\n");
+			DEBG_PRINT("IVCASE\n");
 		}
 		//------------------------------
 
@@ -135,7 +135,7 @@ void check_doorpos()
 		if( (thisSV_6DOF_GB_BASIC.fLPRho > IMAGEPOS_DEG) & (open1_close0_invalid2 == 0) & (valid_case == 1 ) )
 		{
 			valid_case = 0;
-			UART_PRINT("\nS\n");
+			DEBG_PRINT("\nS\n");
 			g_flag_door_closing_45degree = 1;
 		}
 		//------------------------------

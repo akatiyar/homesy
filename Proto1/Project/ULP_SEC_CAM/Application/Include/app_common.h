@@ -22,15 +22,6 @@ void LED_On();
 void LED_Blink_2(float_t fOnTime_inSecs, float_t fOffTime_inSecs, int8_t ucHowManyTimes);
 int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID);
 
-#define ASSERT_ON_ERROR(error_code)\
-            {\
-                 if(error_code < 0) \
-                   {\
-                        ERR_PRINT(error_code);\
-                        return error_code;\
-                 }\
-            }
-
 #define IS_PUSHBUTTON_PRESSED (!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
 
 #endif /* APP_COMMON_H_ */

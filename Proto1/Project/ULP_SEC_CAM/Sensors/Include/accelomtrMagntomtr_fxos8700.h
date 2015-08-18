@@ -160,7 +160,7 @@ struct reg_data_pair
 //*****************************************************************************
 // 								API PROTOTYPES
 //*****************************************************************************
-void verifyAccelMagnSensor();
+int32_t verifyAccelMagnSensor();
 void configureFXOS8700(uint8_t ucAppMode);
 void getDoorDirection(float_t* pfDegrees);
 void getAccelerationMagnitude(float_t* pfAccel);

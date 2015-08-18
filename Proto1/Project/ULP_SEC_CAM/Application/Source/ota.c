@@ -101,7 +101,6 @@ static int32_t OTA_Init()
 {
     unsigned char ucVendorStr[20];
 
-    UART_PRINT("Entered OTA_Init()\n\r");
     //Tag:OTA
     //
 	// Initialize OTA
@@ -130,20 +129,17 @@ static int32_t OTA_Run()
 	long OptionLen;
     unsigned char OptionVal;
 
-
-	UART_PRINT("Running OTA\n\r");
 	lRetVal = 0;
 
     //Tag:OTA
     //
-    //	Check if this image is booted in test mode
+    //	Check if this image is booted in test mode. If yes, commit the image in flash
     //
     sl_extLib_OtaGet(pvOtaApp, EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT, &OptionLen,(_u8*)&OptionVal);
-    UART_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
+    DEBG_PRINT("IS_PENDING_COMMIT? %d\n\r", OptionVal);
     if(OptionVal == true)
     {
-    	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
-    	UART_PRINT("OTA: Older firmware commit Pending. Press button for next OTA update on next reset\n\r");
+    	RELEASE_PRINT("OTA: Older firmware commit Pending. Press button for next OTA update on next reset\n\r");
     	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
     	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
         //RebootMCU();
@@ -158,14 +154,14 @@ static int32_t OTA_Run()
     		lRetVal = sl_extLib_OtaRun(pvOtaApp);
     	}
 
-    	UART_PRINT("OTA run = %d\n\r", lRetVal);
+    	DEBG_PRINT("state = %d\n", lRetVal);
     	if(lRetVal < 0)
     	{
-    		UART_PRINT("OTA:Error with OTA Server\n\r");
+    		RELEASE_PRINT("Error with OTA Server\n");
     	}
     	else if(lRetVal == RUN_STAT_NO_UPDATES)
     	{
-    		UART_PRINT("OTA: RUN_STAT_NO_UPDATES");
+    		RELEASE_PRINT("No updates\n");
     	}
     	else if((lRetVal & RUN_STAT_DOWNLOAD_DONE))
     	{
@@ -173,8 +169,8 @@ static int32_t OTA_Run()
     		//	Set OTA File for testing
     		//
     		lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_TEST, sizeof(int), (_u8 *)&SetCommitInt);
-    		UART_PRINT("OTA: NEW IMAGE DOWNLOAD COMPLETE\n\r");
-    		UART_PRINT("Rebooting...\n\r");
+    		RELEASE_PRINT("New firmware downloaded\n");
+    		RELEASE_PRINT("Rebooting...\n");
     		UtilsDelay(12*80000/6);	//12 milli sec
     		PRCMSOCReset();
     		//RebootMCU();
@@ -189,7 +185,7 @@ static int32_t OTA_Run()
 //******************************************************************************
 int32_t OTA_Update()
 {
-	UART_PRINT("Entered OTA_Update()\n\r");
+	RELEASE_PRINT("OTA: Update\n");
 	//
 	//	Connect cc3200 to wifi AP
 	//
@@ -215,7 +211,6 @@ int32_t OTA_CommitImage()
 	long OptionLen;
     unsigned char OptionVal;
 
-    UART_PRINT("Entered OTA_CommitImage()\n\r");
 	//sl_Start(0,0,0);
     NWP_SwitchOn();
 
@@ -225,10 +220,10 @@ int32_t OTA_CommitImage()
     //	Check if this image is booted in test mode
     //
     sl_extLib_OtaGet(pvOtaApp, EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT, &OptionLen,(_u8*)&OptionVal);
-    UART_PRINT("EXTLIB_OTA_GET_OPT_IS_PENDING_COMMIT? %d\n\r", OptionVal);
+    DEBG_PRINT("IS_PENDING_COMMIT? %d\n", OptionVal);
     if(OptionVal == true)
     {
-    	UART_PRINT("OTA: Pending commit and WLAN ok ==> perform commit\n\r");
+    	RELEASE_PRINT("Committing new firmware\n");
     	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
     	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
         //RebootMCU();

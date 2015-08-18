@@ -36,7 +36,7 @@
 #include "time.h"
 #include "string.h"
 
-#include "common.h"
+#include "app.h"
 
 void fInit_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, float flpftimesecs, int16 iSensorFS, int16 iOverSampleRatio)
 {
@@ -62,7 +62,7 @@ void fInit_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, float flpftimesecs, i
 // 6DOF orientation function which calls ecompass and implements low pass filters
 void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthisMag, struct AccelSensor *pthisAccel, int32 loopcounter, int16 ithisCoordSystem)
 {
-//	UART_PRINT("%f %f %f %f %f %f\n", pthisMag->fBc[X], pthisMag->fBc[Y], pthisMag->fBc[Z],
+//	DEBG_PRINT("%f %f %f %f %f %f\n", pthisMag->fBc[X], pthisMag->fBc[Y], pthisMag->fBc[Z],
 //									pthisAccel->fGp[X], pthisAccel->fGp[Y], pthisAccel->fGp[Z]);
 	// do a reset and return if requested
 	if (pthisSV->resetflag)
@@ -75,21 +75,16 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	}
 
 	// call the eCompass algorithm to get the instantaneous orientation matrix and inclination angle
-	if (ithisCoordSystem == NED)
-	{
-		// call the NED eCompass
-		feCompassNED(pthisSV->fR, &(pthisSV->fDelta), pthisMag->fBc, pthisAccel->fGp);
-	}
-	else if  (ithisCoordSystem == ANDROID)
-	{
-		// call the Android eCompass
-		feCompassAndroid(pthisSV->fR, &(pthisSV->fDelta), pthisMag->fBc, pthisAccel->fGp);
-	}
-	else
-	{
-		// call the Win8 eCompass
-		feCompassWin8(pthisSV->fR, &(pthisSV->fDelta), pthisMag->fBc, pthisAccel->fGp);
-	}
+#if THISCOORDSYSTEM == NED
+	// call the NED eCompass
+	feCompassNED(pthisSV->fR, &(pthisSV->fDelta), pthisMag->fBc, pthisAccel->fGp);
+#elif THISCOORDSYSTEM == ANDROID
+	// call the Android eCompass
+	feCompassAndroid(pthisSV->fR, &(pthisSV->fDelta), pthisMag->fBc, pthisAccel->fGp);
+#elif  (THISCOORDSYSTEM == WIN8)
+	// call the Win8 eCompass
+	feCompassWin8(pthisSV->fR, &(pthisSV->fDelta), pthisMag->fBc, pthisAccel->fGp);
+#endif // Win8
 
 	// compute the instanteneous quaternion from the instantaneous rotation matrix
 	fQuaternionFromRotationMatrix(pthisSV->fR, &(pthisSV->fq));
@@ -97,7 +92,7 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	// low pass filter the orientation quaternion and compute the low pass rotation matrix
 	if(loopcounter <= 2)
 	{
-		UART_PRINT("No LPF %d\n", loopcounter);
+		DBG_PRINT("No LPF %d\n", loopcounter);
 		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), 1, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
 	}
 	else
@@ -110,24 +105,19 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	//fRotationVectorDegFromQuaternion(&(pthisSV->fq), pthisSV->fLPRVec);
 
 	// compute the low pass filtered Euler angles
-	if (ithisCoordSystem == NED)
-	{
+#if THISCOORDSYSTEM == NED
 		// calculate the NED Euler angles
 		fNEDAnglesDegFromRotationMatrix(pthisSV->fLPR, &(pthisSV->fLPPhi), &(pthisSV->fLPThe), &(pthisSV->fLPPsi),
 				&(pthisSV->fLPRho), &(pthisSV->fLPChi));
-	}
-	else if (ithisCoordSystem == ANDROID)
-	{
+#elif THISCOORDSYSTEM == ANDROID
 		// calculate the Android Euler angles
 		fAndroidAnglesDegFromRotationMatrix(pthisSV->fLPR, &(pthisSV->fLPPhi), &(pthisSV->fLPThe), &(pthisSV->fLPPsi),
 				&(pthisSV->fLPRho), &(pthisSV->fLPChi));
-	}
-	else
-	{
+#elif THISCOORDSYSTEM == WIN8
 		// calculate the Windows 8 Euler angles
 		fWin8AnglesDegFromRotationMatrix(pthisSV->fLPR, &(pthisSV->fLPPhi), &(pthisSV->fLPThe), &(pthisSV->fLPPsi),
 				&(pthisSV->fLPRho), &(pthisSV->fLPChi));
-	}
+#endif
 
 	// low pass filter the geomagnetic inclination angle with a simple exponential filter
 	fLPFScalar(&(pthisSV->fDelta), &(pthisSV->fLPDelta), pthisSV->flpf, loopcounter);

@@ -13,52 +13,52 @@
 	uint32_t time;
 	cc_rtc_get(&time_now);
 	time = time_now.secs * 1000 + time_now.nsec / 1000000;
-	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
-	UART_PRINT("%d milli sec\n", time);
+	DEBG_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	DEBG_PRINT("%d milli sec\n", time);
 
 	UtilsDelay(4*80000000/6);
 	cc_rtc_get(&time_now);
 	time = time_now.secs * 1000 + time_now.nsec / 1000000;
-	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
-	UART_PRINT("%d milli sec\n", time);
+	DEBG_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	DEBG_PRINT("%d milli sec\n", time);
 
 	UtilsDelay(2*80000000/6);
 	cc_rtc_get(&time_now);
 	time = time_now.secs * 1000 + time_now.nsec / 1000000;
-	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
-	UART_PRINT("%d milli sec\n", time);
+	DEBG_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	DEBG_PRINT("%d milli sec\n", time);
 
 	UtilsDelay(80000000/6);
 	cc_rtc_get(&time_now);
 	time = time_now.secs * 1000 + time_now.nsec / 1000000;
-	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
-	UART_PRINT("%d milli sec\n", time);
+	DEBG_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	DEBG_PRINT("%d milli sec\n", time);
 
 	UtilsDelay(0.5*80000000/6);
 	cc_rtc_get(&time_now);
 	time = time_now.secs * 1000 + time_now.nsec / 1000000;
-	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
-	UART_PRINT("%d milli sec\n", time);
+	DEBG_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	DEBG_PRINT("%d milli sec\n", time);
 
 	UtilsDelay(0.1*80000000/6);
 	cc_rtc_get(&time_now);
 	time = time_now.secs * 1000 + time_now.nsec / 1000000;
-	UART_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
-	UART_PRINT("%d milli sec\n", time);*/
+	DEBG_PRINT("%d secs and %d nsecs\n", time_now.secs, time_now.nsec);
+	DEBG_PRINT("%d milli sec\n", time);*/
 
 		/*
 		Config_CameraCapture();
 		Standby_ImageSensor();
 		while(1)
 		{
-			UART_PRINT("T3 Hib\n\r");
+			DEBG_PRINT("T3 Hib\n\r");
 			start_100mSecTimer();
 
 			g_ulAppStatus = IMAGESENSOR_CAPTURECONFIGS_HAPPENING;
 			Wakeup_ImageSensor();
 			ulTimeDuration_ms = get_timeDuration();
 			stop_100mSecTimer();
-			UART_PRINT("wake over - %d ms\n\r", ulTimeDuration_ms);
+			DEBG_PRINT("wake over - %d ms\n\r", ulTimeDuration_ms);
 
 			start_100mSecTimer();
 
@@ -67,7 +67,7 @@
 
 			ulTimeDuration_ms = get_timeDuration();
 			stop_100mSecTimer();
-			UART_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
+			DEBG_PRINT("configs over - %d ms\n\r", ulTimeDuration_ms);
 
 			Standby_ImageSensor();
 		}
@@ -75,7 +75,7 @@
 
 
 	lRetVal = sl_FsDel((uint8_t *)USER_CONFIGS_FILENAME, ulToken);
-	UART_PRINT("Del %f", lRetVal);
+	DEBG_PRINT("Del %f", lRetVal);
 
 	lRetVal = sl_FsGetInfo((uint8_t *)USER_CONFIGS_FILENAME, ulToken, &FileInfo);
 	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
@@ -93,8 +93,8 @@ while(1)
 ullSlowCounterReturnVal1 = PRCMSlowClkCtrGet();
 UtilsDelay(80000000/6);
 ullSlowCounterReturnVal2 = PRCMSlowClkCtrGet();
-UART_PRINT("%lld\n\r", ullSlowCounterReturnVal1);
-UART_PRINT("%lld\n\r\n\r", ullSlowCounterReturnVal2);
+DEBG_PRINT("%lld\n\r", ullSlowCounterReturnVal1);
+DEBG_PRINT("%lld\n\r\n\r", ullSlowCounterReturnVal2);
 }
 
 //Reset cause get
@@ -102,31 +102,31 @@ uint32_t ulResetCause;
     ulResetCause = MAP_PRCMSysResetCauseGet();
     if(PRCM_POWER_ON == ulResetCause)
     {
-    	UART_PRINT("Device is powering on\n\r");
+    	DEBG_PRINT("Device is powering on\n\r");
     }
     else if(PRCM_LPDS_EXIT == ulResetCause)
     {
-    	UART_PRINT("Device is exiting from LPDS.\n\r");
+    	DEBG_PRINT("Device is exiting from LPDS.\n\r");
     }
     else if(PRCM_CORE_RESET == ulResetCause)
     {
-    	UART_PRINT("Device is exiting soft core only reset\n\r");
+    	DEBG_PRINT("Device is exiting soft core only reset\n\r");
     }
     else if(PRCM_MCU_RESET == ulResetCause)
     {
-    	UART_PRINT("Device is exiting soft subsystem reset.\n\r");
+    	DEBG_PRINT("Device is exiting soft subsystem reset.\n\r");
     }
     else if(PRCM_WDT_RESET == ulResetCause)
     {
-    	UART_PRINT("Device was reset by watchdog.\n\r");
+    	DEBG_PRINT("Device was reset by watchdog.\n\r");
     }
     else if(PRCM_SOC_RESET == ulResetCause)
     {
-    	UART_PRINT("Device is exting SOC reset.\n\r");
+    	DEBG_PRINT("Device is exting SOC reset.\n\r");
     }
     else if(PRCM_HIB_EXIT == ulResetCause)
     {
-    	UART_PRINT("Device is exiting hibernate\n\r");
+    	DEBG_PRINT("Device is exiting hibernate\n\r");
     }
 
 
@@ -137,7 +137,7 @@ uint32_t ulResetCause;
 	while(1)
 	{
 		data = getLightsensor_data();
-		UART_PRINT("%d\n\r",data);
+		DEBG_PRINT("%d\n\r",data);
 		UtilsDelay(80000000/6);
 	}
 
@@ -149,7 +149,7 @@ uint32_t ulResetCause;
 		{
 			UtilsDelay(80000000/6);
 		}
-		UART_PRINT("******\n\r");
+		DEBG_PRINT("******\n\r");
 	}
 
 
@@ -177,9 +177,9 @@ uint32_t ulResetCause;
     //Profiling time taken by sl_start
     		int32_t lRetVal = -1;
     		lRetVal = sl_Start(0,0,0);
-    		UART_PRINT("%d\n\r", lRetVal);
+    		DEBG_PRINT("%d\n\r", lRetVal);
     		lRetVal = sl_WlanSetMode(ROLE_STA);
-    		UART_PRINT("%d\n\r", lRetVal);
+    		DEBG_PRINT("%d\n\r", lRetVal);
     		//_u16 usPMPolicy[] = {0,0,2000,0};
     		InitializeTimer();
     		StartTimer();
@@ -188,13 +188,13 @@ uint32_t ulResetCause;
     		lRetVal = sl_WlanPolicySet(SL_POLICY_PM, SL_LOW_POWER_POLICY,
     									NULL, 0);
 
-    		//UART_PRINT("III\n\r");
+    		//DEBG_PRINT("III\n\r");
     		StopTimer();
     	    float_t fPicCaptureDuration;
     	    GetTimeDuration(&fPicCaptureDuration);
-    	    UART_PRINT("T takes: %fms\n\r", fPicCaptureDuration);
+    	    DEBG_PRINT("T takes: %fms\n\r", fPicCaptureDuration);
     	    sl_Stop(0xFFFF);
-    	    UART_PRINT("%d\n\r", lRetVal);
+    	    DEBG_PRINT("%d\n\r", lRetVal);
 
 
 
@@ -234,14 +234,14 @@ uint32_t ulResetCause;
     //	//
     //	// Perform Image Capture
     //	//
-    //	UART_PRINT("sB");
+    //	DEBG_PRINT("sB");
     //	MAP_CameraCaptureStart(CAMERA_BASE);
     //	// HWREG(0x4402609C) |= 1 << 8;
     //
     //    while(g_frame_end == 0);
     //
     //    MAP_CameraCaptureStop(CAMERA_BASE, true);
-    //    UART_PRINT("pA");
+    //    DEBG_PRINT("pA");
     //
     //
     //    lRetVal = sl_Start(0, 0, 0);
@@ -272,7 +272,7 @@ uint32_t ulResetCause;
     //   //
     //   if(lRetVal < 0)
     //   {
-    //	UART_PRINT("File Open Error: %i", lRetVal);
+    //	DEBG_PRINT("File Open Error: %i", lRetVal);
     //	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     //	   ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     //   }
@@ -342,7 +342,7 @@ uint32_t ulResetCause;
     //           lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     //           ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
     //       }
-    //       UART_PRINT("Image Write No of bytes: %ld\n", lRetVal);
+    //       DEBG_PRINT("Image Write No of bytes: %ld\n", lRetVal);
     //
     //       //
     //       // Close the file post writing the image
@@ -376,5 +376,5 @@ uint32_t ulResetCause;
     //       //lRetVal = sl_Stop(SL_STOP_TIMEOUT);
     //   	ASSERT_ON_ERROR(lRetVal);
     //
-    //   	UART_PRINT("DONE: Image Write to Flash\n\r");
+    //   	DEBG_PRINT("DONE: Image Write to Flash\n\r");
 //**************************************************************************************************

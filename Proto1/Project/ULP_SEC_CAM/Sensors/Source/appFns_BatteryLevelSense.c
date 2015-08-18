@@ -76,7 +76,7 @@ uint8_t Get_BatteryPercent()
 		i++;
 	}
 
-	DBG_PRINT("ADC Value= %xH, VBAT = %3.3f, PercentageCharge = %d\n\r", ucADCValue, fBatteryVoltage, ChargePercent);
+	DEBG_PRINT("ADC Value= %xH, VBAT = %3.3f, PercentCharge = %d\n", ucADCValue, fBatteryVoltage, ChargePercent);
 
 	return ChargePercent;
 }

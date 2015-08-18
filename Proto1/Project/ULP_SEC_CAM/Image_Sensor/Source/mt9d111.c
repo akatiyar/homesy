@@ -465,16 +465,16 @@ static  const s_RegList capture_cmds_list[]= {
 //	{111, 0xC8, 0x0007  }
 //};
 
-static  const s_RegList snap[]= {
-
-										{0, 0x0D, 0x0282    },
-
-//										{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
-//										{1, 0xC8, 0x0002    },
+//static  const s_RegList snap[]= {
 //
-//										{1, 0xC6, 0xA104    },  // wait till become capture
-//										{111, 0xC8, 0x0007  }
-};
+//										{0, 0x0D, 0x0282    },
+//
+////										{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture        //Moving this part after maual time and exposure settings
+////										{1, 0xC8, 0x0002    },
+////
+////										{1, 0xC6, 0xA104    },  // wait till become capture
+////										{111, 0xC8, 0x0007  }
+//};
 
 
 #endif
@@ -631,6 +631,7 @@ long WriteConfigRegFilefromUser_toFlash(uint8_t* pFileContent,
 }
 #endif
 
+
 //*****************************************************************************
 //
 //! This function configures the sensor in JPEG mode
@@ -648,8 +649,8 @@ long StartSensorInJpegMode()
 
     lRetVal = RegLstWrite((s_RegList *)capture_cmds_list,
                         sizeof(capture_cmds_list)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);    
-#endif 
+    ASSERT_ON_ERROR(lRetVal);
+#endif
     return 0;
 }
 
@@ -708,7 +709,7 @@ long RestartSensorInJpegMode(uint16_t *ImageConfig)
 
 
 //    for(lRetVal =0; lRetVal<26;lRetVal++)
-//    	UART_PRINT("\nRegVal %x",ImageConfig[lRetVal]);
+//    	DEBG_PRINT("\nRegVal %x",ImageConfig[lRetVal]);
 
     lRetVal = RegLstWrite((s_RegList *)recapture_cmds_list,
                         sizeof(recapture_cmds_list)/sizeof(s_RegList));
@@ -716,321 +717,76 @@ long RestartSensorInJpegMode(uint16_t *ImageConfig)
     return 0;
 }
 
-long Snap()
-{
-
-    long lRetVal = -1;
+//******************************************************************************
+//	Does a soft reset of MT9D111
 //
-    lRetVal = RegLstWrite((s_RegList *)snap,
-                        sizeof(snap)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
-    return 0;
-
-//	uint16_t usRegVal=0;
-//	int i=0;
-//	s_RegList StatusRegLst[] = {{0x00, 0x0D, 0xBADD},
-//								};
-//
-//	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
-//	{
-//		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
-//		UART_PRINT("\nReg %x : %x",StatusRegLst[i].ucRegAddr,usRegVal);
-//	}
-}
-
-//Teg:Remove later
-int32_t toggle_standby()
+//	return SUCCESS or failure code
+//******************************************************************************
+long SoftReset_ImageSensor()
 {
-	int32_t lRetVal;
+	long lRetVal;
 
-	s_RegList stndby_cmds_list[] = {
-			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
-			{1, 0xC8, 0x0001},
-			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
-			{111, 0xC8, 0x0003},
+	s_RegList StatusRegLst[] = {{0x00, 0x65, 0xA000},	//Bypass PLL
+								{0x01, 0xC3, 0x0501},	//MCU reset
+								{0x00, 0x0D, 0x0021},	//SensorCore, SOC reset
+								{0x00, 0x0D, 0x0000}};	//Disable the resets
 
-//			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
-//			{1, 0xC8, 0x0001},
-//			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
-//			{111, 0xC8, 0x0003}
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
 
-			{1, 0xC6, 0xA103},	//Standby firmware; seq.cmd = 3(standby cmd)
-			{1, 0xC8, 0x0003},
-			{1, 0xC6, 0xA104},	//Wait till stanby; seq.state = 9(standby state)
-			{111, 0xC8, 0x0009}
-
-				};
-
-	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
-	ASSERT_ON_ERROR(lRetVal);
+	MT9D111Delay(24/3 + MARGIN_NUMCLKS);	//Wait 24 clocks before using I2C
 
 	return lRetVal;
 }
 
-//Teg:Remove later
-int32_t Read_AllRegisters()
-{
-	uint16_t i;
-	uint16_t regVal;
-
-	s_RegList reg_list[] = {
-				{0, 0x33, 0xBADD},
-				{0, 0x38, 0xBADD},
-				{2, 0x80, 0xBADD}, // LENS_CORRECTION_CONTROL
-			    {2, 0x81, 0xBADD}, // ZONE_BOUNDS_X1_X2
-			    {2, 0x82, 0xBADD}, // ZONE_BOUNDS_X0_X3
-			    {2, 0x83, 0xBADD}, // ZONE_BOUNDS_X4_X5
-			    {2, 0x84, 0xBADD}, // ZONE_BOUNDS_Y1_Y2
-			    {2, 0x85, 0xBADD}, // ZONE_BOUNDS_Y0_Y3
-			    {2, 0x86, 0xBADD}, // ZONE_BOUNDS_Y4_Y5
-			    {2, 0x87, 0xBADD}, // CENTER_OFFSET
-			    {2, 0x88, 0xBADD}, // FX_RED
-			    {2, 0x89, 0xBADD}, // FX_GREEN
-			    {2, 0x8A, 0xBADD}, // FX_BLUE
-			    {2, 0x8B, 0xBADD}, // FY_RED
-			    {2, 0x8C, 0xBADD}, // FY_GREEN
-			    {2, 0x8D, 0xBADD}, // FY_BLUE
-			    {2, 0x8E, 0xBADD}, // DF_DX_RED
-			    {2, 0x8F, 0xBADD}, // DF_DX_GREEN
-			    {2, 0x90, 0xBADD}, // DF_DX_BLUE
-			    {2, 0x91, 0xBADD}, // DF_DY_RED
-			    {2, 0x92, 0xBADD}, // DF_DY_GREEN
-			    {2, 0x93, 0xBADD}, // DF_DY_BLUE
-			    {2, 0x94, 0xBADD}, // SECOND_DERIV_ZONE_0_RED
-			    {2, 0x95, 0xBADD}, // SECOND_DERIV_ZONE_0_GREEN
-			    {2, 0x96, 0xBADD}, // SECOND_DERIV_ZONE_0_BLUE
-			    {2, 0x97, 0xBADD}, // SECOND_DERIV_ZONE_1_RED
-			    {2, 0x98, 0xBADD}, // SECOND_DERIV_ZONE_1_GREEN
-			    {2, 0x99, 0xBADD}, // SECOND_DERIV_ZONE_1_BLUE
-			    {2, 0x9A, 0xBADD}, // SECOND_DERIV_ZONE_2_RED
-			    {2, 0x9B, 0xBADD}, // SECOND_DERIV_ZONE_2_GREEN
-			    {2, 0x9C, 0xBADD}, // SECOND_DERIV_ZONE_2_BLUE
-			    {2, 0x9D, 0xBADD}, // SECOND_DERIV_ZONE_3_RED
-			    {2, 0x9E, 0xBADD}, // SECOND_DERIV_ZONE_3_GREEN
-			    {2, 0x9F, 0xBADD}, // SECOND_DERIV_ZONE_3_BLUE
-			    {2, 0xA0, 0xBADD}, // SECOND_DERIV_ZONE_4_RED
-			    {2, 0xA1, 0xBADD}, // SECOND_DERIV_ZONE_4_GREEN
-			    {2, 0xA2, 0xBADD}, // SECOND_DERIV_ZONE_4_BLUE
-			    {2, 0xA3, 0xBADD}, // SECOND_DERIV_ZONE_5_RED
-			    {2, 0xA4, 0xBADD}, // SECOND_DERIV_ZONE_5_GREEN
-			    {2, 0xA5, 0xBADD}, // SECOND_DERIV_ZONE_5_BLUE
-			    {2, 0xA6, 0xBADD}, // SECOND_DERIV_ZONE_6_RED
-			    {2, 0xA7, 0xBADD}, // SECOND_DERIV_ZONE_6_GREEN
-			    {2, 0xA8, 0xBADD}, // SECOND_DERIV_ZONE_6_BLUE
-			    {2, 0xA9, 0xBADD}, // SECOND_DERIV_ZONE_7_RED
-			    {2, 0xAA, 0xBADD}, // SECOND_DERIV_ZONE_7_GREEN
-			    {2, 0xAB, 0xBADD}, // SECOND_DERIV_ZONE_7_BLUE
-			    {2, 0xAC, 0xBADD}, // X2_FACTORS
-			    {2, 0xAD, 0xBADD}, // GLOBAL_OFFSET_FXY_FUNCTION
-			    {2, 0xAE, 0xBADD}, // K_FACTOR_IN_K_FX_FY
-			    {1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
-			    {1, 0x1F, 0xBADD}, // RESERVED_SOC1_1F
-			    {1, 0x51, 0xBADD}, // RESERVED_SOC1_51
-			    {0, 0x33, 0xBADD}, // RESERVED_CORE_33
-			    {0, 0x38, 0xBADD}, // RESERVED_CORE_38
-				{1, 0x1F, 0xBADD}, // RESERVED_SOC1_1F
-				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
-				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
-				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
-				{1, 0x36, 0xBADD}, // APERTURE_PARAMETERS
-
-			    {0, 0x66, 0xBADD},
-				{0, 0x67, 0xBADD},
-				{0, 0x65, 0xBADD},
-			};
-
-		for (i = 0; i < (sizeof(reg_list)/sizeof(s_RegList)); i++)
-		{
-			Register_Read(&reg_list[i], &regVal);
-			UART_PRINT("\n%d:%x ", i, regVal);
-		}
-
-		i = 0;
-		Variable_Read(0xA115, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0x2003, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xA002, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xA361, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xAB04, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xA104, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-//		Variable_Read(0x2003, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-//		Variable_Read(0x2003, &regVal);UART_PRINT("%d:%x ", i++, regVal);
-
-		return 0;
-}
-//*****************************************************************************
+//******************************************************************************
+//	Verifies I2C communication with MT9D111
 //
-//! This function implements the Register Write in MT9D111 sensor
-//!
-//! \param1                     Register List
-//! \param2                     No. Of Items
-//!
-//! \return                     0 - Success
-//!                             -1 - Error
-//
-//*****************************************************************************
-static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
-{
-    unsigned long       ulNdx;
-    unsigned short      usTemp;
-    unsigned char       i;
-    unsigned char       ucBuffer[20];
-    unsigned long       ulSize;
-    long lRetVal = -1;
-
-    if(pRegLst == NULL)
-    {
-        return RET_ERROR;
-    }
-    
-    for(ulNdx = 0; ulNdx < ulNofItems; ulNdx++)
-    {
-    	if(pRegLst->ucPageAddr == 100)
-        {
-    		UART_PRINT("1");
-    		// PageAddr == 100, insret a delay equal to reg value
-            //MT9D111Delay(pRegLst->usValue * 80000/3);
-    		//MT9D111Delay(pRegLst->usValue * 80000/6);	//Change this based on no of clocks onclycle in MT9D111Delay takes
-    		//MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
-    		osi_Sleep(pRegLst->usValue);
-        }
-        else if(pRegLst->ucPageAddr == 111)
-        {
-        	UART_PRINT("2:%d ", pRegLst->usValue);
-        	// PageAddr == 111, wait for specified register value
-        	//start_100mSecTimer();
-        	uint32_t ulCounter = 0;
-            do
-            {
-                ucBuffer[0] = pRegLst->ucRegAddr;
-                lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
-                ASSERT_ON_ERROR(lRetVal);
-                if(I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1))
-                {
-                    return RET_ERROR;
-                }
-
-                usTemp = ucBuffer[0] << 8;
-                usTemp |= ucBuffer[1];
-
-                //UART_PRINT(".");
-//                uint8_t ucTmp;
-//                Variable_Read(0xA104, &ucTmp);
-//                UART_PRINT("3:%d\n\r",ucTmp);
-//
-//                Variable_Read(0xA104, &ucTmp);
-//                UART_PRINT("4:%d\n\r",ucTmp);
-                //MT9D111Delay(10*10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
-                MT9D111Delay(.01 * 80000000 / 6);	//10m*80000000/6  = 10 milli sec
-                UART_PRINT("%d", usTemp);
-                ulCounter++;
-                if(ulCounter > 1000)	//500*.01sec = 5 sec
-                {
-                	//stop_100mSecTimer();
-                	return MT9D111_FIRMWARE_STATE_ERROR;
-                }
-            }while(usTemp != pRegLst->usValue);
-            //stop_100mSecTimer();
-        }
-        else
-        {
-        	UART_PRINT("-");
-            // Set the page 
-            ucBuffer[0] = SENSOR_PAGE_REG;
-            ucBuffer[1] = 0x00;
-            ucBuffer[2] = (unsigned char)(pRegLst->ucPageAddr);
-            if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,3,I2C_SEND_STOP))
-            {
-                return RET_ERROR;
-            }
-
-            ucBuffer[0] = SENSOR_PAGE_REG;
-            lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
-            ASSERT_ON_ERROR(lRetVal);
-            lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
-            ASSERT_ON_ERROR(lRetVal);
-
-            ucBuffer[0] = pRegLst->ucRegAddr;
-
-            if(pRegLst->ucPageAddr  == 0x1 && pRegLst->ucRegAddr == 0xC8)
-            {
-                usTemp = 0xC8;
-                i=1;
-                while(pRegLst->ucRegAddr == usTemp)
-                {
-                    ucBuffer[i] = (unsigned char)(pRegLst->usValue >> 8);
-                    ucBuffer[i+1] = (unsigned char)(pRegLst->usValue & 0xFF);
-                    i += 2;
-                    usTemp++;
-                    pRegLst++;
-                    ulNdx++;
-                }
-
-                ulSize = (i-2)*2 + 1;
-                ulNdx--;
-                pRegLst--;
-            }
-            else
-            {
-                ulSize = 3;
-                ucBuffer[1] = (unsigned char)(pRegLst->usValue >> 8);
-                ucBuffer[2] = (unsigned char)(pRegLst->usValue & 0xFF);
-            }
-
-            if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,
-                                                      ulSize,I2C_SEND_STOP))
-            {
-                return RET_ERROR;
-            }
-        }
-
-        pRegLst++;
-        //MT9D111Delay(10);
-        //MT9D111Delay(40);
-        MT9D111Delay(10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
-
-    }
-
-    return RET_OK;
-}
-
-
-long RegStatusRead(uint16_t* pusRegVal)
+//	return SUCCESS or failure code
+//******************************************************************************
+long Verify_ImageSensor()
 {
 	long lRetVal;
+	uint16_t usRegVal;
+	s_RegList StatusRegLst = {0x00, 0x00, 0xBADD};	// Sensor Chip Version#
 
-	s_RegList StatusRegLst = {0x02, 0x02, 0xBADD};
+	lRetVal = Register_Read(&StatusRegLst, &usRegVal);
 
-	UART_PRINT("Status Reg:\n\r");
+	DEBG_PRINT("MT9D111 DeviceID: %x\n", usRegVal);
 
-	lRetVal = Register_Read(&StatusRegLst, pusRegVal);
-
-	/*if(usRegVal != 0x30)
+	if (usRegVal == CHIP_VERSION)
 	{
-		UART_PRINT("Note Reg val\n\r");
-	}*/
+		DEBG_PRINT("I2C comm. with MT9D111 SUCCESS\n");
+		lRetVal = SUCCESS;
+	}
+	else
+	{
+		DEBG_PRINT("Chip Ver# error\n");
+		lRetVal = MT9D111_NOT_FOUND;
+	}
 
 	return lRetVal;
 }
 
-long LL_Configs()
+//******************************************************************************
+//	Refresh MT9D111 MCU firmware
+//
+//	return SUCCESS or failure code
+//******************************************************************************
+int32_t Refresh_mt9d111Firmware()
 {
 	long lRetVal;
 
-	s_RegList RegLst[] = {
-							{1, 0xC6, 0xA743}, {1, 0xC8, 0x0042},	//Gamma and contrast. Context A
-							{1, 0xC6, 0xA744}, {1, 0xC8, 0x0042},	//Gamma and contrast. Context B
+	s_RegList StatusRegLst[] = {
+									{1, 0xC6, 0xA103}, {1, 0xC8, 0x0005}	//Refresh
+								};	//Disable the resets
 
-							{1, 0xC6, 0xA115}, {1, 0xC8, 0x007f},	//LL
-							{1, 0xC6, 0xA118}, {1, 0xC8, 0x0040},	//LL Saturation
-							{1, 0xC6, 0xA103}, {1, 0xC8, 0x0005}	//Refresh
-						};
-
-	lRetVal = RegLstWrite(RegLst, (sizeof(RegLst)/sizeof(s_RegList)));
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
 
 	return lRetVal;
-
 }
 
+//******************************************************************************
+//************************** IMAGING SETTINGS FNS ******************************
 
 long WriteAllAEnAWBRegs()
 {
@@ -1305,18 +1061,6 @@ long disableAE()
 
 	return lRetVal;
 }
-long JpegConfigReg_Read()
-{
-	long lRetVal;
-
-	s_RegList StatusRegLst[] = {{1,  0xC6, 0xA907   },
-			    				{1, 0xC8, 0x0001    }  };
-	UART_PRINT("JPEG Config Reg (0xA907):\n\r");
-	lRetVal = RegLstWrite(StatusRegLst, 1);
-	lRetVal = Register_Read(&StatusRegLst[1], &(StatusRegLst[1].usValue));
-
-	return lRetVal;
-}
 
 long CCMRegs_Read()
 {
@@ -1324,7 +1068,7 @@ long CCMRegs_Read()
 	uint16_t usRegVal;
 	int i;
 
-	UART_PRINT("CCM Regs(0x60 to 0x67):\n\r");
+	DEBG_PRINT("CCM Regs(0x60-0x67):\n");
 	s_RegList StatusRegLst[] = {{0x01, 0x60, 0xBADD},
 								{0x01, 0x61, 0xBADD},
 								{0x01, 0x62, 0xBADD},
@@ -1347,7 +1091,7 @@ long DigitalGainRegs_Read()
 	uint16_t usRegVal;
 	int i;
 
-	UART_PRINT("Digital Gain Regs(0x6A to 0x6E, 0x4E):\n\r");
+	DEBG_PRINT("DGain Regs(0x6A-0x6E,0x4E):\n");
 	s_RegList StatusRegLst[] = {{0x01, 0x6A, 0xBADD},
 								{0x01, 0x6B, 0xBADD},
 								{0x01, 0x6C, 0xBADD},
@@ -1371,8 +1115,7 @@ long ShutterRegs_Read()
 	s_RegList StatusRegLst[] = {{0x00, 0x09, 0xBADD},
 									{0x00, 0x0C, 0xBADD}};
 
-	UART_PRINT("Shutter Width and Delay Regs:\n\r");
-
+	DEBG_PRINT("Shutter Width, Delay Regs:\n");
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
@@ -1392,13 +1135,12 @@ long AnalogGainReg_Read()
 									{0x00, 0x2D, 0xBADD},
 									{0x00, 0x2E, 0xBADD}};
 
-	UART_PRINT("Analog Gain Regs:\n\r");
-
+	DEBG_PRINT("AGain Regs:\n");
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
 		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
-		//UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+		//DEBG_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
 	}
 
 	return lRetVal;
@@ -1416,12 +1158,12 @@ long PCLK_Rate_read()
 								{0x02, 0x02, 0xBADD},
 								{0x02, 0x0D, 0xBADD}};
 
-	UART_PRINT("Output Clock Reg:\n\r");
+	DEBG_PRINT("O/P Clk Reg:\n");
 
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
 		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
-		//UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+		//DEBG_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
 	}
 
 	return lRetVal;
@@ -1466,16 +1208,107 @@ int32_t ReadImageConfigReg(uint16_t *RegValues)
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
 		lRetVal = Register_Read(&StatusRegLst[i], RegValues);
-		UART_PRINT("Register Val %x: %x\n\r",StatusRegLst[i].ucRegAddr , *RegValues);
+		DEBG_PRINT("RegVal %x:%x\n",StatusRegLst[i].ucRegAddr , *RegValues);
 		RegValues++;
 	}
 	return lRetVal;
 }
 
+
+//Teg:Remove later
+int32_t Read_AllRegisters()
+{
+	uint16_t i;
+	uint16_t regVal;
+
+	s_RegList reg_list[] = {
+				{0, 0x33, 0xBADD},
+				{0, 0x38, 0xBADD},
+				{2, 0x80, 0xBADD}, // LENS_CORRECTION_CONTROL
+			    {2, 0x81, 0xBADD}, // ZONE_BOUNDS_X1_X2
+			    {2, 0x82, 0xBADD}, // ZONE_BOUNDS_X0_X3
+			    {2, 0x83, 0xBADD}, // ZONE_BOUNDS_X4_X5
+			    {2, 0x84, 0xBADD}, // ZONE_BOUNDS_Y1_Y2
+			    {2, 0x85, 0xBADD}, // ZONE_BOUNDS_Y0_Y3
+			    {2, 0x86, 0xBADD}, // ZONE_BOUNDS_Y4_Y5
+			    {2, 0x87, 0xBADD}, // CENTER_OFFSET
+			    {2, 0x88, 0xBADD}, // FX_RED
+			    {2, 0x89, 0xBADD}, // FX_GREEN
+			    {2, 0x8A, 0xBADD}, // FX_BLUE
+			    {2, 0x8B, 0xBADD}, // FY_RED
+			    {2, 0x8C, 0xBADD}, // FY_GREEN
+			    {2, 0x8D, 0xBADD}, // FY_BLUE
+			    {2, 0x8E, 0xBADD}, // DF_DX_RED
+			    {2, 0x8F, 0xBADD}, // DF_DX_GREEN
+			    {2, 0x90, 0xBADD}, // DF_DX_BLUE
+			    {2, 0x91, 0xBADD}, // DF_DY_RED
+			    {2, 0x92, 0xBADD}, // DF_DY_GREEN
+			    {2, 0x93, 0xBADD}, // DF_DY_BLUE
+			    {2, 0x94, 0xBADD}, // SECOND_DERIV_ZONE_0_RED
+			    {2, 0x95, 0xBADD}, // SECOND_DERIV_ZONE_0_GREEN
+			    {2, 0x96, 0xBADD}, // SECOND_DERIV_ZONE_0_BLUE
+			    {2, 0x97, 0xBADD}, // SECOND_DERIV_ZONE_1_RED
+			    {2, 0x98, 0xBADD}, // SECOND_DERIV_ZONE_1_GREEN
+			    {2, 0x99, 0xBADD}, // SECOND_DERIV_ZONE_1_BLUE
+			    {2, 0x9A, 0xBADD}, // SECOND_DERIV_ZONE_2_RED
+			    {2, 0x9B, 0xBADD}, // SECOND_DERIV_ZONE_2_GREEN
+			    {2, 0x9C, 0xBADD}, // SECOND_DERIV_ZONE_2_BLUE
+			    {2, 0x9D, 0xBADD}, // SECOND_DERIV_ZONE_3_RED
+			    {2, 0x9E, 0xBADD}, // SECOND_DERIV_ZONE_3_GREEN
+			    {2, 0x9F, 0xBADD}, // SECOND_DERIV_ZONE_3_BLUE
+			    {2, 0xA0, 0xBADD}, // SECOND_DERIV_ZONE_4_RED
+			    {2, 0xA1, 0xBADD}, // SECOND_DERIV_ZONE_4_GREEN
+			    {2, 0xA2, 0xBADD}, // SECOND_DERIV_ZONE_4_BLUE
+			    {2, 0xA3, 0xBADD}, // SECOND_DERIV_ZONE_5_RED
+			    {2, 0xA4, 0xBADD}, // SECOND_DERIV_ZONE_5_GREEN
+			    {2, 0xA5, 0xBADD}, // SECOND_DERIV_ZONE_5_BLUE
+			    {2, 0xA6, 0xBADD}, // SECOND_DERIV_ZONE_6_RED
+			    {2, 0xA7, 0xBADD}, // SECOND_DERIV_ZONE_6_GREEN
+			    {2, 0xA8, 0xBADD}, // SECOND_DERIV_ZONE_6_BLUE
+			    {2, 0xA9, 0xBADD}, // SECOND_DERIV_ZONE_7_RED
+			    {2, 0xAA, 0xBADD}, // SECOND_DERIV_ZONE_7_GREEN
+			    {2, 0xAB, 0xBADD}, // SECOND_DERIV_ZONE_7_BLUE
+			    {2, 0xAC, 0xBADD}, // X2_FACTORS
+			    {2, 0xAD, 0xBADD}, // GLOBAL_OFFSET_FXY_FUNCTION
+			    {2, 0xAE, 0xBADD}, // K_FACTOR_IN_K_FX_FY
+			    {1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+			    {1, 0x1F, 0xBADD}, // RESERVED_SOC1_1F
+			    {1, 0x51, 0xBADD}, // RESERVED_SOC1_51
+			    {0, 0x33, 0xBADD}, // RESERVED_CORE_33
+			    {0, 0x38, 0xBADD}, // RESERVED_CORE_38
+				{1, 0x1F, 0xBADD}, // RESERVED_SOC1_1F
+				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+				{1, 0x08, 0xBADD}, // COLOR_PIPELINE_CONTROL
+				{1, 0x36, 0xBADD}, // APERTURE_PARAMETERS
+
+			    {0, 0x66, 0xBADD},
+				{0, 0x67, 0xBADD},
+				{0, 0x65, 0xBADD},
+			};
+
+		for (i = 0; i < (sizeof(reg_list)/sizeof(s_RegList)); i++)
+		{
+			Register_Read(&reg_list[i], &regVal);
+			DEBG_PRINT("\n%d:%x ", i, regVal);
+		}
+
+		i = 0;
+		Variable_Read(0xA115, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0x2003, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xA002, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xA361, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xAB04, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+		Variable_Read(0xA104, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+//		Variable_Read(0x2003, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+//		Variable_Read(0x2003, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+
+		return 0;
+}
+
 int32_t SetShutterWidth(uint16_t ShutterWidth)
 {
 	return Reg_Write(0x00,0x09,ShutterWidth);
-
 }
 
 int32_t SetAnalogGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
@@ -1504,7 +1337,6 @@ int32_t SetAnalogGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
 	lRetVal = Reg_Write(0x00,0x2E,tempVal);
 
 	return lRetVal;
-
 }
 
 int32_t SetDigitalGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
@@ -1533,7 +1365,6 @@ int32_t SetDigitalGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain
 	lRetVal = Reg_Write(0x00,0x2E,tempVal);
 
 	return lRetVal;
-
 }
 
 int32_t SetInitialGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
@@ -1562,257 +1393,13 @@ int32_t SetInitialGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain
 	lRetVal = Reg_Write(0x00,0x2E,tempVal);
 
 	return lRetVal;
-
 }
+//************************* IMAGING SETTINGS FNS end ***************************
+//******************************************************************************
 
-
-long JPEGDataLength_read()
-{
-	long lRetVal;
-	uint16_t usRegVal;
-	uint32_t uiLength;
-	int i;
-
-
-	s_RegList RegLst[] = {	{0x02, 0x02, 0xBADD},
-							{0x02, 0x03, 0xBADD}};
-
-	UART_PRINT("JPEG Data Length Reg:\n\r");
-
-	for(i=0; i<(sizeof(RegLst)/sizeof(s_RegList)); i++)
-	{
-		lRetVal = Register_Read(&RegLst[i], &usRegVal);
-		//UART_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
-	}
-
-	uiLength = (RegLst[1].usValue) + ( ((int)(RegLst[0].usValue & 0xFF00)) << 8);
-
-	UART_PRINT("Image Length: %d\n\r", uiLength);
-	return lRetVal;
-}
-
-// Dont use this fn. Not able to reset
-// Trying ImageSensor MCU/Firmware disable or reset
-// Not succeeded. Some fields in R195 which hold these controls are ReadOnly
-long ResetImageSensorMCU()
-{
-	long lRetVal;
-	uint16_t usRegVal;
-	s_RegList StatusRegLst[] = {0x01, 0xC3, 0x0001};
-
-	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
-	StatusRegLst[1].usValue = usRegVal | (StatusRegLst[1].usValue);
-	lRetVal = RegLstWrite(StatusRegLst, 1);
-
-	return lRetVal;
-}
-
-long ReadMCUBootModeReg()
-{
-	long lRetVal;
-	uint16_t usRegVal;
-	s_RegList StatusRegLst[] = {0x01, 0xC3, 0xBADD};
-
-	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
-
-	return lRetVal;
-}
 
 //******************************************************************************
-//	Does a soft reset of MT9D111
-//
-//	return SUCCESS or failure code
-//******************************************************************************
-long SoftReset_ImageSensor()
-{
-	long lRetVal;
-
-	s_RegList StatusRegLst[] = {{0x00, 0x65, 0xA000},	//Bypass PLL
-								{0x01, 0xC3, 0x0501},	//MCU reset
-								{0x00, 0x0D, 0x0021},	//SensorCore, SOC reset
-								{0x00, 0x0D, 0x0000}};	//Disable the resets
-
-	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
-
-	MT9D111Delay(24/3 + MARGIN_NUMCLKS);	//Wait 24 clocks before using I2C
-
-	return lRetVal;
-}
-
-
-long Verify_ImageSensor()
-{
-	long lRetVal;
-	uint16_t usRegVal;
-	s_RegList StatusRegLst = {0x00, 0x00, 0xBADD};	// Sensor Chip Version#
-
-	lRetVal = Register_Read(&StatusRegLst, &usRegVal);
-
-	UART_PRINT("MT9D111 Device ID: %x\n\r", usRegVal);
-
-	if (usRegVal == CHIP_VERSION)
-	{
-		UART_PRINT("I2C communication with MT9D111 SUCCESS\n\r");
-	}
-	else
-	{
-		UART_PRINT("MT9D111 Chip Version# error\n\r");
-		lRetVal = MT9D111_NOT_FOUND;
-	}
-
-	return lRetVal;
-}
-int32_t Refresh_mt9d111Firmware()
-{
-	long lRetVal;
-
-	s_RegList StatusRegLst[] = {
-									{1, 0xC6, 0xA103}, {1, 0xC8, 0x0005}	//Refresh
-								};	//Disable the resets
-
-	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
-
-	return lRetVal;
-}
-
-int32_t BeginCapture_MT9D111()
-{
-	long lRetVal;
-
-	s_RegList StatusRegLst[] = 	{
-//									{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
-//									{1, 0xC8, 0x0002    },
-									{100, 0x00, 0x01F4  },  // Delay =500ms
-								};
-
-	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
-
-	return lRetVal;
-}
-//******************************************************************************
-//	Variable_Read(): Reads value of one register in MT9D111
-//
-//	param[in]	usVariableName:	16-bit variable name that contains driverID,
-//									offset, etc.
-//	param[out]	pusRegVal	Pointer to Value of Register
-//
-//	return SUCCESS or failure value
-//
-//******************************************************************************
-long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal)
-{
-	long lRetVal;
-
-	s_RegList RegLst[] = {	{1, 0xC6, usVariableName},
-			    			{1, 0xC8, 0xBADD}	};
-//	RegLst[0].usValue = usVariableName;
-
-	lRetVal = RegLstWrite(RegLst, 1);
-	lRetVal = Register_Read(&RegLst[1], &(RegLst[1].usValue));
-
-	*pusRegVal = RegLst[1].usValue;
-
-	return lRetVal;
-}
-
-//******************************************************************************
-//	Variable_Write(): Writes value into one variable in MT9D111
-//
-//	param[in]	usVariableName:	16-bit variable name that contains driverID,
-//									offset, etc.
-//	param[out]	usRegVal	Value of Register
-//
-//	return SUCCESS or failure value
-//
-//******************************************************************************
-long Variable_Write(uint16_t usVariableName, uint16_t usRegVal)
-{
-	long lRetVal;
-
-	s_RegList RegLst[] = {	{1, 0xC6, usVariableName},
-			    			{1, 0xC8, usRegVal}	};
-
-	lRetVal = RegLstWrite(RegLst, 2);
-
-	return lRetVal;
-}
-
-long Reg_Write(uint8_t RegPage, uint16_t usRegAddr, uint16_t usRegVal)
-{
-	long lRetVal;
-
-	s_RegList RegLst[] = {	{RegPage, usRegAddr, usRegVal} };
-
-	lRetVal = RegLstWrite(RegLst, 1);
-
-	return lRetVal;
-}
-
-long Reg_Read(uint8_t RegPage, uint16_t usRegAddr, uint16_t* usRegVal)
-{
-	long lRetVal;
-
-	s_RegList RegLst[] = {	{RegPage, usRegAddr, 0xBADD} };
-
-	lRetVal = Register_Read(RegLst,usRegVal);
-
-	return lRetVal;
-}
-//******************************************************************************
-//	Register_Read(): Reads value of one register in MT9D111
-//
-//	param[in]	pRegLst(struct ptr):[in]ucPageAddr - Page of reg to be read
-//									[in]ucRegAddr - Address of reg to be read
-//									usVal - not used
-//	param[out]	pusRegVal	Pointer to Value of Register
-//
-//	return SUCCESS or failure value
-//
-//	NOTE: Simple Register Read is implemented. Firmware Variable Read has been
-//	implemented in Variable_Read(), or it has to be	implemented by calling
-//	function using 0xC6 and 0xC8 registers.
-//******************************************************************************
-static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
-{
-	unsigned char ucBuffer[20];
-	//unsigned short usTemp;
-	long lRetVal = -1;
-
-	// Set the page
-	ucBuffer[0] = SENSOR_PAGE_REG;	//Page Change register available in all pages
-	ucBuffer[1] = 0x00;				//Most Significant Byte to be written in the register
-	ucBuffer[2] = (unsigned char)(pRegLst->ucPageAddr);	//LSByte to be written in the register
-	if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,3,I2C_SEND_STOP))
-	{
-	   return RET_ERROR;
-	}
-	ucBuffer[0] = SENSOR_PAGE_REG;
-	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
-	ASSERT_ON_ERROR(lRetVal);
-
-	//usTemp = ucBuffer[0] << 8;
-	//usTemp |= ucBuffer[1];
-	//UART_PRINT("Page no now: %x\n\r", usTemp);
-
-	//Read from the register
-	ucBuffer[0] = pRegLst->ucRegAddr;
-	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
-	ASSERT_ON_ERROR(lRetVal);
-
-	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1);
-	ASSERT_ON_ERROR(lRetVal);
-
-	*pusRegVal = ucBuffer[0] << 8;
-	*pusRegVal |= ucBuffer[1];
-	//UART_PRINT("Register Val: %x\n\r", *pusRegVal);
-
-	pRegLst->usValue = *pusRegVal;
-
-	return lRetVal;
-}
+//***************************** STANDBY FNS ************************************
 
 //******************************************************************************
 //	This function puts MT9D111 in standby
@@ -1919,6 +1506,296 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 
 	return lRetVal;
 }
+//****************************STANDBY FNS - end*********************************
+//******************************************************************************
+
+
+
+//******************************************************************************
+//**********************BASIC REG READ/WRITE FNS *******************************
+
+//******************************************************************************
+//
+//! This function implements the Register Write in MT9D111 sensor
+//!
+//! \param1                     Register List
+//! \param2                     No. Of Items
+//!
+//! \return                     0 - Success
+//!                             -1 - Error
+//
+//*****************************************************************************
+static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
+{
+    unsigned long       ulNdx;
+    unsigned short      usTemp;
+    unsigned char       i;
+    unsigned char       ucBuffer[20];
+    unsigned long       ulSize;
+    long lRetVal = -1;
+
+    if(pRegLst == NULL)
+    {
+        return RET_ERROR;
+    }
+
+    for(ulNdx = 0; ulNdx < ulNofItems; ulNdx++)
+    {
+    	if(pRegLst->ucPageAddr == 100)
+        {
+    		DEBG_PRINT("1");
+    		// PageAddr == 100, insret a delay equal to reg value
+            //MT9D111Delay(pRegLst->usValue * 80000/3);
+    		//MT9D111Delay(pRegLst->usValue * 80000/6);	//Change this based on no of clocks onclycle in MT9D111Delay takes
+    		//MT9D111Delay(pRegLst->usValue * 4 * 80000/3);
+    		osi_Sleep(pRegLst->usValue);
+        }
+        else if(pRegLst->ucPageAddr == 111)
+        {
+        	DEBG_PRINT("2:%d ", pRegLst->usValue);
+        	// PageAddr == 111, wait for specified register value
+        	//start_100mSecTimer();
+        	uint32_t ulCounter = 0;
+            do
+            {
+                ucBuffer[0] = pRegLst->ucRegAddr;
+                lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
+                ASSERT_ON_ERROR(lRetVal);
+                if(I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1))
+                {
+                    return RET_ERROR;
+                }
+
+                usTemp = ucBuffer[0] << 8;
+                usTemp |= ucBuffer[1];
+
+                //DEBG_PRINT(".");
+//                uint8_t ucTmp;
+//                Variable_Read(0xA104, &ucTmp);
+//                DEBG_PRINT("3:%d\n\r",ucTmp);
+//
+//                Variable_Read(0xA104, &ucTmp);
+//                DEBG_PRINT("4:%d\n\r",ucTmp);
+                //MT9D111Delay(10*10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
+                MT9D111Delay(.01 * 80000000 / 6);	//10m*80000000/6  = 10 milli sec
+                DEBG_PRINT("%d", usTemp);
+                ulCounter++;
+                if(ulCounter > 1000)	//500*.01sec = 5 sec
+                {
+                	//stop_100mSecTimer();
+                	return MT9D111_FIRMWARE_STATE_ERROR;
+                }
+            }while(usTemp != pRegLst->usValue);
+            //stop_100mSecTimer();
+        }
+        else
+        {
+        	DEBG_PRINT("-");
+            // Set the page
+            ucBuffer[0] = SENSOR_PAGE_REG;
+            ucBuffer[1] = 0x00;
+            ucBuffer[2] = (unsigned char)(pRegLst->ucPageAddr);
+            if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,3,I2C_SEND_STOP))
+            {
+                return RET_ERROR;
+            }
+
+            ucBuffer[0] = SENSOR_PAGE_REG;
+            lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
+            ASSERT_ON_ERROR(lRetVal);
+            lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
+            ASSERT_ON_ERROR(lRetVal);
+
+            ucBuffer[0] = pRegLst->ucRegAddr;
+
+            if(pRegLst->ucPageAddr  == 0x1 && pRegLst->ucRegAddr == 0xC8)
+            {
+                usTemp = 0xC8;
+                i=1;
+                while(pRegLst->ucRegAddr == usTemp)
+                {
+                    ucBuffer[i] = (unsigned char)(pRegLst->usValue >> 8);
+                    ucBuffer[i+1] = (unsigned char)(pRegLst->usValue & 0xFF);
+                    i += 2;
+                    usTemp++;
+                    pRegLst++;
+                    ulNdx++;
+                }
+
+                ulSize = (i-2)*2 + 1;
+                ulNdx--;
+                pRegLst--;
+            }
+            else
+            {
+                ulSize = 3;
+                ucBuffer[1] = (unsigned char)(pRegLst->usValue >> 8);
+                ucBuffer[2] = (unsigned char)(pRegLst->usValue & 0xFF);
+            }
+
+            if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,
+                                                      ulSize,I2C_SEND_STOP))
+            {
+                return RET_ERROR;
+            }
+        }
+
+        pRegLst++;
+        //MT9D111Delay(10);
+        //MT9D111Delay(40);
+        MT9D111Delay(10/2);	//Change 10/2 to 10 if UtilsDelay cycle is expected to take 3 clks only
+
+    }
+
+    return RET_OK;
+}
+//******************************************************************************
+//	Variable_Read(): Reads value of one variable in MT9D111
+//
+//	param[in]	usVariableName:	16-bit variable name that contains driverID,
+//									offset, etc.
+//	param[out]	pusRegVal	Pointer to Value of Register
+//
+//	return SUCCESS or failure value
+//
+//******************************************************************************
+long Variable_Read(uint16_t usVariableName, uint16_t* pusRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{1, 0xC6, usVariableName},
+			    			{1, 0xC8, 0xBADD}	};
+//	RegLst[0].usValue = usVariableName;
+
+	lRetVal = RegLstWrite(RegLst, 1);
+	lRetVal = Register_Read(&RegLst[1], &(RegLst[1].usValue));
+
+	*pusRegVal = RegLst[1].usValue;
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	Variable_Write(): Writes value into one variable in MT9D111
+//
+//	param[in]	usVariableName:	16-bit variable name that contains driverID,
+//									offset, etc.
+//	param[out]	usRegVal	Value of Register
+//
+//	return SUCCESS or failure value
+//
+//******************************************************************************
+long Variable_Write(uint16_t usVariableName, uint16_t usRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{1, 0xC6, usVariableName},
+			    			{1, 0xC8, usRegVal}	};
+
+	lRetVal = RegLstWrite(RegLst, 2);
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	Reg_Write(): Writes value into one register in MT9D111
+//
+//	param[in]	RegPage		page number
+//	param[in]	usRegAddr	register address
+//
+//	param[in]	usRegVal	Value of Register
+//
+//	return SUCCESS or failure value
+//******************************************************************************
+long Reg_Write(uint8_t RegPage, uint16_t usRegAddr, uint16_t usRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{RegPage, usRegAddr, usRegVal} };
+
+	lRetVal = RegLstWrite(RegLst, 1);
+
+	return lRetVal;
+}
+
+//******************************************************************************
+//	Reg_Read(): Reads value from one register in MT9D111
+//
+//	param[in]	RegPage		page number
+//	param[in]	usRegAddr	register address
+//
+//	param[out]	usRegVal	Value of Register
+//
+//	return SUCCESS or failure value
+//******************************************************************************
+long Reg_Read(uint8_t RegPage, uint16_t usRegAddr, uint16_t* usRegVal)
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {	{RegPage, usRegAddr, 0xBADD} };
+
+	lRetVal = Register_Read(RegLst,usRegVal);
+
+	return lRetVal;
+}
+//******************************************************************************
+//	Register_Read(): Reads value of one register in MT9D111
+//
+//	param[in]	pRegLst(struct ptr):[in]ucPageAddr - Page of reg to be read
+//									[in]ucRegAddr - Address of reg to be read
+//									usVal - not used
+//	param[out]	pusRegVal	Pointer to Value of Register
+//
+//	return SUCCESS or failure value
+//
+//	NOTE: Simple Register Read is implemented. Firmware Variable Read has been
+//	implemented in Variable_Read(), or it has to be	implemented by calling
+//	function using 0xC6 and 0xC8 registers.
+//******************************************************************************
+static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
+{
+	unsigned char ucBuffer[20];
+	//unsigned short usTemp;
+	long lRetVal = -1;
+
+	// Set the page
+	ucBuffer[0] = SENSOR_PAGE_REG;	//Page Change register available in all pages
+	ucBuffer[1] = 0x00;				//Most Significant Byte to be written in the register
+	ucBuffer[2] = (unsigned char)(pRegLst->ucPageAddr);	//LSByte to be written in the register
+	if(0 != I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,3,I2C_SEND_STOP))
+	{
+	   return RET_ERROR;
+	}
+	ucBuffer[0] = SENSOR_PAGE_REG;
+	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
+	ASSERT_ON_ERROR(lRetVal);
+
+	//usTemp = ucBuffer[0] << 8;
+	//usTemp |= ucBuffer[1];
+	//DEBG_PRINT("Page no now: %x\n\r", usTemp);
+
+	//Read from the register
+	ucBuffer[0] = pRegLst->ucRegAddr;
+	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
+	ASSERT_ON_ERROR(lRetVal);
+
+	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1);
+	ASSERT_ON_ERROR(lRetVal);
+
+	*pusRegVal = ucBuffer[0] << 8;
+	*pusRegVal |= ucBuffer[1];
+	//DEBG_PRINT("Register Val: %x\n\r", *pusRegVal);
+
+	pRegLst->usValue = *pusRegVal;
+
+	return lRetVal;
+}
+
+//**********************BASIC REG READ/WRITE FNS - end**************************
+//******************************************************************************
 
 //******************************************************************************
 //
@@ -1926,3 +1803,177 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 //! @}
 //
 //*****************************************************************************
+
+/*
+
+long JPEGDataLength_read()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	uint32_t uiLength;
+	int i;
+
+	s_RegList RegLst[] = {	{0x02, 0x02, 0xBADD},
+							{0x02, 0x03, 0xBADD}};
+
+	DEBG_PRINT("JPEG DataLen Reg:\n");
+
+	for(i=0; i<(sizeof(RegLst)/sizeof(s_RegList)); i++)
+	{
+		lRetVal = Register_Read(&RegLst[i], &usRegVal);
+		//DEBG_PRINT("Register Val: %x\n\r", StatusRegLst[i].usValue);
+	}
+
+	uiLength = (RegLst[1].usValue) + ( ((int)(RegLst[0].usValue & 0xFF00)) << 8);
+
+	DEBG_PRINT("Image Len:%d\n", uiLength);
+	return lRetVal;
+}
+
+// Dont use this fn. Not able to reset
+// Trying ImageSensor MCU/Firmware disable or reset
+// Not succeeded. Some fields in R195 which hold these controls are ReadOnly
+long ResetImageSensorMCU()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	s_RegList StatusRegLst[] = {0x01, 0xC3, 0x0001};
+
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
+	StatusRegLst[1].usValue = usRegVal | (StatusRegLst[1].usValue);
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+
+	return lRetVal;
+}
+
+long ReadMCUBootModeReg()
+{
+	long lRetVal;
+	uint16_t usRegVal;
+	s_RegList StatusRegLst[] = {0x01, 0xC3, 0xBADD};
+
+	lRetVal = Register_Read(&StatusRegLst[1], &usRegVal);
+
+	return lRetVal;
+}
+
+
+long Snap()
+{
+
+    long lRetVal = -1;
+//
+    lRetVal = RegLstWrite((s_RegList *)snap,
+                        sizeof(snap)/sizeof(s_RegList));
+    ASSERT_ON_ERROR(lRetVal);
+    return 0;
+
+//	uint16_t usRegVal=0;
+//	int i=0;
+//	s_RegList StatusRegLst[] = {{0x00, 0x0D, 0xBADD},
+//								};
+//
+//	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
+//	{
+//		lRetVal = Register_Read(&StatusRegLst[i], &usRegVal);
+//		DEBG_PRINT("\nReg %x : %x",StatusRegLst[i].ucRegAddr,usRegVal);
+//	}
+}
+
+//Teg:Remove later
+int32_t toggle_standby()
+{
+	int32_t lRetVal;
+
+	s_RegList stndby_cmds_list[] = {
+			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+			{1, 0xC8, 0x0001},
+			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+			{111, 0xC8, 0x0003},
+
+//			{1, 0xC6, 0xA103},	//Conext A/Preview; seq.cmd = 1(preview cmd)
+//			{1, 0xC8, 0x0001},
+//			{1, 0xC6, 0xA104},	//Wait till in A; seq.state = 3(preview state)
+//			{111, 0xC8, 0x0003}
+
+			{1, 0xC6, 0xA103},	//Standby firmware; seq.cmd = 3(standby cmd)
+			{1, 0xC8, 0x0003},
+			{1, 0xC6, 0xA104},	//Wait till stanby; seq.state = 9(standby state)
+			{111, 0xC8, 0x0009}
+
+				};
+
+	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
+
+
+long RegStatusRead(uint16_t* pusRegVal)
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst = {0x02, 0x02, 0xBADD};
+
+	DEBG_PRINT("Status Reg:");
+
+	lRetVal = Register_Read(&StatusRegLst, pusRegVal);
+
+//	if(usRegVal != 0x30)
+//	{
+//		DEBG_PRINT("Note Reg val\n\r");
+//	}
+
+	return lRetVal;
+}
+
+long LL_Configs()
+{
+	long lRetVal;
+
+	s_RegList RegLst[] = {
+							{1, 0xC6, 0xA743}, {1, 0xC8, 0x0042},	//Gamma and contrast. Context A
+							{1, 0xC6, 0xA744}, {1, 0xC8, 0x0042},	//Gamma and contrast. Context B
+
+							{1, 0xC6, 0xA115}, {1, 0xC8, 0x007f},	//LL
+							{1, 0xC6, 0xA118}, {1, 0xC8, 0x0040},	//LL Saturation
+							{1, 0xC6, 0xA103}, {1, 0xC8, 0x0005}	//Refresh
+						};
+
+	lRetVal = RegLstWrite(RegLst, (sizeof(RegLst)/sizeof(s_RegList)));
+
+	return lRetVal;
+
+}
+
+long JpegConfigReg_Read()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = {{1,  0xC6, 0xA907   },
+			    				{1, 0xC8, 0x0001    }  };
+	DEBG_PRINT("JPEG Config Reg(0xA907):\n");
+	lRetVal = RegLstWrite(StatusRegLst, 1);
+	lRetVal = Register_Read(&StatusRegLst[1], &(StatusRegLst[1].usValue));
+
+	return lRetVal;
+}
+
+
+
+int32_t BeginCapture_MT9D111()
+{
+	long lRetVal;
+
+	s_RegList StatusRegLst[] = 	{
+//									{1, 0xC6, 0xA103    },  // SEQ_CMD, Do capture
+//									{1, 0xC8, 0x0002    },
+									{100, 0x00, 0x01F4  },  // Delay =500ms
+								};
+
+	lRetVal = RegLstWrite(StatusRegLst, (sizeof(StatusRegLst)/sizeof(s_RegList)));
+
+	return lRetVal;
+}
+*/

@@ -28,7 +28,7 @@ void IntHandler_100mSecTimer(void)
 	Timer_IF_InterruptClear(TIMERA0_BASE);
 	Elapsed_100MilliSecs++;
 	checkForLight_Flag = 1;
-	//UART_PRINT("%d ",Elapsed_100MilliSecs);
+	//DEBG_PRINT("%d ",Elapsed_100MilliSecs);
 
 //	if(Elapsed_100MilliSecs%2)
 //	{
@@ -42,7 +42,7 @@ void IntHandler_100mSecTimer(void)
 
 int32_t start_100mSecTimer()
 {
-	//UART_PRINT("Timr start\n");
+	//DEBG_PRINT("Timr start\n");
 	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_100mSecTimer);
 	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_100MILLISEC);
@@ -53,7 +53,7 @@ int32_t start_100mSecTimer()
 
 int32_t stop_100mSecTimer()
 {
-	//UART_PRINT("Timr Stop\n");
+	//DEBG_PRINT("Timr Stop\n");
 	Timer_IF_Stop(TIMERA0_BASE, TIMER_A);
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
 

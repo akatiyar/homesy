@@ -35,7 +35,7 @@ int32_t Collect_InitMangReadings()
 	//
 	// Collect the Initial Magnetometr Readings(door closed)
 	//
-	UART_PRINT("\n\rMAGNETOMETER:\n\r");
+	DEBG_PRINT("\n\rMAGNETOMETER:\n\r");
 	verifyAccelMagnSensor();
 	configureFXOS8700(MODE_READ_ACCEL_MAGN_DATA);
 	//DBG
@@ -137,13 +137,13 @@ int32_t WaitFor40Degrees()
 	fMFluxMagnitudeInit = sqrtf( (fMagnFluxInit3Axis_Read[0]*fMagnFluxInit3Axis_Read[0]) +
 								(fMagnFluxInit3Axis_Read[1]*fMagnFluxInit3Axis_Read[1]) +
 								(fMagnFluxInit3Axis_Read[2]*fMagnFluxInit3Axis_Read[2]) );
-	UART_PRINT("DBG: Initial Magnitude: %f\n\r", fMFluxMagnitudeInit);
+	DEBG_PRINT("DBG: Initial Magnitude: %f\n\r", fMFluxMagnitudeInit);
 
 	fThreshold_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_TO_DETECT/2) * PI / 180 );
 //		fThreshold_magnitudeOfDiff *= fThreshold_magnitudeOfDiff;
 	fThreshold_higher_magnitudeOfDiff = 2 * fMFluxMagnitudeInit * sinf( (DOOR_ANGLE_HIGHER/2) * PI / 180);
 //		fThreshold_higher_magnitudeOfDiff *= fThreshold_higher_magnitudeOfDiff;
-	UART_PRINT("DBG: Threshold Magnitude of Difference: %f   %f\n\r", fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff);
+	DEBG_PRINT("DBG: Threshold Magnitude of Difference: %f   %f\n\r", fThreshold_magnitudeOfDiff, fThreshold_higher_magnitudeOfDiff);
 
 	//
 	// Configure sensor for reading accelerometer/magnetometer
@@ -163,7 +163,7 @@ int32_t WaitFor40Degrees()
 
 		getMagnFlux_3axis(fMagnFlx_Now);
 
-		//UART_PRINT("%f,%f,%f\n\r", fMagnFlx_Now[0], fMagnFlx_Now[1], fMagnFlx_Now[2]);
+		//DEBG_PRINT("%f,%f,%f\n\r", fMagnFlx_Now[0], fMagnFlx_Now[1], fMagnFlx_Now[2]);
 
 		fMagnFlx_Dif[0] = fMagnFluxInit3Axis_Read[0] - fMagnFlx_Now[0];
 		fMagnFlx_Dif[1] = fMagnFluxInit3Axis_Read[1] - fMagnFlx_Now[1];
@@ -174,9 +174,9 @@ int32_t WaitFor40Degrees()
 //			fMFluxMagnitudeArray[i++] = ( (fMagnFlx_Dif[0] * fMagnFlx_Dif[0]) +
 //										(fMagnFlx_Dif[1] * fMagnFlx_Dif[1]) +
 //										(fMagnFlx_Dif[2] * fMagnFlx_Dif[2]) );
-		//UART_PRINT("%f\n\r", fMFluxMagnitudeArray[i-1]);
+		//DEBG_PRINT("%f\n\r", fMFluxMagnitudeArray[i-1]);
 		i = i % MOVING_AVG_FLTR_L;
-		//UART_PRINT("%f\n\r", fMFluxMagnitudeInit);
+		//DEBG_PRINT("%f\n\r", fMFluxMagnitudeInit);
 
 		// For checking magnmtr working only. Comment off otherwise
 		/*float_t fDoorDirectionAngle;
@@ -207,25 +207,25 @@ int32_t WaitFor40Degrees()
 		//DBG. Comment off
 
 		fAngle = 2 * asinf((fMFluxMagnitude/2)/fMFluxMagnitudeInit) *180/PI;
-		//UART_PRINT("%f, ", fMFluxMagnitude);
-		UART_PRINT("%f,", fAngle);
+		//DEBG_PRINT("%f, ", fMFluxMagnitude);
+		DEBG_PRINT("%f,", fAngle);
 
 		if( ucOpenFlag == 0 )
 		{
-			UART_PRINT("0");
+			DEBG_PRINT("0");
 			if( fMFluxMagnitude > fThreshold_higher_magnitudeOfDiff )
 			{
 				ucOpenFlag = 1;
-				UART_PRINT("Open Detected");
+				DEBG_PRINT("Open Detected");
 			}
 		}
 		else
 		{
-			//UART_PRINT("@");
+			//DEBG_PRINT("@");
 			if( fMFluxMagnitude < fThreshold_magnitudeOfDiff )
 			{
-				UART_PRINT("Door at 40 degrees while closing");
-				//UART_PRINT("\n Angle =  %f\nMagnitude = %f\n",fAngle,fMFluxMagnitude);
+				DEBG_PRINT("Door at 40 degrees while closing");
+				//DEBG_PRINT("\n Angle =  %f\nMagnitude = %f\n",fAngle,fMFluxMagnitude);
 //					ucOpenFlag = 0; //To repeat DGB
 				break;
 			}
@@ -233,7 +233,7 @@ int32_t WaitFor40Degrees()
 //		StopTimer();
 //		float_t fTestDuration;
 //		GetTimeDuration(&fTestDuration);
-//		UART_PRINT("\n\r%f ms\n\r", fTestDuration);
+//		DEBG_PRINT("\n\r%f ms\n\r", fTestDuration);
 
 		//Wait for 1.5ms
 		//UtilsDelay(.0025*80000000/(3*2));

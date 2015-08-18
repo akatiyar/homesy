@@ -22,6 +22,7 @@ extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))
 extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
 extern float gdoor_OpenDeg_angle;
+extern float g_angleOffset_to180;
 
 //Tag:See if you can remove this
 extern uint8_t print_count;
@@ -70,7 +71,7 @@ int16_t angleCheck_Initializations()
 	Fusion_Init();
 
 	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, MAGNETOMETER_DATA_SIZE, 0);
-	UART_PRINT("Magn FLash file Read done\n\r");	//Tag:Remove when waketime optimization is over
+	DEBG_PRINT("Magn FLash file Read done\n\r");	//Tag:Remove when waketime optimization is over
 
 	gdoor_90deg_angle = Mag_Calb_Value[(OFFSET_ANGLE_90/sizeof(float))];
 	gdoor_40deg_angle  = Mag_Calb_Value[(OFFSET_ANGLE_40/sizeof(float))];
@@ -91,12 +92,15 @@ int16_t angleCheck_Initializations()
 
 	gdoor_OpenDeg_angle  = Mag_Calb_Value[(OFFSET_ANGLE_OPEN/sizeof(float))];
 
+	//Calculate the offset that will bring door 40 degree angle to 180degrees. Offsetting ecompass angles by this value will ensure all valid door angles are in Q2 and Q3. Therefore there will be no crossovers.
+	g_angleOffset_to180 = 180.0 - gdoor_40deg_angle;
+
 	print_count = 0;
 	valid_case = 0;
 
-//	UART_PRINT("90:%3.2f\n\r",gdoor_90deg_angle);
-//	UART_PRINT("40:%3.2f\n\r",gdoor_40deg_angle);
-//	UART_PRINT("Open:%3.2f\n\r",gdoor_OpenDeg_angle);
+//	DEBG_PRINT("90:%3.2f\n\r",gdoor_90deg_angle);
+//	DEBG_PRINT("40:%3.2f\n\r",gdoor_40deg_angle);
+//	DEBG_PRINT("Open:%3.2f\n\r",gdoor_OpenDeg_angle);
 
 	return 0;
 }
@@ -118,14 +122,15 @@ int16_t magnetometer_initialize()
 //	start_100mSecTimer();
 
 	//for(i=0; i<50; i++)	//50 is value based on observation of ecompass readings
-	for(i=0; i<5; i++)	//50 is value based on observation of ecompass readings
+	for(i=0; i<5; i++)	//5 reads are done is to eliminate the initially wrong
+						//values
 	{
 		get_angle();
 	}
 
 //	ulTimeDuration_ms = get_timeDuration();
 //	stop_100mSecTimer();
-//	UART_PRINT("a+m init reading - %d ms\n\r", ulTimeDuration_ms);
+//	DEBG_PRINT("a+m init reading - %d ms\n\r", ulTimeDuration_ms);
 
 	return 0;
 }
@@ -157,7 +162,7 @@ int16_t angleCheck()
 	mqxglobals.RunKF_Event_Flag = 0;
 	// read the sensors
 	RdSensData_Run();
-	//UART_PRINT("r\n\r");
+	//DEBG_PRINT("r\n\r");
 
 	mqxglobals.MagCal_Event_Flag = 0;
 	if(mqxglobals.RunKF_Event_Flag == 1)
@@ -165,7 +170,7 @@ int16_t angleCheck()
 		// call the sensor fusion algorithms
 		Fusion_Run();
 		check_doorpos();
-		//UART_PRINT("f\n\r");
+		//DEBG_PRINT("f\n\r");
 	}
 
 	return 0;
@@ -176,19 +181,19 @@ int16_t fxos_Calibration()
 	mqxglobals.RunKF_Event_Flag = 0;
 	// read the sensors
 	RdSensData_Run();
-	//UART_PRINT("r\n\r");
+	//DEBG_PRINT("r\n\r");
 	mqxglobals.MagCal_Event_Flag = 0;
 	if(mqxglobals.RunKF_Event_Flag == 1)
 	{
 		// call the sensor fusion algorithms
 		Fusion_Run();
-		//UART_PRINT("f\n\r");
+		//DEBG_PRINT("f\n\r");
 	}
 	if(mqxglobals.MagCal_Event_Flag == 1)
 	//if(cnt_prakz2>60)
 	{
 		MagCal_Run(&thisMagCal, &thisMagBuffer);
-		//UART_PRINT("m* %d\n\r", i);
+		//DEBG_PRINT("m* %d\n\r", i);
 	}
 
 	return 0;
@@ -205,10 +210,10 @@ float_t get_angle()
 //		start_100mSecTimer();
 		// read the sensors
 		RdSensData_Run();
-		//UART_PRINT("r\n\r");
+		//DEBG_PRINT("r\n\r");
 //		ulTimeDuration_ms = get_timeDuration();
 //		stop_100mSecTimer();
-//		UART_PRINT("Read SensData - %d ms\n\r", ulTimeDuration_ms);
+//		DEBG_PRINT("Read SensData - %d ms\n\r", ulTimeDuration_ms);
 //		start_100mSecTimer();
 
 		mqxglobals.MagCal_Event_Flag = 0;
@@ -216,8 +221,8 @@ float_t get_angle()
 		{
 			// call the sensor fusion algorithms
 			Fusion_Run();
-//			UART_PRINT("f\n\r");
-//			UART_PRINT("CompassVal(rho):%f, phi:%f, psi:%f, theta:%f\n\r",
+//			DEBG_PRINT("f\n\r");
+//			DEBG_PRINT("CompassVal(rho):%f, phi:%f, psi:%f, theta:%f\n\r",
 //							thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPPhi,
 //							thisSV_6DOF_GB_BASIC.fLPPsi, thisSV_6DOF_GB_BASIC.fLPThe);
 			return thisSV_6DOF_GB_BASIC.fLPRho;
@@ -253,7 +258,7 @@ float_t get_angle()
 		mqxglobals.RunKF_Event_Flag = 0;
 		// read the sensors
 		RdSensData_Run();
-		//UART_PRINT("r\n\r");
+		//DEBG_PRINT("r\n\r");
 
 		mqxglobals.MagCal_Event_Flag = 0;
 		if(mqxglobals.RunKF_Event_Flag == 1)
@@ -261,7 +266,7 @@ float_t get_angle()
 			// call the sensor fusion algorithms
 			Fusion_Run();
 			check_doorpos();
-			//UART_PRINT("f\n\r");
+			//DEBG_PRINT("f\n\r");
 			i++;
 			if(g_flag_door_closing_45degree)
 			{
@@ -278,7 +283,7 @@ float_t get_angle()
 		//if(cnt_prakz2>60)
 		{
 			MagCal_Run(&thisMagCal, &thisMagBuffer);
-			//UART_PRINT("m* %d\n\r", i);
+			//DEBG_PRINT("m* %d\n\r", i);
 			cnt_prakz2 = 0;
 		}
 		//UtilsDelay(.25*8000000/6);
@@ -311,14 +316,14 @@ void fxos_main_waitfor40degrees()
 		mqxglobals.RunKF_Event_Flag = 0;
 		// read the sensors
 		RdSensData_Run();
-		//UART_PRINT("r\n\r");
+		//DEBG_PRINT("r\n\r");
 
 		mqxglobals.MagCal_Event_Flag = 0;
 		if(mqxglobals.RunKF_Event_Flag == 1)
 		{
 			// call the sensor fusion algorithms
 			Fusion_Run();
-			//UART_PRINT("f\n\r");
+			//DEBG_PRINT("f\n\r");
 			i++;
 			if(thisSV_6DOF_GB_BASIC.fLPRho < 20)
 			{
@@ -329,7 +334,7 @@ void fxos_main_waitfor40degrees()
 				if(thisSV_6DOF_GB_BASIC.fLPRho > 350)
 				{
 					flag = 0;
-					UART_PRINT("Door cndtn met: %3.2f",thisSV_6DOF_GB_BASIC.fLPRho);
+					DEBG_PRINT("Door cndtn met: %3.2f",thisSV_6DOF_GB_BASIC.fLPRho);
 					return;
 				}
 			}
@@ -338,7 +343,7 @@ void fxos_main_waitfor40degrees()
 		if(mqxglobals.MagCal_Event_Flag == 1)
 		{
 			MagCal_Run(&thisMagCal, &thisMagBuffer);
-			//UART_PRINT("m* %d\n\r", i);
+			//DEBG_PRINT("m* %d\n\r", i);
 		}
 
 		//UtilsDelay(.25*80000000/6);
@@ -374,20 +379,20 @@ int32_t fxos_calibrate()
 		mqxglobals.RunKF_Event_Flag = 0;
 		// read the sensors
 		RdSensData_Run();
-		//UART_PRINT("r\n\r");
+		//DEBG_PRINT("r\n\r");
 
 		mqxglobals.MagCal_Event_Flag = 0;
 		if(mqxglobals.RunKF_Event_Flag == 1)
 		{
 			// call the sensor fusion algorithms
 			Fusion_Run();
-			//UART_PRINT("f\n\r");
+			//DEBG_PRINT("f\n\r");
 		}
 
 		if(mqxglobals.MagCal_Event_Flag == 1)
 		{
 			MagCal_Run(&thisMagCal, &thisMagBuffer);
-			//UART_PRINT("m* %d\n\r", i);
+			//DEBG_PRINT("m* %d\n\r", i);
 		}
 
 		//while(mqxglobals.Sampling_Event_Flag == 0);
@@ -487,9 +492,9 @@ int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor)
 	Case_U = CASE_NO_360CCROSSOVER;
 	Case_L = CASE_NO_360CCROSSOVER;
 
-	UART_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
-	UART_PRINT("U: %3.2f, Case: %x\n\r", fYaw_U, Case_U);
-	UART_PRINT("L: %3.2f, Case: %x\n\r", fYaw_L, Case_L);
+	DEBG_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
+	DEBG_PRINT("U: %3.2f, Case: %x\n\r", fYaw_U, Case_U);
+	DEBG_PRINT("L: %3.2f, Case: %x\n\r", fYaw_L, Case_L);
 
 	while(!flag_L)
 	{
@@ -498,14 +503,14 @@ int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor)
 		mqxglobals.RunKF_Event_Flag = 0;
 		// read the sensors
 		RdSensData_Run();
-		//UART_PRINT("r\n\r");
+		//DEBG_PRINT("r\n\r");
 
 		mqxglobals.MagCal_Event_Flag = 0;
 		if(mqxglobals.RunKF_Event_Flag == 1)
 		{
 			// call the sensor fusion algorithms
 			Fusion_Run();
-			//UART_PRINT("f\n\r");
+			//DEBG_PRINT("f\n\r");
 
 			fYaw = thisSV_6DOF_GB_BASIC.fLPRho;
 
@@ -544,7 +549,7 @@ int32_t fxos_waitFor40Degrees(float_t fYaw_closedDoor)
 		if(mqxglobals.MagCal_Event_Flag == 1)
 		{
 			MagCal_Run(&thisMagCal, &thisMagBuffer);
-			//UART_PRINT("m %d\n\r", i);
+			//DEBG_PRINT("m %d\n\r", i);
 		}
 
 		//while(mqxglobals.Sampling_Event_Flag == 0);

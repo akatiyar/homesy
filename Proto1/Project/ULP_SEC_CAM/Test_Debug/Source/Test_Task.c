@@ -15,20 +15,20 @@ void Test_Task(void *pvParameters)
 {
 	while(1)
 	{
-		UART_PRINT("%x\n",IS_PUSHBUTTON_PRESSED);
+		DEBG_PRINT("%x\n",IS_PUSHBUTTON_PRESSED);
 	}
 #ifdef COMPILE_THIS
 	float OpenAngle;
 
 	OpenAngle = Calculate_DoorOpenThresholdAngle(30.56,80.32);
-	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+	DEBG_PRINT("Open Door Angle : %f\n",OpenAngle);
 	OpenAngle = Calculate_DoorOpenThresholdAngle(80.32,30.56);
-	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+	DEBG_PRINT("Open Door Angle : %f\n",OpenAngle);
 
 	OpenAngle = Calculate_DoorOpenThresholdAngle(330.83, 19.2);
-	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+	DEBG_PRINT("Open Door Angle : %f\n",OpenAngle);
 	OpenAngle = Calculate_DoorOpenThresholdAngle(19.2, 330.83);
-	UART_PRINT("Open Door Angle : %f\n",OpenAngle);
+	DEBG_PRINT("Open Door Angle : %f\n",OpenAngle);
 #endif
 
 #ifdef COMPILE_THIS
@@ -38,7 +38,7 @@ void Test_Task(void *pvParameters)
 	while(i)
 		{
 			osi_Sleep(100);
-			UART_PRINT("j");
+			DEBG_PRINT("j");
 			i--;
 		}
 	LED_Blink_2(.2,1,BLINK_FOREVER);
@@ -46,7 +46,7 @@ void Test_Task(void *pvParameters)
 	while(i)
 	{
 		osi_Sleep(100);
-		UART_PRINT("k");
+		DEBG_PRINT("k");
 		i--;
 	}
 	LED_Blink_2(0,1,0);
@@ -57,7 +57,7 @@ void Test_Task(void *pvParameters)
 	while(1)
 	{
 		osi_Sleep(100);
-		UART_PRINT("j");
+		DEBG_PRINT("j");
 	}
 	//LED_Blink_2(1,.5,5);
 #endif
@@ -81,7 +81,7 @@ void Test_Task(void *pvParameters)
 
 	uint8_t FridgeCamID[FRIDGECAM_ID_SIZE];
 	Get_FridgeCamID(FridgeCamID);
-	UART_PRINT("%s\n\r",FridgeCamID);
+	DEBG_PRINT("%s\n\r",FridgeCamID);
 #endif
 #ifdef COMPILE_THIS
 	uint32_t ulTimeDuration_ms;
@@ -90,7 +90,7 @@ void Test_Task(void *pvParameters)
 	//osi_Sleep(100);
 	ulTimeDuration_ms = get_timeDuration();
 	stop_100mSecTimer();
-	UART_PRINT("%d ms\n\r", ulTimeDuration_ms);
+	DEBG_PRINT("%d ms\n\r", ulTimeDuration_ms);
 #endif
 
 #ifdef COMPILE_THIS
@@ -101,10 +101,10 @@ void Test_Task(void *pvParameters)
 	sl_Start(0,0,0);
 	sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &FileInfo);
 	lRetVal = ReadFile_FromFlash((uint8_t*)g_image_buffer, JPEG_HEADER_FILE_NAME, FileInfo.FileLen, 0);
-	UART_PRINT("%d\n\r%d\n\r", FileInfo.FileLen, lRetVal);
+	DEBG_PRINT("%d\n\r%d\n\r", FileInfo.FileLen, lRetVal);
 	for(lRetVal = 0; lRetVal<(650/4);lRetVal++)
 	{
-		UART_PRINT("%x ", g_image_buffer[lRetVal]);
+		DEBG_PRINT("%x ", g_image_buffer[lRetVal]);
 	}
 	sl_Stop(0xFFFF);
 
@@ -121,7 +121,7 @@ void Test_Task(void *pvParameters)
 	Check_I2CDevices();
 	while(1)
 	{
-		UART_PRINT("%d\n\r", Get_BatteryPercent());
+		DEBG_PRINT("%d\n\r", Get_BatteryPercent());
 		UtilsDelay(80000000);
 	}
 #endif
@@ -135,8 +135,8 @@ void Test_Task(void *pvParameters)
 	while(1)
 	{
 		Get_BatteryVoltageLevel_ADC081C021(&ucADCVal);
-		UART_PRINT("%xH\n\r", ucADCVal);
-		UART_PRINT("%d\n\r", Get_BatteryPercent());
+		DEBG_PRINT("%xH\n\r", ucADCVal);
+		DEBG_PRINT("%d\n\r", Get_BatteryPercent());
 	}
 #endif
 
@@ -149,20 +149,20 @@ void Test_Task(void *pvParameters)
 #endif
 
 #ifdef COMPILE_THIS
-	UART_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
+	DEBG_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
 while(1)
 {
 	configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
 	getLightsensor_intrptStatus();
-	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
+	DEBG_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
 	while(GPIOPinRead(GPIOA0_BASE, 0x04));
-	UART_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
+	DEBG_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
 
 	configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
 	getLightsensor_intrptStatus();
-	UART_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
+	DEBG_PRINT("Light supposedly on %d\n",GPIOPinRead(GPIOA0_BASE, 0x04));	//1
 	while(GPIOPinRead(GPIOA0_BASE, 0x04));
-	UART_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
+	DEBG_PRINT("Light supposedly off %d\n",GPIOPinRead(GPIOA0_BASE, 0x04)); //0
 }
 #endif
 
@@ -193,11 +193,11 @@ while(1)
 		lux = getLightsensor_data();
 		if(lux <= 5)
 		{
-			UART_PRINT("aaa\n");
+			DEBG_PRINT("aaa\n");
 		}
 		if(IsLightOff(100))
 		{
-			UART_PRINT("ooo\n");
+			DEBG_PRINT("ooo\n");
 		}
 	}
 #endif
@@ -213,7 +213,7 @@ while(1)
 //	{
 //		UtilsDelay(0.25*80000000/6);
 //		getMagnFlux_3axis(fMagnFlux);
-//		UART_PRINT("%f, %f, %f\n\r", fMagnFlux[0], fMagnFlux[1], fMagnFlux[2]);
+//		DEBG_PRINT("%f, %f, %f\n\r", fMagnFlux[0], fMagnFlux[1], fMagnFlux[2]);
 //	}
 //	while(1)
 //		fxos_main();

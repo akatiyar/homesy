@@ -27,7 +27,7 @@ int32_t initial_magnetometerReadings()
 	int32_t lRetVal;
 
 	fxos_get_initialYaw(&fYaw_closedDoor);
-	UART_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
+	DEBG_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
 	//
 	// Save initial magnetometer readings in flash
 	//
@@ -69,7 +69,7 @@ int32_t waitfor40degrees_fxos()
 	ASSERT_ON_ERROR(lRetVal);
 
 	//fxos_calibrate();
-	//UART_PRINT("\n\rc** Calibration over\n\r");
+	//DEBG_PRINT("\n\rc** Calibration over\n\r");
 	fxos_waitFor40Degrees(fYaw_closedDoor);
 
 	return 1;
@@ -82,15 +82,15 @@ void fxos_testing_2()
 	fxos_calibrate();
 
 
-	UART_PRINT("\n\ra** Initial Door Closed Pos\n\r");
+	DEBG_PRINT("\n\ra** Initial Door Closed Pos\n\r");
 	initial_magnetometerReadings();
-	UART_PRINT("\n\rb**Going to Calibrate\n\r");
+	DEBG_PRINT("\n\rb**Going to Calibrate\n\r");
 	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 	waitfor40degrees_fxos();
 	LED_Blink(10, .3);
 	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 	UtilsDelay(5*80000000/6);
-	UART_PRINT("\n\rf**\n\r");
+	DEBG_PRINT("\n\rf**\n\r");
 	//while(1);
 }
 
@@ -98,14 +98,14 @@ void fxos_testing_3()
 {
 	LED_Blink(30, 1);
 
-	UART_PRINT("\n\ra** Initial Door Closed Pos\n\r");
+	DEBG_PRINT("\n\ra** Initial Door Closed Pos\n\r");
 	initial_magnetometerReadings();
 	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 	waitfor40degrees_fxos();
 	LED_Blink(10, .3);
 	MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 	UtilsDelay(5*80000000/6);
-	UART_PRINT("\n\rf**\n\r");
+	DEBG_PRINT("\n\rf**\n\r");
 	//while(1);
 }
 
@@ -114,18 +114,18 @@ void fxos_testing_4()
 	//LED_Blink(30, 1);
 	while(1)
 	{
-		UART_PRINT("\n\ra** Initial Door Closed Pos\n\r");
+		DEBG_PRINT("\n\ra** Initial Door Closed Pos\n\r");
 
 		float_t fYaw_closedDoor;
 		fxos_get_initialYaw(&fYaw_closedDoor);
-		UART_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
+		DEBG_PRINT("Closed Door: %3.2f\n\r", fYaw_closedDoor);
 
 		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 		fxos_waitFor40Degrees(fYaw_closedDoor);
 		LED_Blink(10, .3);
 		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 		UtilsDelay(5*80000000/6);
-		UART_PRINT("\n\rf**\n\r");
+		DEBG_PRINT("\n\rf**\n\r");
 	}
 	//while(1);
 }

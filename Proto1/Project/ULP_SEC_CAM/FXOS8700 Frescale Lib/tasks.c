@@ -201,8 +201,8 @@ void RdSensData_Run(void)
 	FXOS8700_ReadData(&thisAccel, &thisMag);
 	ApplyAccelHAL(&thisAccel);
 	ApplyMagHAL(&thisMag);
-//	UART_PRINT("%d, %d, %d\n\r",thisMag.iBpFast[X], thisMag.iBpFast[Y], thisMag.iBpFast[Z]);
-//	UART_PRINT("%d, %d, %d\n\r",thisAccel.iGpFast[X], thisAccel.iGpFast[Y], thisAccel.iGpFast[Z]);
+//	DEBG_PRINT("%d, %d, %d\n\r",thisMag.iBpFast[X], thisMag.iBpFast[Y], thisMag.iBpFast[Z]);
+//	DEBG_PRINT("%d, %d, %d\n\r",thisAccel.iGpFast[X], thisAccel.iGpFast[Y], thisAccel.iGpFast[Z]);
 #endif
 #if defined USE_FXAS21000
 	FXAS21000_ReadData(I2C_DeviceData, &thisGyro, iCounter);
@@ -486,7 +486,7 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				for (j = X; j <= Z; j++)
 				{
 					pthisMagCal->finvW[i][j] = pthisMagCal->ftrinvW[i][j];
-					//UART_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
+					//DEBG_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
 //tag prakz
 				}
 			}
@@ -495,21 +495,21 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				{
 					for (j = X; j <= Z; j++)
 					{
-						UART_PRINT("pthisMagCal->fV[x]: %f	 i: %d	j: %d\n\r",pthisMagCal->finvW[i][j], i, j);
+						DEBG_PRINT("i:%d j:%d  %f\n",pthisMagCal->finvW[i][j], i, j);
 			//tag prakz
 					}
 				}
-				UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
-				UART_PRINT("\n\r***Accepted****\n\r");
+				DEBG_PRINT("x:%f\ny:%f\nz:%f\n",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
+				DEBG_PRINT("Accepted\n");
 				g_ucMagCalb++;
-				UART_PRINT("\n\rFit Error: %f%%\n\r", pthisMagCal->fFitErrorpc);
+				DEBG_PRINT("\nFitError:%f%%\n", pthisMagCal->fFitErrorpc);
 				//tag prakz
 
 		} // end of test to accept the new calibration 
 	} // end of test for geomagenetic field strength in range
 //	else
 //	{
-//		UART_PRINT("\n\rpthisMagCal->ftrB: %3.2f\n\r" , pthisMagCal->ftrB );
+//		DEBG_PRINT("\n\rpthisMagCal->ftrB: %3.2f\n\r" , pthisMagCal->ftrB );
 //	}
 
 	// reset the calibration in progress flag to allow writing to the magnetic buffer
@@ -519,11 +519,11 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 //	{
 //		for (j = X; j <= Z; j++)
 //		{
-//			UART_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
+//			DEBG_PRINT("pthisMagCal->fV[x]: %f\n\ri: %d\n\rj: %d\n\r",pthisMagCal->finvW[i][j], i, j);
 ////tag prakz
 //		}
 //	}
-//	UART_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
+//	DEBG_PRINT("pthisMagCal->fV[x]: %f\n\rpthisMagCal->fV[y]: %f\n\rpthisMagCal->fV[z]: %f\n\r",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
 //	//tag prakz
 
 	return;

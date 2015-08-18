@@ -1,4 +1,4 @@
-//*****************************************************************************
+//*****************************************************************************DigiCertHighAssuranceEVRootCA_der
 //
 // Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/ 
 // 
@@ -127,7 +127,7 @@ OsiTaskHandle g_UserConfigTaskHandle = NULL ;
 OsiTaskHandle g_MainTaskHandle = NULL ;
 OsiTaskHandle g_ImageCaptureConfigs_TaskHandle = NULL ;
 
-Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
+//Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
                                         "__SL_G_US1", "__SL_G_US2","__SL_G_US3",
                                                     "__SL_G_US4", "__SL_G_US5"};
@@ -191,7 +191,7 @@ vAssertCalled( const char *pcFile, unsigned long ulLine )
 void
 vApplicationIdleHook( void)
 {
-	//UART_PRINT("k");
+	//DEBG_PRINT("k");
     //Handle Idle Hook for Profiling, Power Management etc
 }
 
@@ -206,7 +206,7 @@ vApplicationIdleHook( void)
 //*****************************************************************************
 void vApplicationMallocFailedHook()
 {
-	UART_PRINT("Malloc Failed\n\r");
+	DEBG_PRINT("Malloc Failed\n\r");
     //Handle Memory Allocation Errors
     while(1)
     {
@@ -274,7 +274,7 @@ BoardInit(void)
 	// Configuring UART
 	//
 	InitTerm();
-	//UART_PRINT("Test");
+	//DEBG_PRINT("Test");
 #endif
 
 	//
@@ -312,8 +312,9 @@ static void InitializeAppVariables()
 	g_TimeStamp_PhotoSnap = 0;
 	g_TimeStamp_PhotoUploaded = 0;
 	g_TimeStamp_DoorClosed = 0;
-	g_TimeStamp_minAngle = 0;
-	g_TimeStamp_maxAngle = 0;
+	g_TimeStamp_MinAngle = 0;
+	g_TimeStamp_MaxAngle = 0;
+	g_TimeStamp_SnapAngle = 0;
 	g_ucReasonForFailure = NEVER_WENT_TO_ANGLECHECK;
 	g_fMinAngle = 361;
 	g_fMaxAngle = 0;
@@ -334,6 +335,7 @@ static void InitializeAppVariables()
 void main()
 {
 	long lRetVal = -1;
+	struct u64_time time_now;
 
 	//
     // Initialize Board configurations
@@ -346,19 +348,20 @@ void main()
     InitializeAppVariables();
 
     //Tag:Timestamp CC3200 up
-    struct u64_time time_now;
-	cc_rtc_get(&time_now);
+ 	cc_rtc_get(&time_now);
 	g_TimeStamp_cc3200Up = time_now.secs * 1000 + time_now.nsec / 1000000;
 
+	//
+	//	Turn off if battery is too low. To protect flash data from corruption
+	//
 	if(Get_BatteryPercent() <= BATTERY_LOW_THRESHOLD)
 	{
-		UART_PRINT("Battery too low\n");
-
+		RELEASE_PRINT("Low Battery\n");
 		PowerDown_LightSensor();
 #ifndef  IOEXPANDER_PRESENT
 		//Hibernate with no wake. Give a power reset i.e remove battery and put
 		//it back (after charging) to wake device
-		UART_PRINT("Hibernating...\n");
+		RELEASE_PRINT("Device power down\n");
 		HIBernate(NULL, NULL, NULL, NULL);
 #else
 		//To be used when IO expander is included in the ckt
@@ -367,6 +370,7 @@ void main()
 #endif
 	}
 
+	//Hibernate if interrupt is not from one of the expected sources
 #ifdef IOEXPANDER_PRESENT
 	if((!IsInterruptFromBatteryADC()) & (!IsInterruptFromLightSensor()))
 	{

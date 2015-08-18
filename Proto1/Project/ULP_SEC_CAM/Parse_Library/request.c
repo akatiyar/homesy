@@ -440,7 +440,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         socketHandle = status;
 
 #ifdef REQUEST_DEBUG
-        UART_PRINT("\r\n[Parse] Request:\r\n");
+        RELEASE_PRINT("Parse Request: ");
 #endif /* REQUEST_DEBUG */
 
         headerSend(parseClient, host, httpVerb, httpRequestBody, addInstallationHeader, payloadType, socketHandle);
@@ -451,7 +451,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
 
 		}
 
-        UART_PRINT("Sent\r\n");
+        RELEASE_PRINT("Sent\n");
 //        if (status >= 0)
 //		{
 //			long temp = status;
@@ -472,7 +472,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
     if (status >= 0)
     {
 #ifdef REQUEST_DEBUG
-    	UART_PRINT("\r\n[Parse] Response:\r\n");
+    	RELEASE_PRINT("Parse Response: ");
 #endif /* REQUEST_DEBUG */
 
         memset(dataBuffer, 0, dataBufferSize);
@@ -488,7 +488,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         //DBG - See what the buffer has
         //DEBUG_PRINT("%s\r\n", dataBuffer);
 
-        DEBUG_PRINT("SocketRead bytes/status: %d\r\n", status);
+        DEBUG_PRINT("SocketRead bytes/status: %d\n", status);
 #ifdef REQUEST_DEBUG
         if (status >= 0)
         {
@@ -498,18 +498,18 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         		status = simpleJsonProcessor(dataBuffer, "objectId", responseObjectID, OBJECT_ID_MAX_LEN);
         		if(status != 1)
         			return status;
-        		UART_PRINT("objectID : %s\r\n", responseObjectID);
+        		RELEASE_PRINT("ObjectID: %s\n", responseObjectID);
         	}
         	else if (payloadType == image)
         	{
         		status = simpleJsonProcessor(dataBuffer, "name", imageName, IMAGE_NAME_MAX_LEN);
         		if(status != 1)
         			return status;
-        		UART_PRINT("Image Name : %s\r\n", imageName);
+        		RELEASE_PRINT("Image: %s\n", imageName);
         	}
         } else
         {
-            DEBUG_PRINT("Response read error: %d\r\n", status);
+            DEBG_PRINT("Error: %d\n", status);
         }
         //DEBUG_PRINT("[Parse] --------Response--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
@@ -517,10 +517,14 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         UtilsDelay(80000000);
         socketClose(socketHandle);
 #ifdef REQUEST_DEBUG
-    } else {
+    }
+    else
+    {
 		if(socketHandle != -1)
+		{
 			socketClose(socketHandle);
-        DEBUG_PRINT("Request write error: %d\r\n", status);
+		}
+		DEBG_PRINT("Error: %d\n", status);
 #endif /* REQUEST_DEBUG */
     }
 
@@ -548,7 +552,7 @@ long parseSendRequest(ParseClient client, const char *httpVerb, const char *http
 	getInstallation(getInternalClient(client));
 
 #ifdef REQUEST_TRACE
-    DEBUG_PRINT("[Parse] Send %s request to %s \r\n", httpVerb, httpPath);
+    DEBUG_PRINT("[Parse] Send %s request to %s\n", httpVerb, httpPath);
 #endif /* REQUEST_TRACE */
 
     status = parseSendRequestInternal(client, httpVerb, httpPath, httpRequestBody, callback, TRUE, payloadType);

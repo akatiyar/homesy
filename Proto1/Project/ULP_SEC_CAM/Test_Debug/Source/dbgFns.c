@@ -18,31 +18,27 @@
 
 int32_t Check_I2CDevices()
 {
-	UART_PRINT("+++ I2C devices Debug +++\n\r");
-
-	UART_PRINT("\nLightSens check...\n\r");
+	DEBG_PRINT("\nLightSens...\n");
 	verifyISL29035();
 
-	UART_PRINT("\nA+M check...\n\r");
+	DEBG_PRINT("\nA+M...\n");
 	verifyAccelMagnSensor();
 
-	UART_PRINT("\nMT9D111 check...\n\r");
+	DEBG_PRINT("\nMT9D111...\n");
 	CamControllerInit();	//Since Camera module is dependant on MCU for Clock
 	UtilsDelay(24/3 + 10);
 	Verify_ImageSensor();
 
-	UART_PRINT("\nTempHumidity Sensor check...\n\r");
+	DEBG_PRINT("\nTempHumidity...\n");
 	verifyTempRHSensor();
 
-	UART_PRINT("\nBatteryADC check...\n\r");
+	DEBG_PRINT("\nBatteryADC...\n");
 	Get_BatteryPercent();
-
-	UART_PRINT("\nAll I2C devices READs successful\n\r");
 
 	return 0;
 }
 
-
+// Give the file name inside the fn.
 int32_t Check_FlashFiles()
 {
 	uint32_t ulToken = 0;
@@ -50,15 +46,15 @@ int32_t Check_FlashFiles()
 	int32_t lRetVal;
 
 	sl_Start(0,0,0);
-	UART_PRINT("%s\n\r", (uint8_t *)JPEG_IMAGE_FILE_NAME);
+	DEBG_PRINT("%s\n\r", (uint8_t *)JPEG_IMAGE_FILE_NAME);
 	lRetVal = sl_FsGetInfo((uint8_t *)JPEG_IMAGE_FILE_NAME, ulToken, &FileInfo);
 	if(SL_FS_ERR_FILE_NOT_EXISTS == lRetVal)
 	{
-		UART_PRINT("Doesn't Exist");
+		DEBG_PRINT("Doesn't Exist");
 	}
 	else
 	{
-		UART_PRINT("%d\n\r%d\n\r", FileInfo.AllocatedLen, FileInfo.FileLen);
+		DEBG_PRINT("%d\n\r%d\n\r", FileInfo.AllocatedLen, FileInfo.FileLen);
 	}
 	sl_Stop(0xffff);
 

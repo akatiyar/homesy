@@ -14,7 +14,7 @@ void Reset_byStarvingWDT()
 	while(1)
 	{
 		osi_Sleep(100);
-		UART_PRINT("@");
+		DEBG_PRINT("@");
 	}
 #endif
 }

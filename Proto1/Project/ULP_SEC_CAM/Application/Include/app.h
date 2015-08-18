@@ -21,9 +21,8 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-//#define FIRMWARE_VERSION 		"F30 Robust Angle"
-//#define FIRMWARE_VERSION 		"F30 Reset with button"
-#define FIRMWARE_VERSION 		"Release 0.0.14"
+#define FIRMWARE_VERSION 		"F32"
+//#define FIRMWARE_VERSION 		"Release 0.0.14"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.21"
 
 //#define APP_SSID_NAME 		"Solflr3"
@@ -62,18 +61,30 @@
 
 #define PI				(3.141592654F)
 
-#define TEST_MODULES_INCLUDE
-#define DEBUG_ENABLE
-#ifndef DEBUG_ENABLE
-#define NOTERM
-#endif
+#ifdef NOTERM
+#define DEBG_PRINT(x,...)
+#define RELEASE_PRINT(x,...)
+#else	//NOTERM
+
+#ifdef RELEASE_PRINT_ENABLE
+#define RELEASE_PRINT  Report
+#else	//RELEASE_PRINT_ENABLE
+#define RELEASE_PRINT(x,...)
+#endif	//RELEASE_PRINT_ENABLE
+
+#ifdef DEBUG_PRINT_ENABLE
+#define DEBG_PRINT  Report
+#else	//DEBUG_PRINT_ENABLE
+#define DEBG_PRINT(x,...)
+#endif	//DEBUG_PRINT_ENABLE
+
+#endif	//NOTERM
 
 typedef enum
 {
 	APP_MODE_A,
 	APP_MODE_B
 }appModes;
-
 
 // Application specific status/error codes. Assign these to lRetVal or g_appStatus
 typedef enum
@@ -95,11 +106,16 @@ typedef enum
 	FILE_READ_FAILED = FILE_OPEN_WRITE_FAILED - 1,
 	FILE_WRITE_FAILED = FILE_READ_FAILED - 1,
 
-	//
-	MT9D111_NOT_FOUND = FILE_WRITE_FAILED - 1,
+	//I2C device not found
+	MT9D111_NOT_FOUND = FILE_WRITE_FAILED - 1,		//Image Sensor
+	ISL29035_NOT_FOUND = MT9D111_NOT_FOUND - 1,		//Light Sensor
+	FXOS8700_NOT_FOUND = ISL29035_NOT_FOUND - 1,	//Accel, Magnetometer
+	SI7020_NOT_FOUND = FXOS8700_NOT_FOUND - 1,		//Temp RH
+	ADC081C021_NOT_FOUND = SI7020_NOT_FOUND - 1,	//Battery ADC
+	PCF8574_NOT_FOUND = ADC081C021_NOT_FOUND - 1,	//IO expander
 
 	// WiFi Provisioning through AP Mode
-	USER_WIFI_PROFILE_FAILED_TO_CONNECT = MT9D111_NOT_FOUND - 1,
+	USER_WIFI_PROFILE_FAILED_TO_CONNECT = PCF8574_NOT_FOUND - 1,
 
 	MT9D111_FIRMWARE_STATE_ERROR = USER_WIFI_PROFILE_FAILED_TO_CONNECT - 1,
 	MT9D111_IMAGE_CAPTURE_FAILED = MT9D111_FIRMWARE_STATE_ERROR - 1,
@@ -168,12 +184,14 @@ uint64_t g_TimeStamp_CamUp;
 uint64_t g_TimeStamp_PhotoSnap;
 uint64_t g_TimeStamp_PhotoUploaded;
 uint64_t g_TimeStamp_DoorClosed;
-uint64_t g_TimeStamp_minAngle;
-uint64_t g_TimeStamp_maxAngle;
+uint64_t g_TimeStamp_MinAngle;
+uint64_t g_TimeStamp_MaxAngle;
+uint64_t g_TimeStamp_SnapAngle;
 int16_t g_fMaxAngle;
 int16_t g_fMinAngle;
 struct u64_time g_Struct_TimeStamp_MaxAngle;
 struct u64_time g_Struct_TimeStamp_MinAngle;
+struct u64_time g_Struct_TimeStamp_SnapAngle;
 
 typedef enum
 {

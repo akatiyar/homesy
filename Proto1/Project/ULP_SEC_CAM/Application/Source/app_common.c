@@ -174,6 +174,6 @@ int32_t Get_FridgeCamID(uint8_t* pucFridgeCamID)
 		pucTemp++;
 	}
 
-	UART_PRINT("FridgeCam ID: %s\n\r",pucFridgeCamID);
+	DEBG_PRINT("FridgeCam ID: %s\n",pucFridgeCamID);
     return lRetVal;
 }

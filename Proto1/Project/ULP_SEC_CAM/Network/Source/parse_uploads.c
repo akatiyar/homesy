@@ -21,6 +21,7 @@
 #define TS_DOORCLOSED				"TimeStamp_DoorClosed"
 #define TS_MAXANGLE					"TimeStamp_MaxAngle"
 #define TS_MINANGLE					"TimeStamp_MinAngle"
+#define TS_SNAPANGLE				"TimeStamp_SnapAngle"
 #define MAX_ANGLE					"Max_DoorAngle"
 #define MIN_ANGLE					"Min_DoorAngle"
 #define ANGLE40						"Angle40"
@@ -267,7 +268,7 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv+2, 2);
 	strncat((char*)pucSensorDataTxt, "}", sizeof("}"));
 
-	UART_PRINT("\n%s\n", pucSensorDataTxt);
+	RELEASE_PRINT("SensorData:\n%s\n", pucSensorDataTxt);
 
 	return 0;
 }
@@ -369,9 +370,11 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_DOORCLOSED,
 									g_TimeStamp_DoorClosed, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MAXANGLE,
-									g_TimeStamp_minAngle, MIDDLE);
+									g_TimeStamp_MinAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MINANGLE,
-									g_TimeStamp_maxAngle, MIDDLE);
+									g_TimeStamp_MaxAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_SNAPANGLE,
+									g_TimeStamp_SnapAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, MAX_ANGLE,
 									g_fMaxAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, MIN_ANGLE,
@@ -383,7 +386,7 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE_OPEN,
 									(long long)gdoor_OpenDeg_angle,LAST);
 
-	UART_PRINT("\n%s\n", pucGroundDataObject);
+	RELEASE_PRINT("GroundData:\n%s\n", pucGroundDataObject);
 
 	return 0;
 }
@@ -468,13 +471,11 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 									(long long)fUserConfigData[(OFFSET_ANGLE_40/sizeof(float))], MIDDLE);
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE90,
 									(long long)fUserConfigData[(OFFSET_ANGLE_90/sizeof(float))],MIDDLE);
-
 	Add_NumberField_ToJSONString(pucUserConfigObject, "Shutter_Width",g_shutterwidth,MIDDLE);
-
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE_OPEN,
 									(long long)fUserConfigData[(OFFSET_ANGLE_OPEN/sizeof(float))], LAST);
 
-	UART_PRINT("\n%s\n", pucUserConfigObject);
+	RELEASE_PRINT("UserConfig:\n%s\n", pucUserConfigObject);
 
 	return 0;
 }

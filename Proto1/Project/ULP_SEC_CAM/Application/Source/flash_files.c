@@ -197,7 +197,7 @@ lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
                     &lFileHandle);
 if(lRetVal < 0)
 {
-	UART_PRINT("File Open Error: %i", lRetVal);
+	DEBG_PRINT("File Open Error: %i", lRetVal);
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 }

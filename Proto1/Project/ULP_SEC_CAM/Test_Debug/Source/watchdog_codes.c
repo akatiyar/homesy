@@ -14,16 +14,16 @@ void WatchdogIntHandler(void)
 
 void WatchdogIntHandler(void);
 
-/*			UART_PRINT("###\n\r");
+/*			DEBG_PRINT("###\n\r");
 			WDT_IF_DeInit();
 			bRetcode = MAP_WatchdogRunning(WDT_BASE);
 			if(bRetcode)
 			{
-			   UART_PRINT("yes\n\r");
+			   DEBG_PRINT("yes\n\r");
 			}
 			else
 			{
-				UART_PRINT("no\n\r");
+				DEBG_PRINT("no\n\r");
 			}*/
 			
 			/*#define IMAGE_CAPTURE_TIMEOUT	5000	//in milli sec
@@ -33,10 +33,10 @@ void WatchdogIntHandler(void);
 			bRetcode = MAP_WatchdogRunning(WDT_BASE);
 			if(bRetcode)
 			{
-			   UART_PRINT("yes\n\r");
+			   DEBG_PRINT("yes\n\r");
 			}
 			else
 			{
-				UART_PRINT("no\n\r");
+				DEBG_PRINT("no\n\r");
 			}
-			UART_PRINT("$$$\n\r");*/
+			DEBG_PRINT("$$$\n\r");*/

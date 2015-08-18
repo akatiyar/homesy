@@ -74,12 +74,12 @@ void checkFXOSDeviceAndI2CCommunication()
 						&ucDeviceID);
 	if(DEVICE_ID == ucDeviceID)
 	{
-		UART_PRINT("\nDevice ID read thru' I2C = expected device ID of FXOS8700"
+		DEBG_PRINT("\nDevice ID read thru' I2C = expected device ID of FXOS8700"
 					"\nI2C communication with FXOS8700 SUCCESS\n");
 	}
 	else
 	{
-		UART_PRINT("\nI2C communication with FXOS8700 FAILED\n CHECK\n");
+		DEBG_PRINT("\nI2C communication with FXOS8700 FAILED\n CHECK\n");
 	}
 	return;
 }
@@ -182,7 +182,7 @@ void getDoorDirection(float_t* pfDegrees)
 	//	Get M_OUT_X_MSB, M_OUT_X_LSB, M_OUT_Y_MSB, etc from FXOS8700
 	//
 	getMagntData(ucMagntOut);
-	UART_PRINT("\n\nMagn Data Read: %x %x %x %x %x %x",
+	DEBG_PRINT("\n\nMagn Data Read: %x %x %x %x %x %x",
 								ucMagntOut[0],
 								ucMagntOut[1],
 								ucMagntOut[2],

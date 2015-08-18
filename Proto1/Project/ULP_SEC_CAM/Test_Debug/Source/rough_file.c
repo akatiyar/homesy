@@ -45,7 +45,7 @@ int32_t createAndWrite_ImageHeaderFile()
 						&lFileHandle);
 	if(lRetVal < 0)
 	{
-		UART_PRINT("File Open Error: %i", lRetVal);
+		DEBG_PRINT("File Open Error: %i", lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
@@ -83,7 +83,7 @@ int32_t createAndWrite_ImageHeaderFile()
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 		ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 	}
-	UART_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
+	DEBG_PRINT("Image Headr Write No of bytes: %ld\n", lRetVal);
 
 	// Close the file post writing the image
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);

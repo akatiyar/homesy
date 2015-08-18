@@ -28,24 +28,24 @@ void IntrptHandler_LEDTimer()
 	if(cnt_LED_Timer == (g_OnTime - 1))
 	{
 		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
-		//UART_PRINT("Off");
+		//DEBG_PRINT("Off");
 	}
 	else if(cnt_LED_Timer == (g_OffTime + g_OnTime - 1))
 	{
 		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
 		cnt_LED_Timer = 0;
-		//UART_PRINT("On");
+		//DEBG_PRINT("On");
 		g_BlinkCount++;
 		if(g_BlinkCount == g_NoOfBlinks)
 		{
 			if(g_NoOfBlinks != BLINK_FOREVER)
 			{
-				//UART_PRINT("Timer off");
+				//DEBG_PRINT("Timer off");
 				LEDTimer_Stop();
 			}
 			else
 			{
-				//UART_PRINT("Blink forever");
+				//DEBG_PRINT("Blink forever");
 			}
 		}
 	}

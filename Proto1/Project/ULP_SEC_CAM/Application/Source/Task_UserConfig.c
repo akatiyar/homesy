@@ -31,8 +31,7 @@ void UserConfigure_Task(void *pvParameters)
 			(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
 		//Display Message to user
-		UART_PRINT("***SHORT PRESS-CONFIGURE THRU PHONE APP***\n"
-				   "***           LONG PRESS-OTA           ***\n");
+		RELEASE_PRINT("***SHORT PRESS: User Config mode        LONG PRESS: OTA ***\n");
 
 		//Indicate to the user that he can press the button now
 		LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
@@ -49,7 +48,6 @@ void UserConfigure_Task(void *pvParameters)
 		//If long press, do OTA. Else do UserConfig
 		if(IsLongPress())
 		{
-			UART_PRINT("***OTA***\n");
 			LED_On();
 			OTA_Update();
 		}
@@ -58,11 +56,9 @@ void UserConfigure_Task(void *pvParameters)
 				//after button press is detected, ensures it is not the no-press
 				//case
 		{
-			UART_PRINT("***Mobile App config***\n");
 			LED_Blink_2(.25,.25,BLINK_FOREVER);
 			User_Configure();
 			sendUserConfigData();
-			UART_PRINT("User Cofig Mode EXIT\n\r");
 		}
 
 		//Main_Task polls and waits for g_ulAppStatus to become USER_CONFIG_DONE
@@ -85,7 +81,6 @@ int16_t IsLongPress()
 	{
 		if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
 		{
-			UART_PRINT("Time out\n\r");
 			break;
 		}
 
@@ -98,19 +93,17 @@ int16_t IsLongPress()
 		{
 			if(GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
 			{
-				UART_PRINT("pinhigh DB %d\n\r", i);
 				//UtilsDelay(12*80000/6);	//12 millisec delay
 				osi_Sleep(100);	//suspend the task for 10milli sec
 			}
 			else
 			{
-				//UART_PRINT("pinlow\n\r");
+				//DEBG_PRINT("pinlow\n\r");
 				break;
 			}
 		}
 		if (i>=3)
 		{
-			UART_PRINT("pin high... short press\n\r");
 			break;
 		}
 
@@ -120,12 +113,12 @@ int16_t IsLongPress()
 
 	if(Elapsed_100MilliSecs >= TIMEOUT_LONGPRESS)
 	{
-		UART_PRINT("Long press : %d\n\r", Elapsed_100MilliSecs);
+		DEBG_PRINT("Long press\n", Elapsed_100MilliSecs);
 		return 1;
 	}
 	else //if (Elapsed_100MilliSecs < TIMEOUT_LONGPRESS)
 	{
-		UART_PRINT("Short press : %d\n\r", Elapsed_100MilliSecs);
+		DEBG_PRINT("Short press\n", Elapsed_100MilliSecs);
 		return 0;
 	}
 
