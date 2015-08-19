@@ -78,9 +78,10 @@ long Reg_Write(uint8_t RegPage, uint16_t usRegAddr, uint16_t usRegVal);
 long Reg_Read(uint8_t RegPage, uint16_t usRegAddr, uint16_t* usRegVal);
 
 int32_t SetShutterWidth(uint16_t ShutterWidth);
-int32_t SetAnalogGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain);
-int32_t SetDigitalGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain);
-int32_t SetInitialGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain);
+int32_t SetAnalogGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain);
+int32_t SetDigitalGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain);
+int32_t SetInitialGain(uint8_t ValChange, bool IsInc);
+int32_t ReadGainReg(uint16_t* Gains);
 
 int32_t EnterStandby_mt9d111(uint8_t ucMethod);
 int32_t ExitStandby_mt9d111(uint8_t ucMethod);

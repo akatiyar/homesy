@@ -117,6 +117,14 @@ extern "C"
 #define MAX_EMAIL_ID_LENGTH         	34
 #define SMTP_BUF_LEN                	1024
 
+// Defines for g_Image buffer utilization
+
+#define PREVIEWIMAGE_MARGINBUFFER_SZ		5120
+#define SENSOR_CONFIGS_OFFSET_BUF			PREVIEWIMAGE_MARGINBUFFER_SZ + PREVIEW_IMAGE_MAXSZ
+#define SENSOR_CONFIGS_SZ					8192
+#define USER_CONFIGS_OFFSET_BUF				SENSOR_CONFIGS_OFFSET_BUF + SENSOR_CONFIGS_SZ
+#define USER_CONFIGS_SZ						8192
+
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header
@@ -159,6 +167,7 @@ long CaptureinRAM();
 void CamControllerInit();
 void StartCamera();
 int32_t CaptureandSavePreviewImage();
+int32_t Restart_Camera();
 int32_t Standby_ImageSensor();
 int32_t Wakeup_ImageSensor();
 int32_t createAndWrite_ImageHeaderFile();

@@ -36,7 +36,7 @@
 #define JPEG_HEADER_FILE_NAME					"/data/jpeg_header"
 #define JPEG_HEADER_MAX_FILESIZE				ONE_FLASH_BLOCK
 #define JPEG_IMAGE_FILE_NAME					"/data/jpeg_image"
-//#define JPEG_IMAGE_FILE_NAME					"www/jpeg_image.jpg"
+#define JPEG_PREVIEW_IMAGE_FILE_NAME			"www/jpeg_image.jpg"
 //#define JPEG_IMAGE_MAX_FILESIZE				FILESIZE(150)
 #define JPEG_IMAGE_MAX_FILESIZE					155208
 

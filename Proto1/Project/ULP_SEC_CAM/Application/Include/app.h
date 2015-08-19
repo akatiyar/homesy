@@ -21,9 +21,9 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"F32e"
+//#define FIRMWARE_VERSION 		"F32e"
 //#define FIRMWARE_VERSION 		"Release 0.0.14"
-//#define FIRMWARE_VERSION 		"Uthra Testing 0.21"
+#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"

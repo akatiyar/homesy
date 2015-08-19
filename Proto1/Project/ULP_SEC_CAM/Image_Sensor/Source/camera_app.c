@@ -511,7 +511,7 @@ void ImagCapture_Init()
 	g_readHeader = 0;
 	g_flag_DataBlockFilled = 0;
 	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
-	memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
+	//memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
 
 //	//
 //	// Initialize camera controller
@@ -1033,7 +1033,7 @@ int32_t CaptureandSavePreviewImage()
     //
     // Open the file for Write Operation
     //
-    lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
+    lRetVal = sl_FsOpen((unsigned char *)JPEG_PREVIEW_IMAGE_FILE_NAME,
                         FS_MODE_OPEN_WRITE,
                         &ulToken,
                         &lFileHandle);
@@ -1048,12 +1048,14 @@ int32_t CaptureandSavePreviewImage()
 
     lRetVal = sl_FsWrite(lFileHandle, 0,(uint8_t*) g_image_buffer,  fileInfo.FileLen+1);
 
+	memset((void*)g_image_buffer, 0x00, PREVIEW_IMAGE_MAXSZ);
 
 	ImagCapture_Init();
     //
     // Perform Image Capture
     //
     MAP_CameraCaptureStart(CAMERA_BASE);
+
     while((g_frame_end == 0) && (g_frame_size_in_bytes < PREVIEW_IMAGE_MAXSZ));
 
     MAP_CameraCaptureStop(CAMERA_BASE, true);
@@ -1079,4 +1081,22 @@ int32_t CaptureandSavePreviewImage()
 
     return SUCCESS;
 
+}
+
+// Note : NWP should be ON and g_image buffer is used
+int32_t Restart_Camera()
+{
+	Standby_ImageSensor();
+	osi_Sleep(30);
+	Wakeup_ImageSensor();
+
+	uint16_t* ImageConfigData = (uint16_t *) &(g_image_buffer[SENSOR_CONFIGS_OFFSET_BUF/sizeof(long)]);
+	//ImageConfigData = ImageConfigData +4096;
+	// Reading the file, since write erases contents already present
+	ReadFile_FromFlash((uint8_t*)ImageConfigData,
+						(uint8_t*)FILENAME_SENSORCONFIGS,
+						CONTENT_LENGTH_SENSORS_CONFIGS, 0);
+
+	ReStart_CameraCapture(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
+	return 0;
 }

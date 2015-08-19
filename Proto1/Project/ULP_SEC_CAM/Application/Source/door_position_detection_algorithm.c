@@ -110,8 +110,9 @@ void check_doorpos()
 				thisSV_6DOF_GB_BASIC.fLPRho, thisSV_6DOF_GB_BASIC.fLPChi, thisSV_6DOF_GB_BASIC.fLPDelta);*/
 		//----------------------
 		print_count=0;
-		Check_MinMax(angle_avg);
 	}
+
+	Check_MinMax(angle_avg);
 
 	//check for the angle crossing for fridge opening //handle -5 crossing zero
 	//if(  (angle_avg < (gdoor_90deg_angle+3)) && (angle_avg > (gdoor_90deg_angle-3)) && (valid_case == 0) )
@@ -235,8 +236,8 @@ void Check_MinMax(float_t angle_avg)
 	if(angle_reg_afterOffset < g_fMinAngle)
 	{
 		g_fMinAngle = angle_reg_afterOffset;
-		//DEBG_PRINT("N");
-		DEBG_PRINT("MIN: %d\n", g_fMinAngle);
+		DEBG_PRINT("N");
+		//DEBG_PRINT("MIN: %d\n", g_fMinAngle);
 		//DEBG_PRINT("MIN: %d sec, %d nsec\n", g_Struct_TimeStamp_MinAngle.secs, g_Struct_TimeStamp_MinAngle.nsec);
 		cc_rtc_get(&g_Struct_TimeStamp_MinAngle);
 		//DEBG_PRINT("MIN: %d sec, %d nsec\n", g_Struct_TimeStamp_MinAngle.secs, g_Struct_TimeStamp_MinAngle.nsec);
@@ -246,8 +247,8 @@ void Check_MinMax(float_t angle_avg)
 	if (angle_reg_afterOffset > g_fMaxAngle)
 	{
 		g_fMaxAngle = angle_reg_afterOffset;
-		//DEBG_PRINT("X");
-		DEBG_PRINT("MAX: %d\n", g_fMaxAngle);
+		DEBG_PRINT("X");
+		//DEBG_PRINT("MAX: %d\n", g_fMaxAngle);
 		//DEBG_PRINT("MAX: %d sec, %d nsec\n", g_Struct_TimeStamp_MaxAngle.secs, g_Struct_TimeStamp_MaxAngle.nsec);
 		cc_rtc_get(&g_Struct_TimeStamp_MaxAngle);
 		//DEBG_PRINT("MAX: %d sec, %d nsec\n", g_Struct_TimeStamp_MaxAngle.secs, g_Struct_TimeStamp_MaxAngle.nsec);

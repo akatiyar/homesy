@@ -936,6 +936,8 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         SlHttpServerResponse_t *pSlHttpServerResponse)
 {
 	uint8_t G1Gain,RGain,BGain,G2Gain;
+	uint8_t GainVal=0;
+	uint16_t ReadGain[4];
 
     switch (pSlHttpServerEvent->Event)
     {
@@ -1104,7 +1106,7 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         			RGain = atoi(&Value[9]);
         			BGain = atoi(&Value[12]);
         			G2Gain = atoi(&Value[15]);
-        			SetAnalogGain(G1Gain,RGain,BGain,G2Gain);
+        			SetAnalogGain(G1Gain,BGain,RGain,G2Gain);
         		}
         		if(0 == memcmp(Value,"DGain",5))
         		{
@@ -1113,16 +1115,25 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
 					RGain = atoi(&Value[9]);
 					BGain = atoi(&Value[12]);
 					G2Gain = atoi(&Value[15]);
-					SetDigitalGain(G1Gain,RGain,BGain,G2Gain);
+					SetDigitalGain(G1Gain,BGain,RGain,G2Gain);
         		}
         		if(0 == memcmp(Value,"IGain",5))
         		{
-        			//Copy Initial Gain
-					G1Gain = atoi(&Value[6]);
-					RGain = atoi(&Value[9]);
-					BGain = atoi(&Value[12]);
-					G2Gain = atoi(&Value[15]);
-					SetInitialGain(G1Gain,RGain,BGain,G2Gain);
+        			GainVal = atoi(&Value[10]);
+
+        			if(0 == memcmp(&Value[5],",Inc,",3))
+        			{
+						//Copy Initial Gain
+        				SetInitialGain(GainVal,true);
+        			}
+        			else if(0 == memcmp(&Value[5],",Dec,",3))
+        			{
+
+						//Copy Initial Gain
+        				SetInitialGain(GainVal,false);
+        			}
+					ReadGainReg(ReadGain);
+
         		}
 
             }
@@ -1167,7 +1178,6 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
 				{
         			g_ucSAVE = BUTTON_PRESSED;
 				}
-
             }
 
         }

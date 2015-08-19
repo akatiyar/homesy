@@ -42,6 +42,7 @@ extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
 extern float gdoor_OpenDeg_angle;
 extern uint16_t g_shutterwidth;
+extern uint16_t g_Gain[4];
 
 char g_cResponseObjectID[OBJECT_ID_MAX_LEN];
 
@@ -448,6 +449,8 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 {
 	int32_t lRetVal;
 	float_t fUserConfigData[MAGNETOMETER_DATA_SIZE/(sizeof(float))];
+	char Gain[10];
+	uint8_t Cnt;
 
 	lRetVal = ReadFile_FromFlash(((uint8_t*)fUserConfigData),
 												(uint8_t*)USER_CONFIGS_FILENAME,
@@ -476,6 +479,21 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE90,
 									(long long)fUserConfigData[(OFFSET_ANGLE_90/sizeof(float))],MIDDLE);
 	Add_NumberField_ToJSONString(pucUserConfigObject, "Shutter_Width",g_shutterwidth,MIDDLE);
+
+	strncat((char*)pucUserConfigObject, "\"Gain\":\"",
+					sizeof("\"Gain\":\""));
+	for(Cnt=0;Cnt<4;Cnt++)
+	{
+		memset(Gain, '\0', sizeof(Gain));
+		intToASCII(g_Gain[Cnt],Gain);
+		DEBG_PRINT("%s",Gain);
+		strncat((char*)pucUserConfigObject, (const char*)Gain,
+						strlen((char*)Gain));
+		strncat((char*)pucUserConfigObject, "_",sizeof("_"));
+	}
+
+	strncat((char*)pucUserConfigObject,	"\",", sizeof("\","));
+
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE_OPEN,
 									(long long)fUserConfigData[(OFFSET_ANGLE_OPEN/sizeof(float))], LAST);
 

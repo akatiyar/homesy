@@ -162,7 +162,7 @@ static  const s_RegList preview_cmds_list[]= {
     {1, 0xC6, 0xA103    },  // SEQ_CMD
     {1, 0xC8, 0x0005    }   // SEQ_CMD, refresh
 };
-#endif 
+#endif
 static  const s_RegList init_cmds_list[]= {
     {100,0x00,0x01F4    },
     {0, 0x33, 0x0343    }, // RESERVED_CORE_33
@@ -1311,7 +1311,7 @@ int32_t SetShutterWidth(uint16_t ShutterWidth)
 	return Reg_Write(0x00,0x09,ShutterWidth);
 }
 
-int32_t SetAnalogGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
+int32_t SetAnalogGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain)
 {
 	int32_t lRetVal;
 	uint16_t tempVal=0;
@@ -1339,7 +1339,7 @@ int32_t SetAnalogGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
 	return lRetVal;
 }
 
-int32_t SetDigitalGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
+int32_t SetDigitalGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain)
 {
 	int32_t lRetVal;
 	uint16_t tempVal=0;
@@ -1367,31 +1367,50 @@ int32_t SetDigitalGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain
 	return lRetVal;
 }
 
-int32_t SetInitialGain(uint8_t G1Gain,uint8_t RGain,uint8_t BGain,uint8_t G2Gain)
+int32_t SetInitialGain(uint8_t ValChange, bool IsInc)
 {
 	int32_t lRetVal;
-	uint16_t tempVal=0;
+	uint16_t CurGain=0,NewGain=0,tmpIGain=0;
+	uint8_t Reg_Addr = 0x2B;
+	uint8_t Cnt=0;
 
-	lRetVal = Reg_Read(0x00,0x2B,&tempVal);
-	tempVal = tempVal & ~INITIAL_GAIN_BITS;
-	tempVal = tempVal | (G1Gain);
-	lRetVal = Reg_Write(0x00,0x2B,tempVal);
+	for (Cnt=0;Cnt<4;Cnt++)
+	{
 
-	lRetVal = Reg_Read(0x00,0x2C,&tempVal);
-	tempVal = tempVal & ~INITIAL_GAIN_BITS;
-	tempVal = tempVal | (BGain ) ;
-	lRetVal = Reg_Write(0x00,0x2C,tempVal);
+		lRetVal = Reg_Read(0x00,(Reg_Addr+Cnt),&CurGain);
 
-	lRetVal = Reg_Read(0x00,0x2D,&tempVal);
-	tempVal = tempVal & ~INITIAL_GAIN_BITS;
-	tempVal = tempVal | (RGain);
-	lRetVal = Reg_Write(0x00,0x2D,tempVal);
+		NewGain = CurGain & ~INITIAL_GAIN_BITS;
+		tmpIGain = CurGain &  INITIAL_GAIN_BITS;
+		if(IsInc)
+		{
+			tmpIGain = tmpIGain + ValChange;
+		}
+		else
+		{
+			tmpIGain = tmpIGain - ValChange;
+		}
+		NewGain = NewGain | (tmpIGain & INITIAL_GAIN_BITS);
+		lRetVal = Reg_Write(0x00,(Reg_Addr+Cnt),NewGain);
 
-	lRetVal = Reg_Read(0x00,0x2E,&tempVal);
-	tempVal = tempVal & ~INITIAL_GAIN_BITS;
-	tempVal = tempVal | (G2Gain);
-	lRetVal = Reg_Write(0x00,0x2E,tempVal);
+		ASSERT_ON_ERROR(lRetVal);
+	}
 
+	return lRetVal;
+}
+
+int32_t ReadGainReg(uint16_t* Gains)
+{
+	uint8_t Reg_Addr = 0x2B;
+	uint8_t Cnt=0;
+	int32_t lRetVal;
+
+	for (Cnt=0;Cnt<4;Cnt++)
+	{
+
+		lRetVal = Reg_Read(0x00,(Reg_Addr+Cnt),Gains + Cnt);
+		RELEASE_PRINT("\nReg %x : %x",(Reg_Addr+Cnt),*(Gains + Cnt));
+		ASSERT_ON_ERROR(lRetVal);
+	}
 	return lRetVal;
 }
 //************************* IMAGING SETTINGS FNS end ***************************

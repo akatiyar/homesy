@@ -134,7 +134,7 @@ void ensureCertificateFile() {
         certificateFile = -1;
 
         status = sl_FsOpen((unsigned char *)SL_SSL_CA_CERT_FILE_NAME,
-                FS_MODE_OPEN_CREATE(65536, _FS_FILE_OPEN_FLAG_COMMIT | _FS_FILE_PUBLIC_WRITE),
+                FS_MODE_OPEN_CREATE(8191, _FS_FILE_OPEN_FLAG_COMMIT | _FS_FILE_PUBLIC_WRITE),
                 NULL, &certificateFile);
         if (status < 0) {
 #ifdef SSL_DEBUG

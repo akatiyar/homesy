@@ -69,7 +69,9 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 
 		g_I2CPeripheral_inUse_Flag = NO;
 
-		ImagCapture_Init();			//Initialize image capture
+		//Initialize image capture
+		memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
+		ImagCapture_Init();
 		//Tag:Timestamp Camera module up
 		cc_rtc_get(&time_now);
 		g_TimeStamp_CamUp = time_now.secs * 1000 + time_now.nsec / 1000000;

@@ -40,13 +40,14 @@ static int32_t Get_Calibration_MagSensor();
 static int32_t CollectAngle(uint8_t ucAngle);
 int32_t SaveImageConfig();
 uint16_t g_shutterwidth=0;
+uint16_t g_Gain[4];
 
-float_t* g_pfUserConfigData;
 #define CONFIG_MODE_USER_ACTION_TIMEOUT		600	//in units of 100ms
 												//1 minute = 1*60*10 = 600
 
-#define PREVIEWIMAGE_MARGINBUFFER_SZ		5120
-#define MT9D111CONFIGS_OFFSET_INBUFFER		(PREVIEWIMAGE_MARGINBUFFER_SZ + PREVIEW_IMAGE_MAXSZ)
+
+float_t* g_pfUserConfigData = (float_t*) &g_image_buffer[(USER_CONFIGS_OFFSET_BUF)/sizeof(long)];
+
 //******************************************************************************
 // This function calls the function corresponding to button presses (button
 //	presses are translated to global flag changes in network_related_fns.c) from
@@ -84,7 +85,7 @@ int32_t User_Configure()
 	Start_CameraCapture();	//Do this once. Not needed after standby wake_up
 //	Standby_ImageSensor();
 
-	g_pfUserConfigData = (float_t*)malloc(CONTENT_LENGTH_USER_CONFIGS);
+//	g_pfUserConfigData = (float_t*)malloc(CONTENT_LENGTH_USER_CONFIGS);
 
 	AccessPtMode_HTTPServer_Start();
 	// Reading the file, since write erases contents already present
@@ -228,19 +229,7 @@ int32_t User_Configure()
 			LED_On();
 			if(g_ucAction ==  CAM_RESTART_CAPTURE)
 			{
-				Standby_ImageSensor();
-				osi_Sleep(20);
-				Wakeup_ImageSensor();
-
-				uint16_t* ImageConfigData = (uint16_t *) (g_image_buffer[MT9D111CONFIGS_OFFSET_INBUFFER/sizeof(long)]);
-				//ImageConfigData = ImageConfigData +4096;
-				// Reading the file, since write erases contents already present
-				ReadFile_FromFlash((uint8_t*)ImageConfigData,
-									(uint8_t*)FILENAME_SENSORCONFIGS,
-									CONTENT_LENGTH_SENSORS_CONFIGS, 0);
-
-				ReStart_CameraCapture(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
-
+				Restart_Camera();
 				Variable_Write(0x2707,640);
 				Variable_Write(0x2709,480);
 
@@ -263,13 +252,7 @@ int32_t User_Configure()
 
 		if(bCapturePreviewImage)
 		{
-			osi_Sleep(300);
-//			Variable_Read(0xA912,&tempReg);
-//			DEBG_PRINT("\nReg %x : %x",0xA102,tempReg);
-//			Variable_Read(0xA120,&tempReg);
-//			DEBG_PRINT("\nReg %x : %x",0xA120,tempReg);
-//			Reg_Read(0x00,0x09,&tempReg);
-//			DEBG_PRINT("\nReg %x : %x",0x09,tempReg);
+			osi_Sleep(211);
 			DEBG_PRINT("%d",tempCnt++);
 			CaptureandSavePreviewImage();
 		}
@@ -305,7 +288,7 @@ int32_t User_Configure()
 		osi_Sleep(10);
     }
 
-	free(g_pfUserConfigData);
+	//free(g_pfUserConfigData);
 	//Stop Internal HTTP Server
 	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
 	if(lRetVal < 0)
@@ -319,11 +302,12 @@ int32_t User_Configure()
 		ASSERT_ON_ERROR(ROLE_STA_ERR);
 	}
 
+	Restart_Camera();
+
+	ReadGainReg(g_Gain);
+
 	Reg_Read(0x00,0x09,&g_shutterwidth);
 	Standby_ImageSensor();
-
-//	Wakeup_ImageSensor();		//Wake the image sensor
-//	ReStart_CameraCapture();	//Restart image capture
 
 	NWP_SwitchOff();
 
