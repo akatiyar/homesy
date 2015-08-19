@@ -114,6 +114,8 @@ bool g_bCameraOn= true;
 #define DMA_TRANSFERS_TOFILL_BLOCK		( BLOCK_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
 
 #define CAM_DMA_BLOCK_SIZE_IN_BYTES		(TOTAL_DMA_ELEMENTS*sizeof(unsigned long))
+
+#define RETRIES_MAX_MT9D111STANDBY		5
 //*****************************************************************************
 //                      GLOBAL VARIABLES
 //*****************************************************************************
@@ -332,12 +334,14 @@ int32_t Config_CameraCapture()
 int32_t Standby_ImageSensor()
 {
 	int32_t lRetVal;
+	uint8_t ucTryNum;
 
 	DEBG_PRINT("Cam Stndby\n");
 
 	//lRetVal = EnterStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
-	if(lRetVal == MT9D111_FIRMWARE_STATE_ERROR)
+	ucTryNum = 0;
+	while((lRetVal == MT9D111_FIRMWARE_STATE_ERROR) && (ucTryNum < RETRIES_MAX_MT9D111STANDBY))
 	{
 		DEBG_PRINT("Retry\n");
 		SoftReset_ImageSensor();
@@ -347,6 +351,11 @@ int32_t Standby_ImageSensor()
 		if(lRetVal == 0)
 		{
 			DEBG_PRINT("Success on Retry\n");
+		}
+		else
+		{
+			ucTryNum++;
+			DEBG_PRINT("Failure on Retry\n");
 		}
 	}
 	//ASSERT_ON_ERROR(lRetVal);

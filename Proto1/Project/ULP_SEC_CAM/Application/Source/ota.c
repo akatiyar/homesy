@@ -210,6 +210,7 @@ int32_t OTA_CommitImage()
 	int SetCommitInt;
 	long OptionLen;
     unsigned char OptionVal;
+    long lRetVal;
 
 	//sl_Start(0,0,0);
     NWP_SwitchOn();
@@ -225,14 +226,21 @@ int32_t OTA_CommitImage()
     {
     	RELEASE_PRINT("Committing new firmware\n");
     	SetCommitInt = OTA_ACTION_IMAGE_COMMITED;
-    	sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
-        //RebootMCU();
+    	lRetVal = sl_extLib_OtaSet(pvOtaApp, EXTLIB_OTA_SET_OPT_IMAGE_COMMIT, sizeof(int),(_u8 *)&SetCommitInt);
+        if (lRetVal == SUCCESS)
+        {
+        	lRetVal = NEW_FIRMWARE_COMMITTED;
+        }
+    	//RebootMCU();
     	//PRCMSOCReset();
-
     	//Can upload an object to parse informing of the ota firmware update
+    }
+    else
+    {
+    	lRetVal = NO_COMMIT;
     }
 
     NWP_SwitchOff();
 
-    return 0;
+    return lRetVal;
 }

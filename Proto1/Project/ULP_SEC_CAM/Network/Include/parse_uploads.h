@@ -36,3 +36,5 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucUserConfigObject);
 int32_t UploadUserConfigObjectToParse(ParseClient client,
 										uint8_t* pucFridgeCamID);
+int32_t UploadFirmwareVersionObjectToParse(ParseClient client,
+										uint8_t* pucFridgeCamID);

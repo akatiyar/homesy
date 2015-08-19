@@ -85,9 +85,8 @@ int32_t application_fn()
 		ReadFile_FromFlash((uint8_t*)g_image_buffer,
 							(uint8_t*)FILENAME_SENSORCONFIGS,
 							CONTENT_LENGTH_SENSORS_CONFIGS, 0);
-
+		while(g_Task1_Notification != MAGNETOMETERINIT_STARTED);
 		g_Task3_Notification = READ_SENSORCONFIGFILE_DONE;
-
 
 		// Open Image file in Flash to write image. File open for write takes
 		//time, so we do it ahead of angle check, so that at the instant angle
@@ -155,7 +154,8 @@ int32_t application_fn()
 			ASSERT_ON_ERROR(lRetVal);
 
 			//Upload GroundData object
-			SendGroundData();	//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
+			//SendGroundData();	//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
+			SendObject_ToParse(GROUND_DATA);
 
 			g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
 			Standby_ImageSensor();
@@ -206,11 +206,8 @@ int32_t application_fn()
 				}
 			}
 		}
-		DEBG_PRINT("d\n");
 		standby_accelMagn_fxos8700();
-		DEBG_PRINT("e\n");
 		stop_100mSecTimer();
-		DEBG_PRINT("f\n");
 
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
@@ -228,7 +225,8 @@ int32_t application_fn()
 				ASSERT_ON_ERROR(lRetVal);
 
 				//Tag:Upload GroundData object
-				SendGroundData();
+				//SendGroundData();
+				SendObject_ToParse(GROUND_DATA);
 
 				//Read MT9D111 register statuses. View in UART PRINTs
 				Read_AllRegisters();
@@ -297,19 +295,14 @@ int32_t application_fn()
 					cc_rtc_get(&time_now);
 					g_TimeStamp_PhotoUploaded = time_now.secs * 1000 + time_now.nsec / 1000000;
 				}
-
 			}
 
-			UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
-
 			free((void*)clientHandle);	//malloc() in InitializeParse()
-
 			NWP_SwitchOff();
 		}
-		else
-		{
-			SendGroundData();
-		}
+
+		SendGroundData();
+		//SendObject_ToParse(GROUND_DATA);
 	}
 
 	return lRetVal;

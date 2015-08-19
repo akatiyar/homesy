@@ -21,7 +21,7 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"F32"
+#define FIRMWARE_VERSION 		"F32e"
 //#define FIRMWARE_VERSION 		"Release 0.0.14"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.21"
 
@@ -139,6 +139,14 @@ typedef enum
 
 }e_AppStatusCodes;
 
+typedef enum
+{
+	DEVICE_STATE,
+	GROUND_DATA,
+	USER_CONFIGS,
+	FIRMWARE_VER,
+}Parse_ClassNames;
+
 #define STOPHERE_ON_ERROR(error_code)\
             {\
                  if(error_code < 0) \
@@ -205,6 +213,7 @@ typedef enum
 {
 	IMAGEFILE_OPEN_BEGUN = 1,
 	IMAGEFILE_OPEN_COMPLETE,
+	MAGNETOMETERINIT_STARTED,
 
 }e_Task1_NotificationValues;
 

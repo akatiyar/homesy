@@ -73,183 +73,6 @@ int32_t standby_accelMagn_fxos8700()
 
 	return lRetVal;
 }
-//******************************************************************************
-//
-//  This function configures FXOS8700 registers as needed by the applicaiton
-//	blueprint/mode
-//
-//	\param[in]	ucAppMode - Unique value that determines the Application mode
-//
-//	\return none
-//
-//******************************************************************************
-void configureFXOS8700(uint8_t ucAccelMagnMode)
-{
-	uint8_t i = 0;
-	uint8_t ucConfigArray[100];
-	uint8_t ucNoofCfgs;
-	uint8_t ucHeader[HEADER_SIZE];
-	int32_t lRetVal;
-
-	switch(ucAccelMagnMode)
-	{
-		case MODE_READ_ACCEL_MAGN_DATA:
-			if(FLASH_CONFIGS)
-			{
-				//Read file from flash into ucConfig
-				ReadFile_FromFlash(ucHeader,
-									FILENAME_SENSORCONFIGS,
-									HEADER_SIZE,
-									OFFSET_FXOS8700);
-				ReadFile_FromFlash(ucConfigArray,
-									FILENAME_SENSORCONFIGS,
-									(uint8_t)ucHeader[1],
-									OFFSET_FXOS8700+HEADER_SIZE);
-				ucNoofCfgs = ucHeader[1]/2;
-				break;
-			}
-			// Software reset
-			ucConfigArray[i++] = CTRL_REG2;
-			ucConfigArray[i++] = 0x40;
-
-			// Stand by mode
-			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = 0x00;
-
-			// Hybrid(A+M), M_OSR=7;
-			// OTHER OPTS: 0x1D-Magnetometer only; 0x03-Magnetometer OSR = 0
-			ucConfigArray[i++] = M_CTRL_REG1;
-			ucConfigArray[i++] = 0x1F;
-
-			// Hyb Auto Inc Mode - not needed!
-			ucConfigArray[i++] = M_CTRL_REG2;
-			ucConfigArray[i++] = 0x20;
-
-			// -2 to +2 full scale	// 0x01 - -4 to +4 FS
-			ucConfigArray[i++] = XYZ_DATA_CFG_REG;
-			ucConfigArray[i++] = 0x00;
-
-			// High resolution mode
-			ucConfigArray[i++] = CTRL_REG2;
-			ucConfigArray[i++] = 0x02;
-
-			ucConfigArray[i++] = CTRL_REG3;
-			ucConfigArray[i++] = 0x02;
-			ucConfigArray[i++] = CTRL_REG4;
-			ucConfigArray[i++] = 0x01;
-			ucConfigArray[i++] = CTRL_REG5;
-			ucConfigArray[i++] = 0x01;
-
-			// Stand by mode
-			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = 0x00;
-
-			// Magnetometer Calibration values hard coded
-//			ucConfigArray[i++] = MOFF_X_MSB_REG;
-//			ucConfigArray[i++] = 0x05;
-//			ucConfigArray[i++] = MOFF_X_LSB_REG;
-//			ucConfigArray[i++] = 0x80;
-//			ucConfigArray[i++] = MOFF_Y_MSB_REG;
-//			ucConfigArray[i++] = 0x02;
-//			ucConfigArray[i++] = MOFF_Y_LSB_REG;
-//			ucConfigArray[i++] = 0x7C;
-//			ucConfigArray[i++] = MOFF_Z_MSB_REG;
-//			ucConfigArray[i++] = 0x05;
-//			ucConfigArray[i++] = MOFF_Z_LSB_REG;
-//			ucConfigArray[i++] = 0x00;
-
-			ucConfigArray[i++] = MOFF_X_MSB_REG;	//Hand soldered on PCB
-			ucConfigArray[i++] = (0x025f >> 7);
-			ucConfigArray[i++] = MOFF_X_LSB_REG;
-			ucConfigArray[i++] = ((0x025f << 1) & 0x00ff);
-			ucConfigArray[i++] = MOFF_Y_MSB_REG;
-			ucConfigArray[i++] = (0xFE91 >> 7);
-			ucConfigArray[i++] = MOFF_Y_LSB_REG;
-			ucConfigArray[i++] = ((0xfe91 << 1) & 0x00ff);
-			ucConfigArray[i++] = MOFF_Z_MSB_REG;
-			ucConfigArray[i++] = (0x350 >> 7);
-			ucConfigArray[i++] = MOFF_Z_LSB_REG;
-			ucConfigArray[i++] = ((0x350 << 1) & 0x00ff);
-
-			// ODR (hybridmode) = 3.125 Hz
-			//0x0D - ; 0x25 - ODR (hybridmode) = 25 Hz
-			//0x05 - ODR (hybridmode) = 400 Hz
-			ucConfigArray[i++] = CTRL_REG1;
-			//ucConfigArray[i++] = 0x35;
-			ucConfigArray[i++] = 0x05;
-
-			ucNoofCfgs = i/2;
-
-			break;
-
-		case MODE_ACCEL_INTERRUPT: //For motion detection: Configs from AN4070
-			if(FLASH_CONFIGS)
-			{
-				//Read file from flash into ucConfig
-				ReadFile_FromFlash(ucHeader,
-									FILENAME_SENSORCONFIGS,
-									HEADER_SIZE,
-									OFFSET_FXOS8700);
-				ReadFile_FromFlash(ucConfigArray,
-									FILENAME_SENSORCONFIGS,
-									(uint8_t)ucHeader[2],
-									OFFSET_FXOS8700+HEADER_SIZE+ucHeader[1]);
-				ucNoofCfgs = ucHeader[2]/2;
-				break;
-			}
-			// Software reset
-			ucConfigArray[i++] = CTRL_REG2;
-			ucConfigArray[i++] = 0x40;
-
-			// Stand by mode; ORD = 100Hz
-			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = 0x18;
-
-			// “OR”, latch enable, enabling X, Z (change with chip position)
-			// Bit5,6,7 for Z,Y,X respectively
-			ucConfigArray[i++] = A_FFMT_CFG_REG;
-			ucConfigArray[i++] = 0xE8;
-
-			// Motion detection threshold(common to X,Y,Z), MAX:0x7F, 1LSB=.063
-			ucConfigArray[i++] = A_FFMT_THRS_REG;
-			ucConfigArray[i++] = 0x02;
-
-			// Debounce Counter
-			//Calcs: Req Debnc_Time = 100ms, o/p gap = 1/ODR = 10ms => cnt=10
-			ucConfigArray[i++] = A_FFMT_DEBOUNCE_CNT_REG;
-			ucConfigArray[i++] = 0x0A;
-
-			// Enable Motion/Freefall Interrupt Function in the System
-			ucConfigArray[i++] = CTRL_REG4;
-			ucConfigArray[i++] = 0x04;
-
-			// Route the Motion/Freefall Interrupt Function to INT1 hardware pin
-			ucConfigArray[i++] = CTRL_REG5;
-			ucConfigArray[i++] = 0x04;
-
-			// Active Mode
-			ucConfigArray[i++] = CTRL_REG1;
-			ucConfigArray[i++] = (0x18|0x01);//Some fields are set earlier
-												// Use updateReg fn if feasible
-
-			ucNoofCfgs = i/2;
-
-			break;
-	}
-	for (i = 0; i < ucNoofCfgs; i++)
-	{
-		lRetVal = setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
-//		updateConfigReg(ucConfigArray[i*2],
-//							ucConfigArray[i*2 + 1],
-//							0b11111111);
-		PRINT_ON_ERROR(lRetVal);
-
-	}
-	UtilsDelay(80000000*.3);
-
-	return;
-}
-
 
 //******************************************************************************
 //
@@ -670,4 +493,182 @@ void writeMagntCalibrationValue(int16_t* psCalibOffsetVals)
 						LENGTH_IS_SIX,
 						ucCalibOffsetVals);
 }
+
+//******************************************************************************
+//
+//  This function configures FXOS8700 registers as needed by the applicaiton
+//	blueprint/mode
+//
+//	\param[in]	ucAppMode - Unique value that determines the Application mode
+//
+//	\return none
+//
+//******************************************************************************
+void configureFXOS8700(uint8_t ucAccelMagnMode)
+{
+	uint8_t i = 0;
+	uint8_t ucConfigArray[100];
+	uint8_t ucNoofCfgs;
+	uint8_t ucHeader[HEADER_SIZE];
+	int32_t lRetVal;
+
+	switch(ucAccelMagnMode)
+	{
+		case MODE_READ_ACCEL_MAGN_DATA:
+			if(FLASH_CONFIGS)
+			{
+				//Read file from flash into ucConfig
+				ReadFile_FromFlash(ucHeader,
+									FILENAME_SENSORCONFIGS,
+									HEADER_SIZE,
+									OFFSET_FXOS8700);
+				ReadFile_FromFlash(ucConfigArray,
+									FILENAME_SENSORCONFIGS,
+									(uint8_t)ucHeader[1],
+									OFFSET_FXOS8700+HEADER_SIZE);
+				ucNoofCfgs = ucHeader[1]/2;
+				break;
+			}
+			// Software reset
+			ucConfigArray[i++] = CTRL_REG2;
+			ucConfigArray[i++] = 0x40;
+
+			// Stand by mode
+			ucConfigArray[i++] = CTRL_REG1;
+			ucConfigArray[i++] = 0x00;
+
+			// Hybrid(A+M), M_OSR=7;
+			// OTHER OPTS: 0x1D-Magnetometer only; 0x03-Magnetometer OSR = 0
+			ucConfigArray[i++] = M_CTRL_REG1;
+			ucConfigArray[i++] = 0x1F;
+
+			// Hyb Auto Inc Mode - not needed!
+			ucConfigArray[i++] = M_CTRL_REG2;
+			ucConfigArray[i++] = 0x20;
+
+			// -2 to +2 full scale	// 0x01 - -4 to +4 FS
+			ucConfigArray[i++] = XYZ_DATA_CFG_REG;
+			ucConfigArray[i++] = 0x00;
+
+			// High resolution mode
+			ucConfigArray[i++] = CTRL_REG2;
+			ucConfigArray[i++] = 0x02;
+
+			ucConfigArray[i++] = CTRL_REG3;
+			ucConfigArray[i++] = 0x02;
+			ucConfigArray[i++] = CTRL_REG4;
+			ucConfigArray[i++] = 0x01;
+			ucConfigArray[i++] = CTRL_REG5;
+			ucConfigArray[i++] = 0x01;
+
+			// Stand by mode
+			ucConfigArray[i++] = CTRL_REG1;
+			ucConfigArray[i++] = 0x00;
+
+			// Magnetometer Calibration values hard coded
+//			ucConfigArray[i++] = MOFF_X_MSB_REG;
+//			ucConfigArray[i++] = 0x05;
+//			ucConfigArray[i++] = MOFF_X_LSB_REG;
+//			ucConfigArray[i++] = 0x80;
+//			ucConfigArray[i++] = MOFF_Y_MSB_REG;
+//			ucConfigArray[i++] = 0x02;
+//			ucConfigArray[i++] = MOFF_Y_LSB_REG;
+//			ucConfigArray[i++] = 0x7C;
+//			ucConfigArray[i++] = MOFF_Z_MSB_REG;
+//			ucConfigArray[i++] = 0x05;
+//			ucConfigArray[i++] = MOFF_Z_LSB_REG;
+//			ucConfigArray[i++] = 0x00;
+
+			ucConfigArray[i++] = MOFF_X_MSB_REG;	//Hand soldered on PCB
+			ucConfigArray[i++] = (0x025f >> 7);
+			ucConfigArray[i++] = MOFF_X_LSB_REG;
+			ucConfigArray[i++] = ((0x025f << 1) & 0x00ff);
+			ucConfigArray[i++] = MOFF_Y_MSB_REG;
+			ucConfigArray[i++] = (0xFE91 >> 7);
+			ucConfigArray[i++] = MOFF_Y_LSB_REG;
+			ucConfigArray[i++] = ((0xfe91 << 1) & 0x00ff);
+			ucConfigArray[i++] = MOFF_Z_MSB_REG;
+			ucConfigArray[i++] = (0x350 >> 7);
+			ucConfigArray[i++] = MOFF_Z_LSB_REG;
+			ucConfigArray[i++] = ((0x350 << 1) & 0x00ff);
+
+			// ODR (hybridmode) = 3.125 Hz
+			//0x0D - ; 0x25 - ODR (hybridmode) = 25 Hz
+			//0x05 - ODR (hybridmode) = 400 Hz
+			ucConfigArray[i++] = CTRL_REG1;
+			//ucConfigArray[i++] = 0x35;
+			ucConfigArray[i++] = 0x05;
+
+			ucNoofCfgs = i/2;
+
+			break;
+
+		case MODE_ACCEL_INTERRUPT: //For motion detection: Configs from AN4070
+			if(FLASH_CONFIGS)
+			{
+				//Read file from flash into ucConfig
+				ReadFile_FromFlash(ucHeader,
+									FILENAME_SENSORCONFIGS,
+									HEADER_SIZE,
+									OFFSET_FXOS8700);
+				ReadFile_FromFlash(ucConfigArray,
+									FILENAME_SENSORCONFIGS,
+									(uint8_t)ucHeader[2],
+									OFFSET_FXOS8700+HEADER_SIZE+ucHeader[1]);
+				ucNoofCfgs = ucHeader[2]/2;
+				break;
+			}
+			// Software reset
+			ucConfigArray[i++] = CTRL_REG2;
+			ucConfigArray[i++] = 0x40;
+
+			// Stand by mode; ORD = 100Hz
+			ucConfigArray[i++] = CTRL_REG1;
+			ucConfigArray[i++] = 0x18;
+
+			// “OR”, latch enable, enabling X, Z (change with chip position)
+			// Bit5,6,7 for Z,Y,X respectively
+			ucConfigArray[i++] = A_FFMT_CFG_REG;
+			ucConfigArray[i++] = 0xE8;
+
+			// Motion detection threshold(common to X,Y,Z), MAX:0x7F, 1LSB=.063
+			ucConfigArray[i++] = A_FFMT_THRS_REG;
+			ucConfigArray[i++] = 0x02;
+
+			// Debounce Counter
+			//Calcs: Req Debnc_Time = 100ms, o/p gap = 1/ODR = 10ms => cnt=10
+			ucConfigArray[i++] = A_FFMT_DEBOUNCE_CNT_REG;
+			ucConfigArray[i++] = 0x0A;
+
+			// Enable Motion/Freefall Interrupt Function in the System
+			ucConfigArray[i++] = CTRL_REG4;
+			ucConfigArray[i++] = 0x04;
+
+			// Route the Motion/Freefall Interrupt Function to INT1 hardware pin
+			ucConfigArray[i++] = CTRL_REG5;
+			ucConfigArray[i++] = 0x04;
+
+			// Active Mode
+			ucConfigArray[i++] = CTRL_REG1;
+			ucConfigArray[i++] = (0x18|0x01);//Some fields are set earlier
+												// Use updateReg fn if feasible
+
+			ucNoofCfgs = i/2;
+
+			break;
+	}
+	for (i = 0; i < ucNoofCfgs; i++)
+	{
+		lRetVal = setConfigReg(ucConfigArray[i*2], ucConfigArray[i*2 + 1]);
+//		updateConfigReg(ucConfigArray[i*2],
+//							ucConfigArray[i*2 + 1],
+//							0b11111111);
+		PRINT_ON_ERROR(lRetVal);
+
+	}
+	UtilsDelay(80000000*.3);
+
+	return;
+}
+
 #endif

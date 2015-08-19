@@ -1,4 +1,11 @@
 /*
+ * SendObject_ToParse.c
+ *
+ *  Created on: 19-Aug-2015
+ *      Author: Chrysolin
+ */
+
+/*
  * sendGroundData.c
  *
  *  Created on: 23-Jul-2015
@@ -14,9 +21,9 @@ extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
 
 extern int32_t NWP_SwitchOff();
-extern void Calculate_TrueMinMaxAngles();
+void Calculate_TrueMinMaxAngles();
 
-int32_t SendGroundData()
+int32_t SendObject_ToParse(uint8_t ucClassName)
 {
 	ParseClient clientHandle;
 	uint8_t ucFridgeCamID[FRIDGECAM_ID_SIZE];
@@ -33,28 +40,47 @@ int32_t SendGroundData()
 		ASSERT_ON_ERROR(lRetVal);
 	}
 
-	Calculate_TrueMinMaxAngles();
-
-	// Collect remaining applicable timestamps
-	if(IsLightOff(LUX_THRESHOLD))
-	{
-		cc_rtc_get(&time_now);
-		g_TimeStamp_DoorClosed = time_now.secs * 1000 + time_now.nsec / 1000000;
-	}
-
-	DEBG_PRINT("%ld, %ld, %ld\n",g_TimeStamp_MaxAngle,g_TimeStamp_MinAngle, g_TimeStamp_SnapAngle);
-	g_TimeStamp_MaxAngle = g_Struct_TimeStamp_MaxAngle.secs * 1000 + g_Struct_TimeStamp_MaxAngle.nsec / 1000000;
-	g_TimeStamp_MinAngle = g_Struct_TimeStamp_MinAngle.secs * 1000 + g_Struct_TimeStamp_MinAngle.nsec / 1000000;
-	g_TimeStamp_SnapAngle = g_Struct_TimeStamp_SnapAngle.secs * 1000 + g_Struct_TimeStamp_SnapAngle.nsec / 1000000;
-	DEBG_PRINT("%ld, %ld, %ld\n",g_TimeStamp_MaxAngle,g_TimeStamp_MinAngle, g_TimeStamp_SnapAngle);
-
 	//	Parse initialization
 	clientHandle = InitialiseParse();
 
 	Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from unique MAC
 										//ID of the CC3200 device
 
-	UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
+	switch(ucClassName)
+	{
+		case GROUND_DATA:
+		{
+			Calculate_TrueMinMaxAngles();
+
+			// Collect remaining applicable timestamps
+			if(IsLightOff(LUX_THRESHOLD))
+			{
+				cc_rtc_get(&time_now);
+				g_TimeStamp_DoorClosed = time_now.secs * 1000 + time_now.nsec / 1000000;
+			}
+			DEBG_PRINT("%ld, %ld, %ld\n",g_TimeStamp_MaxAngle,g_TimeStamp_MinAngle, g_TimeStamp_SnapAngle);
+			g_TimeStamp_MaxAngle = g_Struct_TimeStamp_MaxAngle.secs * 1000 + g_Struct_TimeStamp_MaxAngle.nsec / 1000000;
+			g_TimeStamp_MinAngle = g_Struct_TimeStamp_MinAngle.secs * 1000 + g_Struct_TimeStamp_MinAngle.nsec / 1000000;
+			g_TimeStamp_SnapAngle = g_Struct_TimeStamp_SnapAngle.secs * 1000 + g_Struct_TimeStamp_SnapAngle.nsec / 1000000;
+			DEBG_PRINT("%ld, %ld, %ld\n",g_TimeStamp_MaxAngle,g_TimeStamp_MinAngle, g_TimeStamp_SnapAngle);
+
+			UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
+
+			break;
+		}
+
+		case USER_CONFIGS:
+		{
+			UploadUserConfigObjectToParse(clientHandle, &ucFridgeCamID[0]);
+			break;
+		}
+
+		case FIRMWARE_VER:
+		{
+			UploadFirmwareVersionObjectToParse(clientHandle, &ucFridgeCamID[0]);
+			break;
+		}
+	}
 
 	free((void*)clientHandle);	//malloc() in InitializeParse()
 
@@ -63,7 +89,6 @@ int32_t SendGroundData()
 	return 0;
 }
 
-/*
 //Calculate min and max door angles by (1)reversing offset and //handling out of range angle(negative and >360) (2)swappping //min and max incase Angle90<Angle40
 void Calculate_TrueMinMaxAngles()
 {
@@ -108,4 +133,4 @@ void Calculate_TrueMinMaxAngles()
 	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
 
 	return;
-}*/
+}

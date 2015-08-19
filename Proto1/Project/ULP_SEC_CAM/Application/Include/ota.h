@@ -13,10 +13,16 @@
 #define OTA_VENDOR_STRING               "VCOG_DEV_001"	//Flashed
 //#define OTA_VENDOR_STRING               "VCOG_DEV_002"
 
+//typedef enum
+//{
+//	DO_OTA_COMMAND = 0,
+//	ADD_HERE
+//}OTA_Status;
+
 typedef enum
 {
-	DO_OTA_COMMAND = 0,
-	ADD_HERE
+	NEW_FIRMWARE_COMMITTED = 1,
+	NO_COMMIT,
 }OTA_Status;
 
 int32_t OTA_Update();

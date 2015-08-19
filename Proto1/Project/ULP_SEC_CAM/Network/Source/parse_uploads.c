@@ -8,6 +8,7 @@
 
 #define GROUND_DATA_OBJECT_SIZE		1024	//bytes
 #define USER_CONFIG_OBJECT_SIZE		500	//bytes
+#define FIRMWARE_VER_OBJECT_SIZE	500	//bytes
 
 
 //Ground Data : Field Names
@@ -41,6 +42,8 @@ extern float gdoor_90deg_angle;
 extern float gdoor_40deg_angle;
 extern float gdoor_OpenDeg_angle;
 extern uint16_t g_shutterwidth;
+
+char g_cResponseObjectID[OBJECT_ID_MAX_LEN];
 
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl);
 int simpleJsonProcessor(const char *data, const char *key, char* value, int size);
@@ -132,7 +135,8 @@ int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 	uint8_t ucTryNum;
 
 	// Construct the JSON object string
-	ConstructDeviceStateObject(pucFridgeCamID, pucParseImageUrl, fTemp, fRH, ucBatteryLvl, sensorDataObject);
+	ConstructDeviceStateObject(pucFridgeCamID, pucParseImageUrl, fTemp, fRH,
+								ucBatteryLvl, sensorDataObject);
 
 	ucTryNum = 0;
 	do{
@@ -146,6 +150,10 @@ int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
 	ASSERT_ON_ERROR(lRetVal);
+
+	//Save the object ID in the global variable
+	simpleJsonProcessor(dataBuffer, "objectId", g_cResponseObjectID,
+								OBJECT_ID_MAX_LEN);
 
 	//	parseSendRequestInternal(client,
 	//							"POST",
@@ -268,7 +276,7 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv+2, 2);
 	strncat((char*)pucSensorDataTxt, "}", sizeof("}"));
 
-	RELEASE_PRINT("SensorData:\n%s\n", pucSensorDataTxt);
+	RELEASE_PRINT("SensorDataObj:\n%s\n", pucSensorDataTxt);
 
 	return 0;
 }
@@ -327,9 +335,8 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 {
 	char ObjectID[OBJECT_ID_MAX_LEN];
 	memset(ObjectID, '\0', OBJECT_ID_MAX_LEN);
-	memset(ObjectID, 'x', 5);
-	memset(pucGroundDataObject, '\0', GROUND_DATA_OBJECT_SIZE);
 
+	memset(pucGroundDataObject, '\0', GROUND_DATA_OBJECT_SIZE);
 	strncat((char*)pucGroundDataObject, "{\"deviceId\":\"",
 					sizeof("{\"deviceId\":\""));
 	strncat((char*)pucGroundDataObject, (const char*)pucFridgeCamID,
@@ -338,22 +345,19 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 
 	if(g_ucReasonForFailure == SUCCESS)
 	{
-		simpleJsonProcessor(dataBuffer, "objectId", ObjectID, OBJECT_ID_MAX_LEN);
-
-		strncat((char*)pucGroundDataObject, "\"DevObjectId\":\"",
-						sizeof("\"DevObjectId\":\""));
-		strncat((char*)pucGroundDataObject, (const char*)ObjectID,
-						strlen((char*)ObjectID));
-		strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
+		DEBG_PRINT("Success Reason Failure\n");
+		//simpleJsonProcessor(dataBuffer, "objectId", ObjectID, OBJECT_ID_MAX_LEN);
+		strcpy(ObjectID,g_cResponseObjectID);
 	}
 	else
 	{
-		strncat((char*)pucGroundDataObject, "\"DevObjectId\":\"",
-						sizeof("\"DevObjectId\":\""));
-		strncat((char*)pucGroundDataObject, (const char*)ObjectID,
-						strlen((char*)ObjectID));
-		strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
+		memset(ObjectID, 'x', 5);
 	}
+	strncat((char*)pucGroundDataObject, "\"DevObjectId\":\"",
+					sizeof("\"DevObjectId\":\""));
+	strncat((char*)pucGroundDataObject, (const char*)ObjectID,
+					strlen((char*)ObjectID));
+	strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
 
 	Add_NumberField_ToJSONString(pucGroundDataObject, FAILURE_REASON,
 									g_ucReasonForFailure, MIDDLE);
@@ -386,7 +390,7 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE_OPEN,
 									(long long)gdoor_OpenDeg_angle,LAST);
 
-	RELEASE_PRINT("GroundData:\n%s\n", pucGroundDataObject);
+	RELEASE_PRINT("GroundDataObj:\n%s\n", pucGroundDataObject);
 
 	return 0;
 }
@@ -475,7 +479,7 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucUserConfigObject, ANGLE_OPEN,
 									(long long)fUserConfigData[(OFFSET_ANGLE_OPEN/sizeof(float))], LAST);
 
-	RELEASE_PRINT("UserConfig:\n%s\n", pucUserConfigObject);
+	RELEASE_PRINT("UserConfigObj:\n%s\n", pucUserConfigObject);
 
 	return 0;
 }
@@ -520,4 +524,52 @@ int32_t Add_NumberField_ToJSONString(uint8_t* pucGroundDataObject,
 	}
 
 	return 0;
+}
+
+//*****************************************************************************
+//
+//	This function uploads FirmwareVersion Object to Parse.com
+//
+//	param[in]	client
+//	param[in]	pucFridgeCamID - Pointer to FridgeCamID string
+//
+//	Description: Upload is done using POST request. Construction of the packet
+//	is handled within.
+//
+//*****************************************************************************
+int32_t UploadFirmwareVersionObjectToParse(ParseClient client, uint8_t* pucFridgeCamID)
+{
+	int32_t lRetVal = -1;
+	uint8_t ucTryNum;
+	uint8_t ucFirmwareVerObject[FIRMWARE_VER_OBJECT_SIZE];
+
+	// Construct the JSON object string
+	strncat((char*)&ucFirmwareVerObject[0], "{\"deviceId\":\"",
+					sizeof("{\"deviceId\":\""));
+	strncat((char*)&ucFirmwareVerObject[0], (const char*)pucFridgeCamID,
+					strlen((char*)pucFridgeCamID));
+	strncat((char*)&ucFirmwareVerObject[0],	"\",", sizeof("\","));
+
+	strncat((char*)&ucFirmwareVerObject[0], "\"FirmwareVersion\":\"",
+					sizeof("\"FirmwareVersion\":\""));
+	strncat((char*)&ucFirmwareVerObject[0], (const char*)FIRMWARE_VERSION,
+					strlen((char*)FIRMWARE_VERSION));
+	strncat((char*)&ucFirmwareVerObject[0],	"\"}", sizeof("\"}"));
+
+	RELEASE_PRINT("FrimwareVerObj:\n%s\n", &ucFirmwareVerObject[0]);
+
+ 	ucTryNum = 0;
+	do{
+		lRetVal = parseSendRequest(client,
+							"POST",
+							"/1/classes/FirmwareVersion", //UserConfigs is object name
+							(const char*)&ucFirmwareVerObject[0],
+							NULL,
+							jsonObject);
+		PRINT_ON_ERROR(lRetVal);
+		ucTryNum++;
+	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
+	ASSERT_ON_ERROR(lRetVal);
+
+	return lRetVal;
 }

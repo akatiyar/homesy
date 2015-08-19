@@ -33,4 +33,6 @@ extern int16_t IsLongPress();
 
 extern void Reset_byStarvingWDT();
 
+extern int32_t SendObject_ToParse(uint8_t ucClassName);
+
 #endif /* APPFNS_H_ */

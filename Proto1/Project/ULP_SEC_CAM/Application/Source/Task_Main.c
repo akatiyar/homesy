@@ -29,13 +29,15 @@ extern int32_t sendUserConfigData();
 
 void Main_Task_withHibernate(void *pvParameters)
 {
+	int32_t lRetVal;
+
 	WDT_init();
 
 	//This branch is entered only on wake up from hibernate
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
 		LED_On();
-		DEBG_PRINT("\nI'm up\n");
+		RELEASE_PRINT("\nI'm up\n");
 
 		//Enter the application funcitonality
 		application_fn();
@@ -83,7 +85,6 @@ void Main_Task_withHibernate(void *pvParameters)
 //		ReStart_CameraCapture();	//Restart image capture
 
 //Use the folowing code to test without hibernate
-
 #ifdef USB_DEBUG
 		OTA_CommitImage();
 
@@ -113,7 +114,11 @@ void Main_Task_withHibernate(void *pvParameters)
 #endif
 
   		//Commits image if running in test mode
-		OTA_CommitImage();
+  		lRetVal = OTA_CommitImage();
+  		if (lRetVal == NEW_FIRMWARE_COMMITTED)
+  		{
+  			SendObject_ToParse(FIRMWARE_VER);
+  		}
 	}
 
     /*//A way to reset the device without removing the battery

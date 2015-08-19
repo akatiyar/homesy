@@ -58,7 +58,8 @@ void UserConfigure_Task(void *pvParameters)
 		{
 			LED_Blink_2(.25,.25,BLINK_FOREVER);
 			User_Configure();
-			sendUserConfigData();
+			//sendUserConfigData();
+			SendObject_ToParse(USER_CONFIGS);
 		}
 
 		//Main_Task polls and waits for g_ulAppStatus to become USER_CONFIG_DONE

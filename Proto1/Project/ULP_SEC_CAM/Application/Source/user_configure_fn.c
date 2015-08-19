@@ -74,7 +74,7 @@ int32_t User_Configure()
 	g_ulAppTimeout_ms = USERCONFIG_TIMEOUT;
 
 	// Initialize the camera
-	if(g_bCameraOn == false)
+	//if(g_bCameraOn == false)
 	{
 		Wakeup_ImageSensor();
 	}

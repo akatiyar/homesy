@@ -11,7 +11,6 @@
 #include "flash_files.h"
 #include "appFns.h"
 
-extern float_t gdoor_OpenDeg_angle;
 extern int32_t NWP_SwitchOff();
 
 int32_t sendUserConfigData()

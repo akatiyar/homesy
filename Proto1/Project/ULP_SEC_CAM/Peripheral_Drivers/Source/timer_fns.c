@@ -42,7 +42,7 @@ void IntHandler_100mSecTimer(void)
 
 int32_t start_100mSecTimer()
 {
-	//DEBG_PRINT("Timr start\n");
+	//DEBG_PRINT("100msTimr Start\n");
 	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_100mSecTimer);
 	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_100MILLISEC);
@@ -53,10 +53,12 @@ int32_t start_100mSecTimer()
 
 int32_t stop_100mSecTimer()
 {
-	//DEBG_PRINT("Timr Stop\n");
+	//DEBG_PRINT("100msTimr Stop\n");
+	//DEBG_PRINT("e.1\n");
 	Timer_IF_Stop(TIMERA0_BASE, TIMER_A);
+	//DEBG_PRINT("e.2\n");
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
-
+	//DEBG_PRINT("e.3\n");
 	return 0;
 }
 
@@ -89,6 +91,7 @@ void IntHandler_1Sec_TimeoutTimer(void)
 
 int32_t start_1Sec_TimeoutTimer()
 {
+	//DEBG_PRINT("1sTimr Start\n");
 	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_1Sec_TimeoutTimer);
 	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_1SEC);
@@ -99,6 +102,7 @@ int32_t start_1Sec_TimeoutTimer()
 
 int32_t stop_1Sec_TimeoutTimer()
 {
+	//DEBG_PRINT("1sTimr Stop\n");
 	Timer_IF_Stop(TIMERA0_BASE, TIMER_A);
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
 

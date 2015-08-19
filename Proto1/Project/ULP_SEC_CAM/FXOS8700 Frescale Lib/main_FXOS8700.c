@@ -95,6 +95,13 @@ int16_t angleCheck_Initializations()
 	//Calculate the offset that will bring door 40 degree angle to 180degrees. Offsetting ecompass angles by this value will ensure all valid door angles are in Q2 and Q3. Therefore there will be no crossovers.
 	g_angleOffset_to180 = 180.0 - gdoor_40deg_angle;
 
+	//g_fMinAngle = g_angleOffset_to180;
+	//g_fMaxAngle = g_fMinAngle;
+
+	DEBG_PRINT("90: %3.2f", gdoor_90deg_angle);
+	DEBG_PRINT("40: %3.2f", gdoor_40deg_angle);
+	DEBG_PRINT("Offset to 180: %3.2f", g_angleOffset_to180);
+
 	print_count = 0;
 	valid_case = 0;
 
