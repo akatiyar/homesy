@@ -73,8 +73,20 @@ void check_doorpos()
 
 	//--------------Averaging : May not be required----------------------
 	// Average the angle readings.. remove this incase if it is not relevant int he future
-	ang_buf[avg_buffer_cnt] = angle_reg; // store the latest angle reading to the latest buffer
-	angle_avg = (ang_buf[0] + ang_buf[1] + ang_buf[2] + ang_buf[3])/4;// average the buffer
+	if( (abs(angle_avg-angle_reg)) > 300)	//Crossover from 0 to 360 or 360 to 0
+	{
+//		DEBG_PRINT("Crossover\n");
+		angle_avg = angle_reg;
+		ang_buf[0] = angle_reg;
+		ang_buf[1] = angle_reg;
+		ang_buf[2]= angle_reg;
+		ang_buf[3] = angle_reg;
+	}
+	else	//The usual case
+	{
+		ang_buf[avg_buffer_cnt] = angle_reg; // store the latest angle reading to the latest buffer
+		angle_avg = (ang_buf[0] + ang_buf[1] + ang_buf[2] + ang_buf[3])/4;// average the buffer
+	}
 
 	//--Buffer pointer circular
 	if(avg_buffer_cnt==3)
@@ -85,6 +97,7 @@ void check_doorpos()
 
 	print_count++;
 	if(print_count==20)
+	//if(print_count==5)
 	{
 		//DEBG_PRINT("ANGLE=%3.2f\n", angle_reg);
 		RELEASE_PRINT("%3.2f\n", angle_avg);
@@ -120,6 +133,7 @@ void check_doorpos()
 	{
 		valid_case = 1;
 		RELEASE_PRINT("O  %3.2f\n", angle_avg);
+		cc_rtc_get(&g_Struct_TimeStamp_OpenAngle);
 		g_ucReasonForFailure = OPEN_NOTCLOSED;
 		LED_Blink_2(.25,.25,BLINK_FOREVER);
 	}
@@ -186,7 +200,6 @@ float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 			{
 				angle_openThreshold += 360;
 			}
-
 		}
 		if(angle_90 > angle_40) //i.e if angle_90 in Q4 (300s) and angle_40 in Q1 (<90)
 		{
@@ -216,11 +229,15 @@ float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 	return angle_openThreshold;
 }
 
+//******************************************************************************
+// Checks if the angle passed as parameter is min/max. If it is min/max it is
+//	stored in min/max angle global variable and the current timestamp is also
+//	stored in the corresponding timestamp variable
+//******************************************************************************
 void Check_MinMax(float_t angle_avg)
 {
 	float angle_reg_afterOffset = 0;
 
-	//*****************Min and max angles and their timestamps
 	//Offset to get angles in Q2 and Q3
 	angle_reg_afterOffset = angle_avg + g_angleOffset_to180;
 	if(angle_reg_afterOffset > 360)
@@ -231,30 +248,95 @@ void Check_MinMax(float_t angle_avg)
 	{
 		angle_reg_afterOffset += 360;
 	}
-	//DEBG_PRINT("%3.2f, Offset: %3.2f\n", angle_avg, angle_reg_afterOffset);
-	//if(angle_reg < g_fMinAngle)
+
+	// Invalid case. Angle ramping up from 0 to 360 or down from 360 to 0
+//	if((angle_reg_afterOffset > 240)||(angle_reg_afterOffset < 120))
+//	{
+//		return;
+//	}
+
 	if(angle_reg_afterOffset < g_fMinAngle)
 	{
 		g_fMinAngle = angle_reg_afterOffset;
-		DEBG_PRINT("N");
+		//g_RawMinAngle = angle_avg;
+//		DEBG_PRINT("N");
 		//DEBG_PRINT("MIN: %d\n", g_fMinAngle);
-		//DEBG_PRINT("MIN: %d sec, %d nsec\n", g_Struct_TimeStamp_MinAngle.secs, g_Struct_TimeStamp_MinAngle.nsec);
 		cc_rtc_get(&g_Struct_TimeStamp_MinAngle);
-		//DEBG_PRINT("MIN: %d sec, %d nsec\n", g_Struct_TimeStamp_MinAngle.secs, g_Struct_TimeStamp_MinAngle.nsec);
-		//DEBG_PRINT("%d milli sec\n", g_TimeStamp_minAngle);
 	}
-	//if(angle_reg > g_fMaxAngle)
 	if (angle_reg_afterOffset > g_fMaxAngle)
 	{
 		g_fMaxAngle = angle_reg_afterOffset;
-		DEBG_PRINT("X");
+		//g_RawMaxAngle = angle_avg;
+//		DEBG_PRINT("X");
 		//DEBG_PRINT("MAX: %d\n", g_fMaxAngle);
-		//DEBG_PRINT("MAX: %d sec, %d nsec\n", g_Struct_TimeStamp_MaxAngle.secs, g_Struct_TimeStamp_MaxAngle.nsec);
 		cc_rtc_get(&g_Struct_TimeStamp_MaxAngle);
-		//DEBG_PRINT("MAX: %d sec, %d nsec\n", g_Struct_TimeStamp_MaxAngle.secs, g_Struct_TimeStamp_MaxAngle.nsec);
-		//DEBG_PRINT("%d milli sec\n", g_TimeStamp_maxAngle);
 	}
-	//DEBG_PRINT("MIN: %d, MAX: %d\n", g_fMinAngle, g_fMaxAngle);
+
+	if(angle_avg < g_RawMinAngle)
+	{
+		g_RawMinAngle = angle_avg;
+	}
+	if(angle_avg > g_RawMaxAngle)
+	{
+		g_RawMaxAngle = angle_avg;
+	}
+
+	return;
+}
+
+//******************************************************************************
+//	Calculates the true min/max door angles from the offset_to180 min/max angles
+//
+//STEPS:
+//	(1)reversing offset and handling out-of-range angle(negative and >360)
+//	(2)swappping min and max incase Angle90<Angle40
+//Swaps timestamps also if door angles are swapped
+//******************************************************************************
+void Calculate_TrueMinMaxAngles()
+{
+	float temp_swap_variable;
+	long long temp_swap_variable_uint64;
+
+	DEBG_PRINT("TrueMinMaxAngles()\n");
+	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
+
+	//Reverse offset
+	g_fMinAngle -= g_angleOffset_to180;
+	g_fMaxAngle -= g_angleOffset_to180;
+	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
+
+	//Handle <0 and >360 cases
+	if(g_fMaxAngle < 0)
+	{
+		g_fMaxAngle += 360;
+	}
+	else if(g_fMaxAngle > 360)
+	{
+		g_fMaxAngle -= 360;
+	}
+	if(g_fMinAngle < 0)
+	{
+		g_fMinAngle += 360;
+	}
+	else if(g_fMinAngle > 360)
+	{
+		g_fMinAngle -= 360;
+	}
+	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
+
+	//Swap the min and max angles if Angle90<Angle40
+	if (((gdoor_90deg_angle < gdoor_40deg_angle) && (abs(gdoor_90deg_angle-gdoor_40deg_angle) < A40_A90_DIFFMAG_MAX))
+		|| ((gdoor_90deg_angle > gdoor_40deg_angle) && (abs(gdoor_90deg_angle-gdoor_40deg_angle) > A40_A90_DIFFMAG_MAX)))
+	{
+		temp_swap_variable = g_fMinAngle;
+		g_fMinAngle = g_fMaxAngle;
+		g_fMaxAngle = temp_swap_variable;
+
+		temp_swap_variable_uint64 = g_TimeStamp_MaxAngle;
+		g_TimeStamp_MaxAngle = g_TimeStamp_MinAngle;
+		g_TimeStamp_MinAngle = temp_swap_variable_uint64;
+	}
+	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
 
 	return;
 }

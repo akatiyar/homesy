@@ -315,9 +315,12 @@ static void InitializeAppVariables()
 	g_TimeStamp_MinAngle = 0;
 	g_TimeStamp_MaxAngle = 0;
 	g_TimeStamp_SnapAngle = 0;
+	g_TimeStamp_OpenAngle = 0;
 	g_ucReasonForFailure = NEVER_WENT_TO_ANGLECHECK;
 	g_fMinAngle = 361;
 	g_fMaxAngle = 0;
+	g_RawMinAngle = 361;
+	g_RawMaxAngle = 0;
 }
 //****************************************************************************
 //

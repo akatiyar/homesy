@@ -1128,12 +1128,10 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
         			}
         			else if(0 == memcmp(&Value[5],",Dec,",3))
         			{
-
 						//Copy Initial Gain
         				SetInitialGain(GainVal,false);
         			}
 					ReadGainReg(ReadGain);
-
         		}
 
             }

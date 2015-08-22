@@ -207,11 +207,21 @@ int32_t User_Configure()
 
 		if(g_ucPreviewStart == BUTTON_PRESSED)
 		{
-			//	Wakeup_ImageSensor();
+			//    Wakeup_ImageSensor();
 
 			// Set the IMage size to 640x480
 
 			// Enable boolean to capture Image and save
+
+			lRetVal = sl_FsOpen((unsigned char *)JPEG_PREVIEW_IMAGE_FILE_NAME,
+					FS_MODE_OPEN_CREATE(40959, _FS_FILE_OPEN_FLAG_COMMIT | _FS_FILE_PUBLIC_WRITE),
+					NULL, (_i32*)&lFileHandle);
+			if(lRetVal<0)
+			{
+				PRINT_ON_ERROR(lRetVal);
+			}
+			sl_FsClose(lFileHandle,NULL,NULL,NULL);
+
 			bCapturePreviewImage = true;
 			tempCnt=0;
 			g_ucPreviewStart = BUTTON_NOT_PRESSED;
@@ -219,6 +229,11 @@ int32_t User_Configure()
 
 		if(g_ucPreviewStop == BUTTON_PRESSED)
 		{
+			lRetVal = sl_FsDel(JPEG_PREVIEW_IMAGE_FILE_NAME,NULL);
+			if(lRetVal<0)
+			{
+				PRINT_ON_ERROR(lRetVal);
+			}
 			bCapturePreviewImage = false;
 			g_ucPreviewStop = BUTTON_NOT_PRESSED;
 			// Enable HD Image
@@ -642,6 +657,8 @@ static int32_t CollectAngle(uint8_t ucAngle)
 	//Collect the readings
 	angleCheck_Initializations();
 
+	start_periodicInterrupt_timer(2.5);
+
 	magnetometer_initialize();
 
 	//Tag:Work-around for invalid first fet ecompass readings
@@ -654,6 +671,7 @@ static int32_t CollectAngle(uint8_t ucAngle)
 
 	fAngleTemp = get_angle();
 
+	stop_periodicInterrupt_timer();
 	if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
 	{
 		fAngleTemp = thisSV_6DOF_GB_BASIC.fLPRho +180;

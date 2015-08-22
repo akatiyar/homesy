@@ -21,9 +21,9 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-//#define FIRMWARE_VERSION 		"F32e"
-//#define FIRMWARE_VERSION 		"Release 0.0.14"
-#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
+#define FIRMWARE_VERSION 		"Release 0.0.15 Q=37"
+//#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
+//#define FIRMWARE_VERSION 		"F 0.36c"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -43,7 +43,9 @@
 #define OSI_STACK_SIZE_MAIN_TASK			5000	//in bytes
 #define OSI_STACK_SIZE_USERCONFIG_TASK		4500	//in bytes
 
-#define IMAGE_QUANTIZ_SCALE		(0x0020)
+//#define IMAGE_QUANTIZ_SCALE		(0x0020)	//32
+//#define IMAGE_QUANTIZ_SCALE		(0x0030)	//48
+#define IMAGE_QUANTIZ_SCALE		(0x0025)	//37
 //#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
 
 #define RETRIES_MAX_NETWORK			5
@@ -195,11 +197,15 @@ uint64_t g_TimeStamp_DoorClosed;
 uint64_t g_TimeStamp_MinAngle;
 uint64_t g_TimeStamp_MaxAngle;
 uint64_t g_TimeStamp_SnapAngle;
+uint64_t g_TimeStamp_OpenAngle;
 int16_t g_fMaxAngle;
 int16_t g_fMinAngle;
+int16_t g_RawMaxAngle;
+int16_t g_RawMinAngle;
 struct u64_time g_Struct_TimeStamp_MaxAngle;
 struct u64_time g_Struct_TimeStamp_MinAngle;
 struct u64_time g_Struct_TimeStamp_SnapAngle;
+struct u64_time g_Struct_TimeStamp_OpenAngle;
 
 typedef enum
 {
@@ -214,6 +220,7 @@ typedef enum
 	IMAGEFILE_OPEN_BEGUN = 1,
 	IMAGEFILE_OPEN_COMPLETE,
 	MAGNETOMETERINIT_STARTED,
+	TIMERS_DISABLED,
 
 }e_Task1_NotificationValues;
 

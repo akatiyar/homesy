@@ -22,7 +22,7 @@ bool g_tempflag=true;
 extern int32_t g_lFileHandle;
 extern int32_t SendGroundData();
 
-
+//Tightly coupled with ImageCaptureConfig task
 int32_t application_fn()
 {
     long lRetVal;
@@ -75,6 +75,7 @@ int32_t application_fn()
 		//g_tempflag=false;
 		//Initialize magnetometer for angle calculation
 		angleCheck_Initializations();
+		start_periodicInterrupt_timer(2.5);	//Once started, it is stopped on exiting the angle check loop
 
 		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
 
@@ -86,6 +87,7 @@ int32_t application_fn()
 							(uint8_t*)FILENAME_SENSORCONFIGS,
 							CONTENT_LENGTH_SENSORS_CONFIGS, 0);
 		while(g_Task1_Notification != MAGNETOMETERINIT_STARTED);
+
 		g_Task3_Notification = READ_SENSORCONFIGFILE_DONE;
 
 		// Open Image file in Flash to write image. File open for write takes
@@ -165,7 +167,12 @@ int32_t application_fn()
 
 		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
 
-  		start_100mSecTimer();	//For Timeout detection
+		while(g_Task1_Notification != TIMERS_DISABLED)
+		{
+			DEBG_PRINT("$");
+		}
+
+		start_100mSecTimer();	//For Timeout detection
 		//sensorsTriggerSetup(); //Tag:Remove DGB Wake Time Profile
 		while(1)
 		{
@@ -208,6 +215,7 @@ int32_t application_fn()
 		}
 		standby_accelMagn_fxos8700();
 		stop_100mSecTimer();
+		stop_periodicInterrupt_timer();
 
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
@@ -301,8 +309,8 @@ int32_t application_fn()
 			NWP_SwitchOff();
 		}
 
-		SendGroundData();
-		//SendObject_ToParse(GROUND_DATA);
+		//SendGroundData();
+		SendObject_ToParse(GROUND_DATA);
 	}
 
 	return lRetVal;

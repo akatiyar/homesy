@@ -158,11 +158,13 @@ void FXOS8700_Init(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 	// write 0000 1101 = 0x0D to accelerometer control register 1
 	// [7-6]: aslp_rate=00
 	// [5-3]: dr=001=1 for 200Hz data rate (when in hybrid mode)
+	// [5-3]: dr=000=0 for 400Hz data rate (when in hybrid mode)
 	// [2]: lnoise=1 for low noise mode (since we're in 4g mode)
 	// [1]: f_read=0 for normal 16 bit reads
 	// [0]: active=1 to take the part out of standby and enable sampling
 	I2C_Buf[i++] = FXOS8700_CTRL_REG1;
-	I2C_Buf[i++] = 0x0D;
+	//I2C_Buf[i++] = 0x0D;	//200Hz
+	I2C_Buf[i++] = 0x05;	//400Hz
 
 	ucNoofCfgs = i/2;
 	for (i = 0; i < ucNoofCfgs; i++)
@@ -185,7 +187,7 @@ void FXOS8700_Init(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 	return;
 }
 
-// read FXOS8700 accelerometer and magnetometer data over I2C
+/*// read FXOS8700 accelerometer and magnetometer data over I2C
 void FXOS8700_ReadData(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 {
 	uint8_t ucAccelOut[LENGTH_OUTPUT_DATA];
@@ -212,9 +214,9 @@ void FXOS8700_ReadData(struct AccelSensor *pthisAccel, struct MagSensor *pthisMa
 	if (pthisMag->iBpFast[Z] == -32768) pthisMag->iBpFast[Z]++;
 
 	return;
-}
+}*/
 
-/*//CS
+//CS
 // read FXOS8700 accelerometer and magnetometer data over I2C
 void FXOS8700_ReadData(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 {
@@ -239,7 +241,7 @@ void FXOS8700_ReadData(struct AccelSensor *pthisAccel, struct MagSensor *pthisMa
 	if (pthisMag->iBpFast[Z] == -32768) pthisMag->iBpFast[Z]++;
 
 	return;
-}*/
+}
 
 /*
 // initialize MPL3115 pressure and temperature sensor

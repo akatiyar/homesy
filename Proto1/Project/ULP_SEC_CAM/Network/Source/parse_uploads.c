@@ -23,8 +23,11 @@
 #define TS_MAXANGLE					"TimeStamp_MaxAngle"
 #define TS_MINANGLE					"TimeStamp_MinAngle"
 #define TS_SNAPANGLE				"TimeStamp_SnapAngle"
+#define TS_OPENANGLE				"TimeStamp_OpenAngle"
 #define MAX_ANGLE					"Max_DoorAngle"
 #define MIN_ANGLE					"Min_DoorAngle"
+#define RAWMAX_ANGLE				"RawMax_DoorAngle"
+#define RAWMIN_ANGLE				"RawMin_DoorAngle"
 #define ANGLE40						"Angle40"
 #define ANGLE90						"Angle90"
 #define ANGLE_OPEN					"AngleOpen"
@@ -380,10 +383,16 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 									g_TimeStamp_MaxAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_SNAPANGLE,
 									g_TimeStamp_SnapAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_OPENANGLE,
+									g_TimeStamp_OpenAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, MAX_ANGLE,
 									g_fMaxAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, MIN_ANGLE,
 									g_fMinAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, RAWMAX_ANGLE,
+									g_RawMaxAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, RAWMIN_ANGLE,
+									g_RawMinAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE40,
 									(long long)gdoor_40deg_angle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, ANGLE90,

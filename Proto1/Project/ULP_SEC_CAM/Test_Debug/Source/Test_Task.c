@@ -11,12 +11,52 @@
 #include "osi.h"
 #include "LED_Timer.h"
 #include "appFns.h"
+#include "timer_fns.h"
+
+extern float gdoor_90deg_angle;//290
+extern float gdoor_40deg_angle; //110
+extern float gdoor_OpenDeg_angle;
+extern float g_angleOffset_to180;
+extern void Check_MinMax(float_t angle_avg);
+extern void Calculate_TrueMinMaxAngles();
+
 void Test_Task(void *pvParameters)
 {
+	start_periodicInterrupt_timer(2.5);
+	while(1)
+	{
+		DEBG_PRINT(".");
+		osi_Sleep(1);
+	}
+
+#ifdef COMPILE_THIS
+	g_fMinAngle = 361;
+	g_fMaxAngle = 0;
+
+	gdoor_90deg_angle = 316;
+	gdoor_40deg_angle = 12;
+	gdoor_OpenDeg_angle = 350;
+
+	g_angleOffset_to180 = 180.0 - gdoor_40deg_angle;
+
+	//float_t f[] = {20,15,10,5,0,355,360,355,350,345,340,335,330,325,320,315,310,305,300,295};
+	float_t f[] = {330,0,355,20,15,315,325,340,335,360,305,300,295,10,345,355,320,5,310,350};
+	int i;
+	for(i=0; i<(sizeof(f)/sizeof(float_t)); i++)
+	{
+		Check_MinMax(f[i]);
+		DEBG_PRINT("%d %3.2f\n", i, f[i]);
+	}
+	Calculate_TrueMinMaxAngles();
+#endif
+
+#ifdef COMPILE_THIS
 	while(1)
 	{
 		DEBG_PRINT("%x\n",IS_PUSHBUTTON_PRESSED);
 	}
+#endif
+
 #ifdef COMPILE_THIS
 	float OpenAngle;
 

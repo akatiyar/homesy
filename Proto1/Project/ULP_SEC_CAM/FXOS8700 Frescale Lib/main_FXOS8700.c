@@ -134,7 +134,6 @@ int16_t magnetometer_initialize()
 	{
 		get_angle();
 	}
-
 //	ulTimeDuration_ms = get_timeDuration();
 //	stop_100mSecTimer();
 //	DEBG_PRINT("a+m init reading - %d ms\n\r", ulTimeDuration_ms);
@@ -215,8 +214,27 @@ float_t get_angle()
 		mqxglobals.RunKF_Event_Flag = 0;
 
 //		start_100mSecTimer();
+
 		// read the sensors
+
+		//The 2.5ms interval started sometime back, if doPeriodicAction is hi.
+		//Can remove this if part if the time taken for the algo etc are
+		//kept below the sampling rate of magnetometer
+		if(doPeriodicAction_flag)
+		{
+			//DEBG_PRINT("Hi\n");
+			reload_periodicTimer();
+		}
+		else	//Usual case
+		{
+			while(!doPeriodicAction_flag)
+			{
+				//DEBG_PRINT("%d",doPeriodicAction_flag);
+			}
+		}
 		RdSensData_Run();
+		doPeriodicAction_flag = 0;
+
 		//DEBG_PRINT("r\n\r");
 //		ulTimeDuration_ms = get_timeDuration();
 //		stop_100mSecTimer();

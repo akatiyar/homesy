@@ -40,6 +40,7 @@
 
 void fInit_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, float flpftimesecs, int16 iSensorFS, int16 iOverSampleRatio)
 {
+	//iOverSampleRatio = 8;
 	// set algorithm sampling interval (typically 25Hz)
 	pthisSV->fdeltat = (float) iOverSampleRatio / (float) iSensorFS;//delta time
 

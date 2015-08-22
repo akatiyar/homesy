@@ -21,6 +21,7 @@ extern bool g_tempflag;
 
 extern OsiTaskHandle g_ImageCaptureConfigs_TaskHandle;
 
+//Tightly coupled with application_fn()
 void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 {
 	struct u64_time time_now;
@@ -55,6 +56,7 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 			DEBG_PRINT("$");
 			osi_Sleep(5);
 		}
+
 		//Configure FXOS and read out first few angle values
 		g_Task1_Notification = MAGNETOMETERINIT_STARTED;
 		magnetometer_initialize();
@@ -80,8 +82,9 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 		ulTimeDuration_ms = get_timeDuration();
 		stop_100mSecTimer();
 		DEBG_PRINT("Till angle: %dms\n", ulTimeDuration_ms);
+
 		//ulTimeDuration_ms = 0;
-//		start_100mSecTimer();
+		start_100mSecTimer();
 
 		//
 		//	Get angle and check door position
@@ -101,10 +104,12 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 			g_I2CPeripheral_inUse_Flag = NO;
 		}
 
-//		ulTimeDuration_ms = get_timeDuration();
-//		stop_100mSecTimer();
-//		DEBG_PRINT("Fileopen over: %dms\n", ulTimeDuration_ms);
+		ulTimeDuration_ms = get_timeDuration();
+		stop_100mSecTimer();
+		DEBG_PRINT("Fileopen over: %dms\n", ulTimeDuration_ms);
 		//g_I2CPeripheral_inUse_Flag = NO;
+
+		g_Task1_Notification = TIMERS_DISABLED;
 	}
 
 	// Delete the task

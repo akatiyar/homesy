@@ -23,6 +23,8 @@
 
 #include "watchdog.h"
 
+#include "jpeg.h"
+
 extern OsiTaskHandle g_UserConfigTaskHandle;
 
 extern int32_t sendUserConfigData();
@@ -79,6 +81,8 @@ void Main_Task_withHibernate(void *pvParameters)
 		Config_CameraCapture();
 		Start_CameraCapture();	//Do this once. Not needed after standby wake_up
 		Standby_ImageSensor();
+
+		Modify_JPEGHeaderFile();
 
 		// To reconfigure with the settings applied
 //		Wakeup_ImageSensor();		//Wake the image sensor
