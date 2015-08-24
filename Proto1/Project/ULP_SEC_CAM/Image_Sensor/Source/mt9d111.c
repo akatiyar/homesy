@@ -1221,8 +1221,25 @@ int32_t Read_AllRegisters()
 	uint16_t i;
 	uint16_t regVal;
 
+	uint16_t variable_list[] = {0xA115, 0x2003, 0xA002, 0xA361, 0xAB04, 0xA104};
+
 	s_RegList reg_list[] = {
-				{0, 0x33, 0xBADD},
+
+				{0, 0x09, 0xBADD},
+				{0, 0x0A, 0xBADD},
+				{0, 0x0B, 0xBADD},
+				{0, 0x0C, 0xBADD},
+
+				{0, 0x65, 0xBADD},
+				{0, 0x66, 0xBADD},
+				{0, 0x67, 0xBADD},
+
+				{2, 0x00, 0xBADD},
+				{2, 0x02, 0xBADD},
+				{2, 0x03, 0xBADD},
+				{2, 0x04, 0xBADD},
+
+				/*{0, 0x33, 0xBADD},
 				{0, 0x38, 0xBADD},
 				{2, 0x80, 0xBADD}, // LENS_CORRECTION_CONTROL
 			    {2, 0x81, 0xBADD}, // ZONE_BOUNDS_X1_X2
@@ -1284,24 +1301,20 @@ int32_t Read_AllRegisters()
 
 			    {0, 0x66, 0xBADD},
 				{0, 0x67, 0xBADD},
-				{0, 0x65, 0xBADD},
+				{0, 0x65, 0xBADD},*/
 			};
 
 		for (i = 0; i < (sizeof(reg_list)/sizeof(s_RegList)); i++)
 		{
 			Register_Read(&reg_list[i], &regVal);
-			DEBG_PRINT("\n%d:%x ", i, regVal);
+			DEBG_PRINT("\n0x%x:0x%x", reg_list[i].ucRegAddr, regVal);
 		}
 
-		i = 0;
-		Variable_Read(0xA115, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0x2003, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xA002, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xA361, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xAB04, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-		Variable_Read(0xA104, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-//		Variable_Read(0x2003, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
-//		Variable_Read(0x2003, &regVal);DEBG_PRINT("%d:%x ", i++, regVal);
+		for (i=0; i< (sizeof(variable_list)/sizeof(uint16_t)); i++)
+		{
+			Variable_Read(variable_list[i], &regVal);
+			DEBG_PRINT("\n0x%x:0x%x", variable_list[i], regVal);
+		}
 
 		return 0;
 }

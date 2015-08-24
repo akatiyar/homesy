@@ -84,37 +84,12 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Modify_JPEGHeaderFile();
 
+//Use the folowing code to test without hibernate
+#ifdef USB_DEBUG
 		// To reconfigure with the settings applied
 //		Wakeup_ImageSensor();		//Wake the image sensor
 //		ReStart_CameraCapture();	//Restart image capture
-
-//Use the folowing code to test without hibernate
-#ifdef USB_DEBUG
-		OTA_CommitImage();
-
-		float fTemp, fRH;
-			DEBG_PRINT("Temperature,");
-			DEBG_PRINT("Humidity");
-
-  		while(1)
-		{
-//  			NWP_SwitchOn();
-//
-//  			Wakeup_ImageSensor();		//Wake the image sensor
-//  			ReStart_CameraCapture();	//Restart image capture
-//  			ImagCapture_Init();			//Initialize image capture
-//
-//  			application_fn();
-
-  			getTempRH(&fTemp, &fRH);	//Collect Temperature and RH values from
-
-  			DEBG_PRINT("\n %f,",fTemp);
-  			DEBG_PRINT("%f",fRH);
-  			osi_Sleep(100);
-
-
-  			//MAP_UtilsDelay(3*80000000/6);
-		}
+		while(1);
 #endif
 
   		//Commits image if running in test mode

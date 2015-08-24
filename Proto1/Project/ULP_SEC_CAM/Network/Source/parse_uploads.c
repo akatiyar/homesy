@@ -571,6 +571,7 @@ int32_t UploadFirmwareVersionObjectToParse(ParseClient client, uint8_t* pucFridg
 	uint8_t ucFirmwareVerObject[FIRMWARE_VER_OBJECT_SIZE];
 
 	// Construct the JSON object string
+	memset(ucFirmwareVerObject, '\0', FIRMWARE_VER_OBJECT_SIZE);
 	strncat((char*)&ucFirmwareVerObject[0], "{\"deviceId\":\"",
 					sizeof("{\"deviceId\":\""));
 	strncat((char*)&ucFirmwareVerObject[0], (const char*)pucFridgeCamID,

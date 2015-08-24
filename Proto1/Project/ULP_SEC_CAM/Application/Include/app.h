@@ -21,7 +21,7 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"Release 0.0.15 Q=37"
+#define FIRMWARE_VERSION 		"Release 0.0.16 Q=48"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
 //#define FIRMWARE_VERSION 		"F 0.36c"
 
@@ -44,9 +44,10 @@
 #define OSI_STACK_SIZE_USERCONFIG_TASK		4500	//in bytes
 
 //#define IMAGE_QUANTIZ_SCALE		(0x0020)	//32
-//#define IMAGE_QUANTIZ_SCALE		(0x0030)	//48
-#define IMAGE_QUANTIZ_SCALE		(0x0025)	//37
+#define IMAGE_QUANTIZ_SCALE		(0x0030)	//48
+//#define IMAGE_QUANTIZ_SCALE		(0x0025)	//37
 //#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
+//#define IMAGE_QUANTIZ_SCALE		(0x0019)	//Debug
 
 #define RETRIES_MAX_NETWORK			5
 

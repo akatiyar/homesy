@@ -125,6 +125,7 @@ unsigned long g_frame_size_in_bytes;
 static unsigned long *p_buffer = NULL;
 static unsigned char g_dma_txn_done;
 volatile unsigned char g_frame_end;
+volatile unsigned char g_collect_timestamp;
 static unsigned long g_total_dma_intrpts;
 
 volatile long g_block_lastFilled; //Holds the block number that was filled latest by Cam
@@ -530,6 +531,7 @@ void ImagCapture_Init()
 int32_t CaptureImage(int32_t lFileHandle)
 {
     long lRetVal;
+    struct u64_time time_now;
 
     // Initial values set
     uint32_t uiImageFile_Offset = 0;
@@ -583,6 +585,15 @@ int32_t CaptureImage(int32_t lFileHandle)
     	//DEBG_PRINT("B");
     	while( g_flag_DataBlockFilled )
     	{
+    		//Collect photo click timestamp
+    		if(g_collect_timestamp == 1)
+        	{
+    			//DEBG_PRINT("col2\n");
+    			cc_rtc_get(&time_now);
+    			g_TimeStamp_PhotoSnap = time_now.secs * 1000 + time_now.nsec / 1000000;
+        		g_collect_timestamp = 0;
+        	}
+
     		if(g_flag_blockFull[g_readHeader])
     		{
     			//DEBG_PRINT("s%d ", g_readHeader);
@@ -814,6 +825,7 @@ static void DMAConfig()
     g_frame_size_in_bytes = 0;
     g_frame_end = 0;
     g_total_dma_intrpts = 0;
+    g_collect_timestamp = 0;
 
     //
     // Clear any pending interrupt
@@ -893,6 +905,8 @@ static void CameraIntHandler()
     {
         MAP_CameraIntClear(CAMERA_BASE, CAM_INT_FE);
         g_frame_end = 1;
+        g_collect_timestamp = 1;
+        //DEBG_PRINT("col1a\n");
         MAP_CameraCaptureStop(CAMERA_BASE, true);
         //DEBG_PRINT("++++++");
         //JPEGDataLength_read();
@@ -1010,6 +1024,8 @@ static void CameraIntHandler()
             MAP_uDMAChannelDisable(UDMA_CH22_CAMERA);
             HWREG(0x44026090) |= 1 << 8;
             g_frame_end = 1;
+            g_collect_timestamp = 1;
+            //DEBG_PRINT("col1b\n");
             //DEBG_PRINT(",,,,, %x , %x", HWREG(0x440260A0),MAP_CameraIntStatus(CAMERA_BASE));
         }
     }

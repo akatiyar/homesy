@@ -106,6 +106,7 @@ int32_t User_Configure()
 		}
 		if((Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT))
 		{
+			stop_100mSecTimer();	//Stop the timeout timer.
 			RELEASE_PRINT("Timeout... No phone connected\n");
 			return 0;
 		}
@@ -221,6 +222,12 @@ int32_t User_Configure()
 				PRINT_ON_ERROR(lRetVal);
 			}
 			sl_FsClose(lFileHandle,NULL,NULL,NULL);
+
+			uint16_t temp;
+			Reg_Read(0, 0x20, &temp);
+			DEBG_PRINT("0x20: %x\n",temp);
+			Reg_Read(0, 0x03, &temp);
+			DEBG_PRINT("0x03: %x\n",temp);
 
 			bCapturePreviewImage = true;
 			tempCnt=0;

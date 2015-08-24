@@ -309,7 +309,7 @@ static void InitializeAppVariables()
 	g_TimeStamp_cc3200Up = 0;
 	g_TimeStamp_NWPUp = 0;
 	g_TimeStamp_CamUp = 0;
-	g_TimeStamp_PhotoSnap = 0;
+	g_TimeStamp_PhotoSnap = 100;
 	g_TimeStamp_PhotoUploaded = 0;
 	g_TimeStamp_DoorClosed = 0;
 	g_TimeStamp_MinAngle = 0;

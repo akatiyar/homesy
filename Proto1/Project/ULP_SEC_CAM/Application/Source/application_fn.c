@@ -80,7 +80,10 @@ int32_t application_fn()
 		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
 
 #ifdef USB_DEBUG
+		g_Task1_Notification = MAGNETOMETERINIT_STARTED;
 		magnetometer_initialize();
+		uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
+		ImageConfigData = ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t));
 #endif
 
 		ReadFile_FromFlash((uint8_t*)g_image_buffer,
@@ -89,6 +92,12 @@ int32_t application_fn()
 		while(g_Task1_Notification != MAGNETOMETERINIT_STARTED);
 
 		g_Task3_Notification = READ_SENSORCONFIGFILE_DONE;
+
+#ifdef USB_DEBUG
+		Wakeup_ImageSensor();		//Wake the image sensor
+		ReStart_CameraCapture(ImageConfigData);	//Restart image capture
+		g_Task1_Notification = TIMERS_DISABLED;
+#endif
 
 		// Open Image file in Flash to write image. File open for write takes
 		//time, so we do it ahead of angle check, so that at the instant angle
@@ -172,8 +181,10 @@ int32_t application_fn()
 			DEBG_PRINT("$");
 		}
 
+		//g_flag_door_closing_45degree = 1;	//Uncomment to always capture
+
 		start_100mSecTimer();	//For Timeout detection
-		//sensorsTriggerSetup(); //Tag:Remove DGB Wake Time Profile
+		//sensorsTriggerSetup(); //For Wake Time Profile
 		while(1)
 		{
 			//angleCheck();
@@ -243,11 +254,17 @@ int32_t application_fn()
 
 				PRCMSOCReset();
 			}
+			/*else
+			{
+				//Rm
+				DEBG_PRINT("Image captured\n");
+				Read_AllRegisters();
+			}*/
 			stop_1Sec_TimeoutTimer();
 
-			//Tag:Timestamp photo click
-			cc_rtc_get(&time_now);
-			g_TimeStamp_PhotoSnap = time_now.secs * 1000 + time_now.nsec / 1000000;
+//			//Tag:Timestamp photo click
+//			cc_rtc_get(&time_now);
+//			g_TimeStamp_PhotoSnap = time_now.secs * 1000 + time_now.nsec / 1000000;
 
 			g_ulAppStatus = IMAGE_CAPTURED;
 			g_ucReasonForFailure = IMAGE_NOTUPLOADED;
@@ -261,6 +278,7 @@ int32_t application_fn()
 	    lRetVal = NWP_SwitchOff();
 		ASSERT_ON_ERROR(lRetVal);
 
+		//Uncomment
 		Standby_ImageSensor();	//Put the Image Sensor in standby
 
 		//Upload only if image was capture

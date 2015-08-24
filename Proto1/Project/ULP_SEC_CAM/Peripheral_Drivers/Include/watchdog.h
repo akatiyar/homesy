@@ -16,7 +16,8 @@
 									//triggered every WDT_KICK_GAP
 
 #define APPLICATION_TIMEOUT			300000	//in milli sec. 5min = 5*60*1000 msec = 300000
-#define USERCONFIG_TIMEOUT			420000	//in milli sec. 7min = 7*60*1000 msec = 600000
+//#define USERCONFIG_TIMEOUT			420000	//in milli sec. 7min = 7*60*1000 msec = 420000
+#define USERCONFIG_TIMEOUT			900000	//in milli sec. 15min = 15*60*1000 msec = 900000
 //#define APPLICATION_TIMEOUT			30000	//in milli sec
 
 volatile uint32_t g_ulWatchdogCycles;

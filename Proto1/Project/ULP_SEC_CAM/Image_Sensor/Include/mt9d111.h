@@ -89,7 +89,7 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod);
 #define HARD_STANDBY				2
 
 #define ANALOG_GAIN_BITS			0x0180
-#define DIGITAL_GAIN_BITS			0x0600
+#define DIGITAL_GAIN_BITS			0x0E00
 #define INITIAL_GAIN_BITS			0x007F
 
 int32_t Refresh_mt9d111Firmware();

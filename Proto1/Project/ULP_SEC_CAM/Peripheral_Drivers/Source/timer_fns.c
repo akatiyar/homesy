@@ -164,7 +164,7 @@ int32_t reload_periodicTimer()
 }
 int32_t stop_periodicInterrupt_timer()
 {
-	DEBG_PRINT("PerTimr Start\n");
+	DEBG_PRINT("PerTimr Stop\n");
 	Timer_IF_Stop(TIMERA1_BASE, TIMER_A);
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA1, PRCM_RUN_MODE_CLK);
 
