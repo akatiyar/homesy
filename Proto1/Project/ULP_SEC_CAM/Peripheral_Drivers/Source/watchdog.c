@@ -49,6 +49,35 @@ void WatchdogIntHandler(void)
         return;
     }
 
+/*    // If apptimeout/WDT_notfed, take corrective action
+    // WDT reset due to fault ISR will not be taken
+    if((!g_ucFeedWatchdog) || (g_ulWatchdogCycles >= (g_ulAppTimeout_ms/WDT_KICK_GAP)))
+    {
+		if(g_ulWatchdogCycles >= (g_ulAppTimeout_ms/WDT_KICK_GAP))
+		{
+			//MAP_UtilsDelay(800000);
+			DEBG_PRINT("WDT app time out\n");
+			//MAP_UtilsDelay(100*80000/6);
+
+			g_ulWatchdogCycles = 0;
+		}
+		else if(!g_ucFeedWatchdog)
+		{
+			//g_ucFeedWatchdog = 1;	//Continue to feed the WDT
+		}
+
+    	if(!correctiveActionDone)
+    	{
+    		g_ucFeedWatchdog = 1;	//Continue to feed the WDT
+    		CorrectiveAction();
+    		g_ucFeedWatchdog = 0;	//Starve the WDT
+    	}
+    	else
+    	{
+    		return;
+    	}
+    }*/
+
     //
     // Clear the watchdog interrupt.
     //
@@ -66,14 +95,24 @@ void WatchdogIntHandler(void)
 
 int16_t WDT_init()
 {
-#ifdef WATCHDOG_ENABLE
 	DEBG_PRINT("WDT Init\n");
 	WDT_IF_Init(WatchdogIntHandler, MILLISECONDS_TO_TICKS(WDT_KICK_GAP));
+
+	MAP_WatchdogStallEnable(WDT_BASE);	//CS
+
+//Release will always have watchdog enabled. In debug watchdog can be enabled
+//by defining WATCKDOG_ENABLE macro
+#ifdef USB_DEBUG
+#ifndef WATCHDOG_ENABLE
+    	DEBG_PRINT("WDT deinit\n");
+    	//WDT_IF_DeInit();
+    	MAP_PRCMPeripheralClkDisable(PRCM_WDT, PRCM_RUN_MODE_CLK);
+#endif
+#endif
 
 	g_ucFeedWatchdog = 1;
 	g_ulWatchdogCycles = 0;
 
 	g_ulAppTimeout_ms = APPLICATION_TIMEOUT;
-#endif
 	return 0;
 }

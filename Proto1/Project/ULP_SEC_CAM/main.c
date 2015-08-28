@@ -357,6 +357,7 @@ void main()
 	//
 	//	Turn off if battery is too low. To protect flash data from corruption
 	//
+	g_fBatteryVolt_atStart = Get_BatteryVoltage();
 	if(Get_BatteryPercent() <= BATTERY_LOW_THRESHOLD)
 	{
 		RELEASE_PRINT("Low Battery\n");

@@ -86,10 +86,12 @@ void Main_Task_withHibernate(void *pvParameters)
 
 //Use the folowing code to test without hibernate
 #ifdef USB_DEBUG
-		// To reconfigure with the settings applied
-//		Wakeup_ImageSensor();		//Wake the image sensor
-//		ReStart_CameraCapture();	//Restart image capture
-		while(1);
+		while(1)
+		{
+			//application_fn();
+			SendObject_ToParse(GROUND_DATA);
+			MAP_UtilsDelay(1000);
+		}
 #endif
 
   		//Commits image if running in test mode

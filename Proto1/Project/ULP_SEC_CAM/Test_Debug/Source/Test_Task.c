@@ -22,12 +22,46 @@ extern void Calculate_TrueMinMaxAngles();
 
 void Test_Task(void *pvParameters)
 {
+#ifdef COMPILE_THIS
+	uint16_t lux_reading[50];
+	int i;
+
+	/*for(i=0; i<50; i++)
+	{
+		configureISL29035(0, NULL, NULL);
+		lux_reading[i] = getLightsensor_data();
+		UtilsDelay(.01*80000000/4);
+	}*/
+
+	for(i=0; i<50; i++)
+	{
+		configureISL29035(0, NULL, NULL);
+		lux_reading[i] = getLightsensor_data();
+		DEBG_PRINT("Lux: %d\n",lux_reading[i]);
+		UtilsDelay(80000000/4);
+	}
+	while(1);
+#endif
+
+#ifdef COMPILE_THIS
+	uint8_t data;
+	FXOS8700_Init(NULL, NULL);
+	i2cReadRegisters(0x1E, 0x5B, 1, &data);
+	DEBG_PRINT("b standby: %x\n", data);
+	reset_accelMagn_fxos8700();
+	i2cReadRegisters(0x1E, 0x5B, 1, &data);
+	DEBG_PRINT("a standby: %x\n", data);
+	while(1);
+#endif
+
+#ifdef COMPLIE_THIS
 	start_periodicInterrupt_timer(2.5);
 	while(1)
 	{
 		DEBG_PRINT(".");
 		osi_Sleep(1);
 	}
+#endif
 
 #ifdef COMPILE_THIS
 	g_fMinAngle = 361;

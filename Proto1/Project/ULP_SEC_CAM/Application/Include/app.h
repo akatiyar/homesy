@@ -21,9 +21,9 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"Release 0.0.16 Q=48"
+//#define FIRMWARE_VERSION 		"Release 0.0.16 Q=48"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
-//#define FIRMWARE_VERSION 		"F 0.36c"
+#define FIRMWARE_VERSION 		"F 0.37c"
 
 //#define APP_SSID_NAME 		"Solflr3"
 //#define APP_SSID_PASSWORD		"37203922bb"
@@ -63,6 +63,10 @@
 //#define BATTERY_LOW_THRESHOLD			32	//percent
 
 #define PI				(3.141592654F)
+
+//To be passed to UtilsDelay(). Delay will be more if parallel tasks are also running
+#define NO_OF_OPS_PERCYCLE					4
+#define ONESEC_NO_OF_CYCLES					(SYSTEM_CLOCK/NO_OF_OPS_PERCYCLE)
 
 #ifdef NOTERM
 #define DEBG_PRINT(x,...)
@@ -117,8 +121,10 @@ typedef enum
 	ADC081C021_NOT_FOUND = SI7020_NOT_FOUND - 1,	//Battery ADC
 	PCF8574_NOT_FOUND = ADC081C021_NOT_FOUND - 1,	//IO expander
 
+	UNABLE_TO_RESET_FXOS8700 = PCF8574_NOT_FOUND - 1,
+
 	// WiFi Provisioning through AP Mode
-	USER_WIFI_PROFILE_FAILED_TO_CONNECT = PCF8574_NOT_FOUND - 1,
+	USER_WIFI_PROFILE_FAILED_TO_CONNECT = UNABLE_TO_RESET_FXOS8700 - 1,
 
 	MT9D111_FIRMWARE_STATE_ERROR = USER_WIFI_PROFILE_FAILED_TO_CONNECT - 1,
 	MT9D111_IMAGE_CAPTURE_FAILED = MT9D111_FIRMWARE_STATE_ERROR - 1,
@@ -207,6 +213,8 @@ struct u64_time g_Struct_TimeStamp_MaxAngle;
 struct u64_time g_Struct_TimeStamp_MinAngle;
 struct u64_time g_Struct_TimeStamp_SnapAngle;
 struct u64_time g_Struct_TimeStamp_OpenAngle;
+float_t g_fBatteryVolt_atStart;
+float_t g_fBatteryVolt_atEnd;
 
 typedef enum
 {

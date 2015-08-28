@@ -631,6 +631,7 @@ int32_t CaptureImage(int32_t lFileHandle)
     //StopTimer();
     //DEBG_PRINT("pA");
     DEBG_PRINT("Image captured from Sensor\n");
+    DEBG_PRINT("g_frame_size_in_bytes: %ld\n", g_frame_size_in_bytes);
 
     //float_t fPicCaptureDuration;
     //GetTimeDuration(&fPicCaptureDuration);
@@ -639,8 +640,13 @@ int32_t CaptureImage(int32_t lFileHandle)
     //
     // Write the remaining Image data from RAM to Flash
     //
+    //DEBG_PRINT("g_frame_size_in_bytes-uiImageFile_Offset: %ld\n",(g_frame_size_in_bytes-uiImageFile_Offset));
+    //DEBG_PRINT("g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES: %ld\n",(g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
+    //DEBG_PRINT("Leftover inv comp: %ld\n",((g_frame_size_in_bytes-CAM_DMA_BLOCK_SIZE_IN_BYTES) % BLOCK_SIZE_IN_BYTES));
     lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
                       (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
+					  //(g_frame_size_in_bytes - uiImageFile_Offset + CAM_DMA_BLOCK_SIZE_IN_BYTES));
+					  //(g_frame_size_in_bytes - uiImageFile_Offset));
                       (g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
     if (lRetVal <0)
     {
@@ -649,9 +655,15 @@ int32_t CaptureImage(int32_t lFileHandle)
     }
     uiImageFile_Offset += lRetVal;
 
-    RELEASE_PRINT("Image size: %ld\n", g_frame_size_in_bytes);
-    //DEBG_PRINT("Image Write No of bytes: %ld\n", (uiImageFile_Offset-g_header_length));
-	DEBG_PRINT("Image written to Flash\n");
+    DEBG_PRINT("Image written to Flash\n");
+    RELEASE_PRINT("Image size: %ld\n", uiImageFile_Offset);
+
+    //DEBG_PRINT("Total DMA interrupts : %d\n", g_total_dma_intrpts);
+    //DEBG_PRINT("Image Write No of bytes: %ld\n", uiImageFile_Offset);
+    //SlFsFileInfo_t FileInfo;
+    //uint32_t ulToken = NULL;
+    //sl_FsGetInfo((uint8_t*)JPEG_IMAGE_FILE_NAME,ulToken,&FileInfo);
+	//DEBG_PRINT("Size of Image in Flash:%ld\n",FileInfo.FileLen);
 
     return lRetVal;
 }
@@ -897,12 +909,11 @@ void CamControllerInit()
 //*****************************************************************************
 static void CameraIntHandler()
 {
-	//DEBG_PRINT("\n!");
+	//DEBG_PRINT("!");
 
-	//RegStatusRead();
-
-    if(g_total_dma_intrpts > 1 && MAP_CameraIntStatus(CAMERA_BASE) & CAM_INT_FE)
+    if(g_total_dma_intrpts > 1 && CameraIntStatus(CAMERA_BASE) & CAM_INT_FE)
     {
+    	//DEBG_PRINT("?");
         MAP_CameraIntClear(CAMERA_BASE, CAM_INT_FE);
         g_frame_end = 1;
         g_collect_timestamp = 1;
@@ -912,11 +923,12 @@ static void CameraIntHandler()
         //JPEGDataLength_read();
     }
     //else if(HWREG(0x440260A0) & (1<<8))
-    else if(HWREG(0x440260A4) & (1<<8))
+    //if(HWREG(0x440260A4) & (1<<8))
+    if(CameraIntStatus(CAMERA_BASE)& CAM_INT_DMA)
     {
     	//DEBG_PRINT(".");
     	// Camera DMA Done clear
-        HWREG(0x4402609C) |= 1 << 8;
+    	CameraIntClear(CAMERA_BASE,CAM_INT_DMA);	//HWREG(0x4402609C) |= 1 << 8;
 
         g_total_dma_intrpts++;
 
@@ -1016,13 +1028,14 @@ static void CameraIntHandler()
             		g_block_lastFilled = -1;
             	}
             }
-      }
+        }
         else
         {
+        	DEBG_PRINT("?");
             // Disable DMA 
             MAP_UtilsDelay(20000);
             MAP_uDMAChannelDisable(UDMA_CH22_CAMERA);
-            HWREG(0x44026090) |= 1 << 8;
+            CameraIntDisable(CAMERA_BASE,CAM_INT_DMA);             //HWREG(0x44026090) |= 1 << 8;
             g_frame_end = 1;
             g_collect_timestamp = 1;
             //DEBG_PRINT("col1b\n");

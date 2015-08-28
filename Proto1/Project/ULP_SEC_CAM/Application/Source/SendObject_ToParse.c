@@ -59,6 +59,8 @@ int32_t SendObject_ToParse(uint8_t ucClassName)
 
 			Calculate_TrueMinMaxAngles();
 
+			g_fBatteryVolt_atEnd = Get_BatteryVoltage();
+
 			UploadGroundDataObjectToParse(clientHandle, &ucFridgeCamID[0]);
 
 			break;

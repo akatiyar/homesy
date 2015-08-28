@@ -801,7 +801,11 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 //				}
                 // cc3200 gets stuck after this. So, a workaround is to reset
                 //and begin again
+#ifdef USB_DEBUG
+                while(1);
+#else
                 PRCMSOCReset();
+#endif
                 /*sl_Stop(0);
                 DEBG_PRINT("NWP stop done");
                 sl_Start(0,0,0);

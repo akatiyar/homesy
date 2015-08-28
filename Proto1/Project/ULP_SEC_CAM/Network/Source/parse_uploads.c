@@ -338,6 +338,8 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucGroundDataObject)
 {
 	char ObjectID[OBJECT_ID_MAX_LEN];
+	uint8_t ucCharConv[20];
+	uint8_t len;
 	memset(ObjectID, '\0', OBJECT_ID_MAX_LEN);
 
 	memset(pucGroundDataObject, '\0', GROUND_DATA_OBJECT_SIZE);
@@ -361,8 +363,13 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 					sizeof("\"DevObjectId\":\""));
 	strncat((char*)pucGroundDataObject, (const char*)ObjectID,
 					strlen((char*)ObjectID));
-	strncat((char*)pucGroundDataObject,	"\",", sizeof("\","));
-
+	strncat((char*)pucGroundDataObject, "\",\"batVolt_Start\":", sizeof("\",\"batVolt_Start\":"));
+	len = intToASCII((uint16_t)(g_fBatteryVolt_atStart*(float_t)1000.0F), (char*)ucCharConv);
+	strncat((char*)pucGroundDataObject, (const char*)ucCharConv, len);
+	strncat((char*)pucGroundDataObject, ",\"batVolt_End\":", sizeof(",\"batVolt_End\":"));
+	len = intToASCII((uint16_t)(g_fBatteryVolt_atEnd*(float_t)1000.0F), (char*)ucCharConv);
+	strncat((char*)pucGroundDataObject, (const char*)ucCharConv, len);
+	strncat((char*)pucGroundDataObject,	",", sizeof(","));
 	Add_NumberField_ToJSONString(pucGroundDataObject, FAILURE_REASON,
 									g_ucReasonForFailure, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_CC3200UP,
@@ -601,3 +608,18 @@ int32_t UploadFirmwareVersionObjectToParse(ParseClient client, uint8_t* pucFridg
 
 	return lRetVal;
 }
+
+//******************************************************************************
+// param1 [in] fFloatVal
+// param2 [out] pointer to character array
+// Return no of chars in characte array
+//******************************************************************************
+/*
+uint8_t floatToString(float_t floatNum, uint8_t* ucfloatString)
+{
+	uint8_t noOfDecimalDigits, noOfFractionalDigits;
+
+
+	intToASCII(floatNum*);
+
+}*/

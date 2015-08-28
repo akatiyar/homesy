@@ -116,6 +116,45 @@ int32_t getAccelMagntData(uint8_t* pucAccelMagntData)
 	return lRetVal;
 }
 
+//******************************************************************************
+// This function does a software reset of FXOS
+//
+// Can be called in active / standby mode of FXOS
+//******************************************************************************
+int32_t reset_accelMagn_fxos8700()
+{
+	uint8_t data = 0x40;
+	int32_t lRetVal;
+	uint8_t ucTryNum;
+
+	DEBG_PRINT("Reset AM\n");
+
+	// This function call returns error, since FXOS does not give
+	//acknowledgement when reset is activated
+	lRetVal = setConfigReg(CTRL_REG2, data);
+	//PRINT_ON_ERROR(lRetVal);
+
+	UtilsDelay((ONESEC_NO_OF_CYCLES/1000 + 100));	//give a one milli sec delay
+													//before any other operation
+													//with FXOS
+	ucTryNum = 1;
+	while((data != 0x00) && (ucTryNum <= 5))
+	{
+		lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS, CTRL_REG2, 1, &data);
+		PRINT_ON_ERROR(lRetVal);
+		DEBG_PRINT("0x00:%x\n",data);
+		UtilsDelay(10000);
+		ucTryNum++;
+	}
+
+	if(data != 0x00)
+	{
+		return UNABLE_TO_RESET_FXOS8700;
+	}
+
+	return SUCCESS;
+}
+
 #ifdef COMPILE_THIS
 //******************************************************************************
 //

@@ -12,7 +12,7 @@
 #define RESISTOR_R2								(47.0F)	//in KOhms. Tag:Schematic
 
 #define VREF									(3.0F)	//Supply Vcc to chip = Reference voltage
-#define ONE_LSB_EQUALS							(VREF/ADC_RESOLUTION)	// 2^8 = 256
+#define ONE_LSB_EQUALS							(VREF/ADC_RESOLUTION)
 
 #define BATTERY_MAXIMUM_CAPACITY				1400	//in mAh	//Tag. Should this be made equal to 1240?
 #define V2C_LUT_SIZE							11
@@ -79,5 +79,20 @@ uint8_t Get_BatteryPercent()
 	DEBG_PRINT("ADC Value= %xH, VBAT = %3.3f, PercentCharge = %d\n", ucADCValue, fBatteryVoltage, ChargePercent);
 
 	return ChargePercent;
+}
+
+float_t Get_BatteryVoltage()
+{
+	float_t fBatteryVoltage;
+	uint8_t ucADCValue;
+
+	Get_BatteryVoltageLevel_ADC081C021(&ucADCValue);
+
+	fBatteryVoltage = ((float_t)ucADCValue * ONE_LSB_EQUALS) + 0.5 * ONE_LSB_EQUALS;	//Analog Voltage(VA)
+	(fBatteryVoltage) = (fBatteryVoltage) * (RESISTOR_R1 + RESISTOR_R2) / RESISTOR_R2;	//VA = VBAT*R2/(R1+R2)
+
+	DEBG_PRINT("ADC Value= %xH, VBAT = %3.3f\n", ucADCValue, fBatteryVoltage);
+
+	return fBatteryVoltage;
 }
 

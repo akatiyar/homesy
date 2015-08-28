@@ -12,6 +12,7 @@ extern int32_t User_Configure();
 extern int32_t application_fn();
 
 extern uint8_t Get_BatteryPercent();
+extern float_t Get_BatteryVoltage();
 
 extern int16_t IsLightOff(uint16_t usThresholdLux);
 extern int32_t PowerDown_LightSensor();

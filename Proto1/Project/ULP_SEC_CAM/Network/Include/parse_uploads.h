@@ -18,8 +18,6 @@ ParseClient InitialiseParse();
 int32_t UploadImageToParse(ParseClient client,
 							uint8_t* ucImageDirName,
 							uint8_t* ucParseImageName);
-//int32_t UploadSensorDataToParse(ParseClient client,
-//								uint8_t* sensorDataDirName);
 int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 								uint8_t* pucParseImageUrl, float_t fTemp,
 								float_t fRH, uint8_t ucBatteryLvl,

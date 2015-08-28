@@ -23,7 +23,7 @@
 #include <socket.h>
 
 #include "parse_impl.h"
-
+#include "app.h"
 #define CONNECT_TIMEOUT_MICROSECONDS 5 * 1000 * 1000
 #define READ_SMALL_TIMEOUT_MICROSECONDS 10 * 1000
 
@@ -200,14 +200,16 @@ long socketWrite(short socketHandle, const char *sendBuffer, unsigned int sendBu
 
         if(status < 0)
         {
-        	DEBUG_PRINT("*");
+        	DEBUG_PRINT("#@");
             if(status == SL_EAGAIN)
+            {
                 status=0;
+            }
             else
+            {
                 return status;
-
+            }
         }
-
         else
         {
             sent_data_size = sent_data_size+status;

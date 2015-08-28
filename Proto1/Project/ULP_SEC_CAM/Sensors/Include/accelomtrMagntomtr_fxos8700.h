@@ -180,4 +180,5 @@ void writeMagntCalibrationValue(int16_t* psCalibOffsetVals);
 void clearAccelMotionIntrpt();
 
 int32_t standby_accelMagn_fxos8700();
+int32_t reset_accelMagn_fxos8700();
 #endif /* FXOS8700_H_ */

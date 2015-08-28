@@ -189,6 +189,7 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 //    		unsigned char myFile[] = "www/images/cc3200_camera_capture.jpg";
     		unsigned long ulToken = NULL;
     		long lRetVal;
+    		long sizeOfImage = 0;
 /*//			 lRetVal = sl_FsOpen(myFile, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
     		lRetVal = sl_FsOpen(httpRequestBody, FS_MODE_OPEN_READ, &ulToken, &lFileHandle);
 			 if(lRetVal < 0)
@@ -205,12 +206,19 @@ int buildRequestHeaders(ParseClientInternal *parseClient, const char *host, cons
 			 {
 				 for( ;; );
 			 }
+			 sizeOfImage += fileInfo.FileLen;
+			 lRetVal = sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &fileInfo);
+			 if (lRetVal < 0)
+			 {
+				 for( ;; );
+			 }
+			 sizeOfImage += fileInfo.FileLen;
 
 			if (status >= 0)
 			{
 				currentPosition += status;
 				currentSize -= status;
-				status = addHttpRequestHeaderInt(dataBuffer + currentPosition, currentSize, "Content-Length", fileInfo.FileLen);
+				status = addHttpRequestHeaderInt(dataBuffer + currentPosition, currentSize, "Content-Length", sizeOfImage);
 //				status = addHttpRequestHeaderInt(dataBuffer + currentPosition, currentSize, "Content-Length", 64000);
 			}
 
@@ -307,7 +315,7 @@ int payloadSend( const char *httpRequestBody,
 		unsigned long ulToken = 0;
 		SlFsFileInfo_t fileInfo;
 
-		//	Header
+		//	JPEG Header
 		sl_FsGetInfo((_u8*)JPEG_HEADER_FILE_NAME, ulToken, &fileInfo);
 		status = ReadFile_FromFlash((uint8_t*)dataBuffer, JPEG_HEADER_FILE_NAME, fileInfo.FileLen, 0);
 		if (status >= 0)
@@ -321,6 +329,7 @@ int payloadSend( const char *httpRequestBody,
 			}
 		}
 
+		//JPEG Image Body
 		sl_FsGetInfo((_u8*)httpRequestBody, ulToken, &fileInfo);
 		status = sl_FsOpen((_u8*)httpRequestBody, FS_MODE_OPEN_READ,
 							&ulToken, &lFileHandle);
@@ -330,6 +339,7 @@ int payloadSend( const char *httpRequestBody,
 			status = sl_FsClose(lFileHandle, 0, 0, 0);
 			for( ;; );
 		}
+		//DEBG_PRINT("Size of Image in Flash(request.c):%ld\n",fileInfo.FileLen);
 
 		unsigned int i, size_readBytes = 0;
 		unsigned int size_SumSocketWriteReturnVal = 0;
@@ -364,9 +374,11 @@ int payloadSend( const char *httpRequestBody,
 				}
 				size_SumSocketWriteReturnVal += status;
 			}
+#ifndef INTERNAL_TESTING
 			UtilsDelay(80000);
+#endif
 		}
-		DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
+		DEBG_PRINT("1.Read_fromFile:%d  Written_toSocket: %d\n", size_readBytes, size_SumSocketWriteReturnVal);
 		if(0 != fileInfo.FileLen%SIZE_SOCK_WRITE_DATA)
 		{
 			status = sl_FsRead(lFileHandle,
@@ -381,7 +393,7 @@ int payloadSend( const char *httpRequestBody,
 				 for( ;; );
 			 }
 			 size_readBytes += status;
-			 DEBUG_PRINT("%d  %d\n\r", size_readBytes, size_SumSocketWriteReturnVal);
+			 DEBG_PRINT("2.Read_fromFile:%d  Written_toSocket: %d\n", size_readBytes, size_SumSocketWriteReturnVal);
 		}
 
 
@@ -423,6 +435,7 @@ int payloadSend( const char *httpRequestBody,
 			while(1);
 		}
 		UtilsDelay(80000);
+		DEBG_PRINT("Last Write_toSocket: %d\n",  status);
 	}
 
 	return status;

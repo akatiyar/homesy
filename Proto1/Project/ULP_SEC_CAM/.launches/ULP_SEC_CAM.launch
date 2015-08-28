@@ -5,9 +5,9 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="${build_artifact:ULP_SEC_CAM}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="ULP_SEC_CAM"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:ULP_SEC_CAM}"/>
-<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="D:/Projects\Vcognition\GIT Clone\homesy\Proto1\Project\ULP_SEC_CAM\Release\ULP_SEC_CAM.out"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.Stellaris In-Circuit Debug Interface_0/Cortex_M4_0" value="D:/Projects\Vcognition\GIT Clone\homesy\Proto1\Project\ULP_SEC_CAM\Debug\ULP_SEC_CAM.out"/>
 <mapAttribute key="com.ti.ccstudio.debug.ui.displayFormats">
-<mapEntry key="Stellaris In-Circuit Debug Interface_0/Cortex_M4_0@##separator##@0" value="Character"/>
+<mapEntry key="Stellaris In-Circuit Debug Interface_0/Cortex_M4_0@##separator##@0" value="64-Bit Hex - C Style"/>
 </mapAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/ULP_SEC_CAM"/>

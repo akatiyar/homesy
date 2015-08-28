@@ -96,7 +96,11 @@ int32_t application_fn()
 #ifdef USB_DEBUG
 		Wakeup_ImageSensor();		//Wake the image sensor
 		ReStart_CameraCapture(ImageConfigData);	//Restart image capture
-		g_Task1_Notification = TIMERS_DISABLED;
+		//Initialize image capture
+		memset((void*)g_image_buffer, 0xFF, IMAGE_BUF_SIZE_BYTES);
+		ImagCapture_Init();
+		//Use this if you're debugging image
+		g_flag_door_closing_45degree = 1;
 #endif
 
 		// Open Image file in Flash to write image. File open for write takes
@@ -176,10 +180,12 @@ int32_t application_fn()
 
 		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
 
+#ifndef USB_DEBUG
 		while(g_Task1_Notification != TIMERS_DISABLED)
 		{
 			DEBG_PRINT("$");
 		}
+#endif
 
 		//g_flag_door_closing_45degree = 1;	//Uncomment to always capture
 

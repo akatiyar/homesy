@@ -63,6 +63,7 @@ extern "C"
 //#define IMAGE_BUF_SIZE_BYTES			72192
 //#define IMAGE_BUF_SIZE_BYTES			25600
 #define IMAGE_BUF_SIZE_BYTES			81920	//80K //Image buffer
+//#define IMAGE_BUF_SIZE_BYTES			40960	//40K //Image buffer
 
 #define PREVIEW_IMAGE_MAXSZ				40960	//40K
 

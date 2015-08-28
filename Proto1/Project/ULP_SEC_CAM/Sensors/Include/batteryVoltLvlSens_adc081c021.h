@@ -18,7 +18,7 @@
 #include "app.h"
 #include "math.h"
 
-#define ADC_RESOLUTION							(256.0F)
+#define ADC_RESOLUTION							(256.0F)	// 2^8 = 256
 
 int32_t PutInAlertMode_ADC081C021(float_t fAlertVoltageLimit);
 
