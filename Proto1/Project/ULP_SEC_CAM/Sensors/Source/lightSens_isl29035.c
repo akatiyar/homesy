@@ -108,6 +108,11 @@ void configureISL29035(uint8_t ucAppMode,
 							&ucConfigArray[i*2 + 1]);
 		PRINT_ON_ERROR(lRetVal);
 	}
+	//UtilsDelay(500*80000/4);
+	UtilsDelay(105*80000/6);	//Wait for a single conversion time (105ms)
+							//So that is the application program requests Lux
+							//immediately after the config, 0 is not returned
+							//by the sensor
 
 	return;
 }

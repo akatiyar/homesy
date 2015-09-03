@@ -38,7 +38,6 @@ void Main_Task_withHibernate(void *pvParameters)
 	//This branch is entered only on wake up from hibernate
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
-		LED_On();
 		RELEASE_PRINT("\nI'm up\n");
 
 		//Enter the application funcitonality
@@ -88,8 +87,7 @@ void Main_Task_withHibernate(void *pvParameters)
 #ifdef USB_DEBUG
 		while(1)
 		{
-			//application_fn();
-			SendObject_ToParse(GROUND_DATA);
+			application_fn();
 			MAP_UtilsDelay(1000);
 		}
 #endif

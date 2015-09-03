@@ -99,7 +99,6 @@
 //                          LOCAL DEFINES                                   
 //****************************************************************************
 #define SERVER_RESPONSE_TIMEOUT 10
-#define SLEEP_TIME              8000000
 #define SUCCESS                 0
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- Start
@@ -309,7 +308,7 @@ static void InitializeAppVariables()
 	g_TimeStamp_cc3200Up = 0;
 	g_TimeStamp_NWPUp = 0;
 	g_TimeStamp_CamUp = 0;
-	g_TimeStamp_PhotoSnap = 100;
+	g_TimeStamp_PhotoSnap = 0;
 	g_TimeStamp_PhotoUploaded = 0;
 	g_TimeStamp_DoorClosed = 0;
 	g_TimeStamp_MinAngle = 0;
@@ -346,13 +345,18 @@ void main()
     BoardInit();
 
     //
+    //To indicate to the user that device is up
+    //
+    LED_On();
+
+    //
     // Initialize application variables
     //
     InitializeAppVariables();
 
-    //Tag:Timestamp CC3200 up
+    //Timestamp CC3200 up
  	cc_rtc_get(&time_now);
-	g_TimeStamp_cc3200Up = time_now.secs * 1000 + time_now.nsec / 1000000;
+ 	g_TimeStamp_cc3200Up = time_now.secs * 1000 + time_now.nsec / 1000000;
 
 	//
 	//	Turn off if battery is too low. To protect flash data from corruption

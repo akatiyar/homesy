@@ -84,7 +84,6 @@ extern void fxos_main();
 
 extern int16_t angleCheck();
 extern int16_t angleCheck_Initializations();
-extern int16_t IsLightOff(uint16_t usThresholdLux);
 extern float_t get_angle();
 
 extern uint8_t g_flag_door_closing_45degree;
@@ -646,8 +645,8 @@ int32_t CaptureImage(int32_t lFileHandle)
     lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
                       (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
 					  //(g_frame_size_in_bytes - uiImageFile_Offset + CAM_DMA_BLOCK_SIZE_IN_BYTES));
-					  //(g_frame_size_in_bytes - uiImageFile_Offset));
-                      (g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
+					  (g_frame_size_in_bytes - uiImageFile_Offset));
+                      //(g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);

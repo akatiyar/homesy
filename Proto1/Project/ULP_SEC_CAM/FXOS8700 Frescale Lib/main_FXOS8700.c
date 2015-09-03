@@ -36,8 +36,6 @@ float_t get_angle();
 int16_t angleCheck_WithCalibration();
 int16_t magnetometer_initialize();
 
-int16_t IsLightOff(uint16_t usThresholdLux);
-
 struct ProjectGlobals globals;
 struct MQXLiteGlobals mqxglobals;
 

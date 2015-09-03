@@ -3,6 +3,7 @@
 	<name>ULP_SEC_CAM</name>
 	<comment></comment>
 	<projects>
+		<project>driverlib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

@@ -34,6 +34,7 @@ uint32_t g_ulReloadVal;
 int32_t start_100mSecTimer()
 {
 	//DEBG_PRINT("100msTimr Start\n");
+	//Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, (TIMER_CFG_PERIODIC|0x00000080), TIMER_A, 0);
 	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_100mSecTimer);
 	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_100MILLISEC);
@@ -41,11 +42,16 @@ int32_t start_100mSecTimer()
 
 	return 0;
 }
+
 void IntHandler_100mSecTimer(void)
 {
+	//uint32_t timeNow, timeAtInterrupt;
+	//timeAtInterrupt = TimerValueGet(TIMERA0_BASE, TIMER_A);
+	//timeNow = TimerValueGet_FreeRunningVal(TIMERA0_BASE, TIMER_A);
 	Timer_IF_InterruptClear(TIMERA0_BASE);
 	Elapsed_100MilliSecs++;
 	checkForLight_Flag = 1;
+	//DEBG_PRINT("TimeAtInterrupt: %d, TimeNow: %d\n", timeAtInterrupt, timeNow);
 	//DEBG_PRINT("%d ",Elapsed_100MilliSecs);
 
 //	if(Elapsed_100MilliSecs%2)
@@ -57,6 +63,7 @@ void IntHandler_100mSecTimer(void)
 //		LED_Off();
 //	}
 }
+
 //	Use this function along with 100 milli sec timer only. Before stopping timer
 uint32_t get_timeDuration()
 {
@@ -67,9 +74,11 @@ uint32_t get_timeDuration()
 	ulCounter = MILLISECONDS_TO_TICKS(RELOADVAL_100MILLISEC) - ulCounter;
 	ulDurationMilliSec = ((float_t)Elapsed_100MilliSecs * 100.0) + ((float_t)ulCounter / 80000.0); //in milli sec
 	//ulDurationMilliSec = ((float_t)Elapsed_100MilliSecs * 1000.0) + ((float_t)ulCounter / 8000.0); //in .1 milli sec
+	//ulDurationMilliSec = ((float_t)Elapsed_100MilliSecs * 100000.0) + ((float_t)ulCounter / 80.0); //in .001 milli sec
 
 	return ulDurationMilliSec;
 }
+
 int32_t stop_100mSecTimer()
 {
 	//DEBG_PRINT("100msTimr Stop\n");
@@ -80,7 +89,6 @@ int32_t stop_100mSecTimer()
 	//DEBG_PRINT("e.3\n");
 	return 0;
 }
-
 
 //******************************************************************************
 // 100ms timer. TimerA0 is used

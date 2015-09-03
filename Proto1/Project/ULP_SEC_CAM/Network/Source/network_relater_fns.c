@@ -500,12 +500,12 @@ long GetSNTPTime(SlDateTime_t *dateTime, unsigned char ucGmtDiffHr, unsigned cha
 
         *g_TimeData.pcCCPtr++ = '\0';
 
-        DEBG_PRINT("Server: ");
-        DEBG_PRINT((char *)g_acSNTPserver);
-        DEBG_PRINT("\n");
-        DEBG_PRINT("Response: ");
-        DEBG_PRINT(g_TimeData.acTimeStore);
-        DEBG_PRINT("\n");
+        //DEBG_PRINT("Server: ");
+        //DEBG_PRINT((char *)g_acSNTPserver);
+        //DEBG_PRINT("\n");
+        //DEBG_PRINT("NTP Time: ");
+        //DEBG_PRINT(g_TimeData.acTimeStore);
+        //DEBG_PRINT("\n");
     }
     return SUCCESS;
 }
@@ -569,7 +569,7 @@ int32_t GetTimeNTP(SlDateTime_t *dateTime)
             lRetVal = GetSNTPTime(dateTime,GMT_DIFF_TIME_HRS, GMT_DIFF_TIME_MINS);
             if(lRetVal == 0)
             {
-                DEBG_PRINT("Time received\n");
+                //DEBG_PRINT("Time received\n");
                 break;
             }
 
@@ -818,7 +818,6 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
         {
         	RELEASE_PRINT("Mobile Station connected to CC3200-AP\n");
         	g_PhoneConnected_ToCC3200AP_flag = 1;
-        	LED_Blink_2(.5,.5,BLINK_FOREVER);
         }
         break;
         default:

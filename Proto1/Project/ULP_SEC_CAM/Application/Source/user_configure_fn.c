@@ -74,6 +74,8 @@ int32_t User_Configure()
 	g_ulWatchdogCycles = 0;
 	g_ulAppTimeout_ms = USERCONFIG_TIMEOUT;
 
+	AccessPtMode_HTTPServer_Start();
+
 	// Initialize the camera
 	//if(g_bCameraOn == false)
 	{
@@ -83,11 +85,7 @@ int32_t User_Configure()
 	SoftReset_ImageSensor();
 	Config_CameraCapture();
 	Start_CameraCapture();	//Do this once. Not needed after standby wake_up
-//	Standby_ImageSensor();
 
-//	g_pfUserConfigData = (float_t*)malloc(CONTENT_LENGTH_USER_CONFIGS);
-
-	AccessPtMode_HTTPServer_Start();
 	// Reading the file, since write erases contents already present
 	ReadFile_FromFlash((uint8_t*)g_pfUserConfigData,
 						(uint8_t*)USER_CONFIGS_FILENAME,
@@ -95,6 +93,7 @@ int32_t User_Configure()
 
 	start_100mSecTimer();	//The timer does not timeout on it's own. We check
 							//the elapsed time and break the while loop on timeout
+
 
 	//Wait till phone connect to cc3200 AP or till push button is pressed or
 	//timeout happens
@@ -112,6 +111,8 @@ int32_t User_Configure()
 		}
 		osi_Sleep(10);
 	}
+
+	LED_Blink_2(.5,.5,BLINK_FOREVER);
 
 	stop_100mSecTimer();	//Stop the timeout timer.
 

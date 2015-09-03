@@ -135,7 +135,7 @@ void check_doorpos()
 		RELEASE_PRINT("O  %3.2f\n", angle_avg);
 		cc_rtc_get(&g_Struct_TimeStamp_OpenAngle);
 		g_ucReasonForFailure = OPEN_NOTCLOSED;
-		LED_Blink_2(.25,.25,BLINK_FOREVER);
+		//LED_Blink_2(.25,.25,BLINK_FOREVER);
 	}
 	//-----------------
 

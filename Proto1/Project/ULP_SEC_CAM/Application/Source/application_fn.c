@@ -181,7 +181,7 @@ int32_t application_fn()
 		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
 
 #ifndef USB_DEBUG
-		while(g_Task1_Notification != TIMERS_DISABLED)
+		while(g_Task3_Notification != TIMERS_DISABLED)
 		{
 			DEBG_PRINT("$");
 		}
@@ -297,6 +297,8 @@ int32_t application_fn()
 				NWP_SwitchOff();
 				ASSERT_ON_ERROR(lRetVal);
 			}
+
+			LED_Blink_2(.2,1,BLINK_FOREVER);
 
 			//	Parse initialization
 			clientHandle = InitialiseParse();

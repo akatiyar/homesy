@@ -21,48 +21,34 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-//#define FIRMWARE_VERSION 		"Release 0.0.16 Q=48"
+#define FIRMWARE_VERSION 		"Release 0.0.17"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
-#define FIRMWARE_VERSION 		"F 0.37c"
+//#define FIRMWARE_VERSION 		"F 0.37d"
+//#define FIRMWARE_VERSION 		"Lux"
 
-//#define APP_SSID_NAME 		"Solflr3"
-//#define APP_SSID_PASSWORD		"37203922bb"
+//#define APP_SSID_NAME 			"Camera"
+//#define APP_SSID_PASSWORD		"abcdef1234"
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
-#define APP_SSID_NAME 			"Camera"
-#define APP_SSID_PASSWORD		"abcdef1234"
-#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
-//#define APP_SSID_NAME 		"Chrysolin-test"
-//#define APP_SSID_PASSWORD		"chrysolin"
-//#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
+#define IMAGE_QUANTIZ_SCALE				(0x0030)	//48
+#define RETRIES_MAX_NETWORK				5
+#define LUX_THRESHOLD					2	//in Lux
+#define DOORCHECK_TIMEOUT_SEC			60	//in sec
+#define BATTERY_LOW_THRESHOLD			5	//in percent
 
-#define SLEEP_TIME              		8000000
-//#define OSI_STACK_SIZE          		3000
-#define OSI_STACK_SIZE          		4500	//in bytes
+
+#define SYSTEM_CLOCK						80000000
+#define SLEEP_TIME              			8000000
+//#define OSI_STACK_SIZE          			3000
+#define OSI_STACK_SIZE          			4500	//in bytes
 #define OSI_STACK_SIZE_MAIN_TASK			5000	//in bytes
 #define OSI_STACK_SIZE_USERCONFIG_TASK		4500	//in bytes
 
-//#define IMAGE_QUANTIZ_SCALE		(0x0020)	//32
-#define IMAGE_QUANTIZ_SCALE		(0x0030)	//48
-//#define IMAGE_QUANTIZ_SCALE		(0x0025)	//37
-//#define IMAGE_QUANTIZ_SCALE		(0x0009)	//Debug
-//#define IMAGE_QUANTIZ_SCALE		(0x0019)	//Debug
-
-#define RETRIES_MAX_NETWORK			5
-
-#define FN_SUCCESS	0
-#define FN_FAILED	1 //Funtion return values are uint16_t
-
-#define SYSTEM_CLOCK	80000000
-
-#define LUX_THRESHOLD					5
-
-#define DOORCHECK_TIMEOUT_SEC			60
-#define BATTERY_LOW_THRESHOLD			5	//percent
-//#define BATTERY_LOW_THRESHOLD			32	//percent
-
 #define PI				(3.141592654F)
+
+#define FN_SUCCESS							0
+#define FN_FAILED							1 //Funtion return values are uint16_t
 
 //To be passed to UtilsDelay(). Delay will be more if parallel tasks are also running
 #define NO_OF_OPS_PERCYCLE					4
@@ -243,6 +229,7 @@ typedef enum
 	TIMEOUT_BEFORE_IMAGESNAP,	//Door open for too long
 	IMAGE_NOTCAPTURED,			//Image capture failure due to some image sensor/camera peripheral issue
 	IMAGE_NOTUPLOADED,			//Upload to Parse failed after 5 retries
+	DOOR_ATSNAP_DURING_FILEOPEN,
 	DOOR_SHUT_DURING_FILEOPEN,	//Image file open did not complete when snap position was detected
 }e_GroundData_FailureReasonCodes;
 

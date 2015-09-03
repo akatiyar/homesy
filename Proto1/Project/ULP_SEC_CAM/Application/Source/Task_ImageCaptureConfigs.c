@@ -83,15 +83,14 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 		stop_100mSecTimer();
 		DEBG_PRINT("Till angle: %dms\n", ulTimeDuration_ms);
 
-		//ulTimeDuration_ms = 0;
-		start_100mSecTimer();
-
 		//
 		//	Get angle and check door position
 		//
 		//This part runs only until the main task finishes opening image file,
 		//so that in case the door open event happens during file open operation,
 		//it will be detected
+		start_100mSecTimer();	//This timer is used to check light off every 100 ms
+		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
 		while(g_Task1_Notification != IMAGEFILE_OPEN_COMPLETE)
 		{
 			g_I2CPeripheral_inUse_Flag = YES;
@@ -99,17 +98,31 @@ void ImageSensor_CaptureConfigs_Task(void *pvParameters)
 			check_doorpos();
 			if(g_flag_door_closing_45degree)
 			{
-				g_ucReasonForFailure = DOOR_SHUT_DURING_FILEOPEN;
+				DEBG_PRINT("Door40 during fopen\n");
+				g_ucReasonForFailure = DOOR_ATSNAP_DURING_FILEOPEN;
+				g_I2CPeripheral_inUse_Flag = NO;
+				break;
+			}
+			if(checkForLight_Flag)	//This flag Goes up once every 100mSec
+			{
+				//Light is off
+				if(IsLightOff(LUX_THRESHOLD))
+				{
+					DEBG_PRINT("Light off while fopen\n");
+					g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
+					g_ucReasonForFailure = DOOR_SHUT_DURING_FILEOPEN;
+					g_I2CPeripheral_inUse_Flag = NO;
+					break;
+				}
 			}
 			g_I2CPeripheral_inUse_Flag = NO;
 		}
-
 		ulTimeDuration_ms = get_timeDuration();
 		stop_100mSecTimer();
 		DEBG_PRINT("Fileopen over: %dms\n", ulTimeDuration_ms);
 		//g_I2CPeripheral_inUse_Flag = NO;
 
-		g_Task1_Notification = TIMERS_DISABLED;
+		g_Task3_Notification = TIMERS_DISABLED;
 	}
 
 	// Delete the task

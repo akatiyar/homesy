@@ -385,9 +385,9 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_DOORCLOSED,
 									g_TimeStamp_DoorClosed, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MAXANGLE,
-									g_TimeStamp_MinAngle, MIDDLE);
-	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MINANGLE,
 									g_TimeStamp_MaxAngle, MIDDLE);
+	Add_NumberField_ToJSONString(pucGroundDataObject, TS_MINANGLE,
+									g_TimeStamp_MinAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_SNAPANGLE,
 									g_TimeStamp_SnapAngle, MIDDLE);
 	Add_NumberField_ToJSONString(pucGroundDataObject, TS_OPENANGLE,
