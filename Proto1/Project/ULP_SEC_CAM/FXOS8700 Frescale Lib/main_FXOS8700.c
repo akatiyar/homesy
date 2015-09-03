@@ -69,7 +69,7 @@ int16_t angleCheck_Initializations()
 	Fusion_Init();
 
 	ReadFile_FromFlash((uint8_t*)Mag_Calb_Value, (uint8_t*)USER_CONFIGS_FILENAME, MAGNETOMETER_DATA_SIZE, 0);
-	DEBG_PRINT("Magn FLash file Read done\n\r");	//Tag:Remove when waketime optimization is over
+	DEBG_PRINT("Magn flash file read done\n");	//Remove when waketime optimization is over
 
 	gdoor_90deg_angle = Mag_Calb_Value[(OFFSET_ANGLE_90/sizeof(float))];
 	gdoor_40deg_angle  = Mag_Calb_Value[(OFFSET_ANGLE_40/sizeof(float))];
@@ -96,9 +96,9 @@ int16_t angleCheck_Initializations()
 	//g_fMinAngle = g_angleOffset_to180;
 	//g_fMaxAngle = g_fMinAngle;
 
-	DEBG_PRINT("90: %3.2f", gdoor_90deg_angle);
-	DEBG_PRINT("40: %3.2f", gdoor_40deg_angle);
-	DEBG_PRINT("Offset to 180: %3.2f", g_angleOffset_to180);
+	DEBG_PRINT("90: %3.2f\n", gdoor_90deg_angle);
+	DEBG_PRINT("40: %3.2f\n", gdoor_40deg_angle);
+	DEBG_PRINT("Offset to 180: %3.2f\n", g_angleOffset_to180);
 
 	print_count = 0;
 	valid_case = 0;

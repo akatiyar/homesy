@@ -133,7 +133,7 @@ int32_t stop_1Sec_TimeoutTimer()
 int32_t start_periodicInterrupt_timer(float_t f_InterruptInterval_ms)
 {
 
-	DEBG_PRINT("PerTimr Start\n");
+	//DEBG_PRINT("PerTimr Start\n");
 	Timer_IF_Init(PRCM_TIMERA1, TIMERA1_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA1_BASE, TIMER_A, ISR_periodicInterrupt_timer);
 
@@ -172,7 +172,7 @@ int32_t reload_periodicTimer()
 }
 int32_t stop_periodicInterrupt_timer()
 {
-	DEBG_PRINT("PerTimr Stop\n");
+	//DEBG_PRINT("PerTimr Stop\n");
 	Timer_IF_Stop(TIMERA1_BASE, TIMER_A);
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA1, PRCM_RUN_MODE_CLK);
 

@@ -133,9 +133,9 @@ int32_t User_Configure()
 		{
 			RELEASE_PRINT("*** Calibration - ROTATE DEVICE NOW ***\n");
 			LED_On();
+			g_ucCalibration = BUTTON_NOT_PRESSED;
 			Get_Calibration_MagSensor();
 			standby_accelMagn_fxos8700();
-			g_ucCalibration = BUTTON_NOT_PRESSED;
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
     	}

@@ -21,9 +21,9 @@
 #include "rtc_hal.h"
 #include "osi.h"
 
-#define FIRMWARE_VERSION 		"Release 0.0.17"
+#define FIRMWARE_VERSION 		"Release 0.0.17.1"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
-//#define FIRMWARE_VERSION 		"F 0.37d"
+//#define FIRMWARE_VERSION 		"F 0.38"
 //#define FIRMWARE_VERSION 		"Lux"
 
 //#define APP_SSID_NAME 			"Camera"
@@ -229,8 +229,7 @@ typedef enum
 	TIMEOUT_BEFORE_IMAGESNAP,	//Door open for too long
 	IMAGE_NOTCAPTURED,			//Image capture failure due to some image sensor/camera peripheral issue
 	IMAGE_NOTUPLOADED,			//Upload to Parse failed after 5 retries
-	DOOR_ATSNAP_DURING_FILEOPEN,
-	DOOR_SHUT_DURING_FILEOPEN,	//Image file open did not complete when snap position was detected
+	DOOR_ATSNAP_DURING_FILEOPEN,//Image file open did not complete when snap position was detected
 }e_GroundData_FailureReasonCodes;
 
 #define NO		0

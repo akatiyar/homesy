@@ -13,6 +13,9 @@
 #include "appFns.h"
 #include "timer_fns.h"
 
+#include "fs.h"
+#include "flash_files.h"
+
 extern float gdoor_90deg_angle;//290
 extern float gdoor_40deg_angle; //110
 extern float gdoor_OpenDeg_angle;
@@ -22,6 +25,37 @@ extern void Calculate_TrueMinMaxAngles();
 
 void Test_Task(void *pvParameters)
 {
+    long lRetVal;
+    long lFileHandle;
+	unsigned long ulToken = NULL;
+	uint32_t ulTimeDuration_ms;
+
+	NWP_SwitchOn();
+
+	start_100mSecTimer();
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
+					   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	DEBG_PRINT("First open: %dms\n", ulTimeDuration_ms);
+
+	PRINT_ON_ERROR(lRetVal);
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	PRINT_ON_ERROR(lRetVal);
+
+	start_100mSecTimer();
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
+						   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	DEBG_PRINT("Second open: %dms\n", ulTimeDuration_ms);
+
+	PRINT_ON_ERROR(lRetVal);
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	PRINT_ON_ERROR(lRetVal);
+
+	NWP_SwitchOff();
+
 #ifdef COMPILE_THIS
 	uint16_t lux_reading[50];
 	int i;

@@ -160,7 +160,7 @@ int32_t application_fn()
 
 		//NOTE: For Ground data upload to Parse only.
 		//Check once more for light. If light is off, then upload the GroundData object and exit function
-		if((IsLightOff(LUX_THRESHOLD)) || (g_ucReasonForFailure == DOOR_SHUT_DURING_FILEOPEN))
+		if((IsLightOff(LUX_THRESHOLD)) || (g_ucReasonForFailure == DOOR_ATSNAP_DURING_FILEOPEN))
 		{
 			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 			ASSERT_ON_ERROR(lRetVal);
@@ -169,7 +169,7 @@ int32_t application_fn()
 			ASSERT_ON_ERROR(lRetVal);
 
 			//Upload GroundData object
-			//SendGroundData();	//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
+			//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
 			SendObject_ToParse(GROUND_DATA);
 
 			g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
@@ -181,7 +181,7 @@ int32_t application_fn()
 		g_ucReasonForFailure = NOTOPEN_NOTCLOSED;
 
 #ifndef USB_DEBUG
-		while(g_Task3_Notification != TIMERS_DISABLED)
+		while(g_Task1_Notification != TIMERS_DISABLED)
 		{
 			DEBG_PRINT("$");
 		}
@@ -218,7 +218,7 @@ int32_t application_fn()
 				{
 					g_ulAppStatus = TIMEOUT_BEFORE_IMAGING;
 					g_ucReasonForFailure = TIMEOUT_BEFORE_IMAGESNAP;
-					RELEASE_PRINT("Timeout\n\r");
+					RELEASE_PRINT("Timeout\n");
 					break;
 				}
 				//Check for button press to let the user enter UserConfig mode
@@ -227,6 +227,7 @@ int32_t application_fn()
 				{
 					LED_Off();
 					Reset_byStarvingWDT();
+					RELEASE_PRINT("Resetting...\n");
 				}
 			}
 		}

@@ -1421,7 +1421,7 @@ int32_t ReadGainReg(uint16_t* Gains)
 	{
 
 		lRetVal = Reg_Read(0x00,(Reg_Addr+Cnt),Gains + Cnt);
-		RELEASE_PRINT("\nReg %x : %x",(Reg_Addr+Cnt),*(Gains + Cnt));
+		DEBG_PRINT("Reg %x : %x\n",(Reg_Addr+Cnt),*(Gains + Cnt));
 		ASSERT_ON_ERROR(lRetVal);
 	}
 	return lRetVal;

@@ -119,6 +119,7 @@ void FXOS8700_Init(struct AccelSensor *pthisAccel, struct MagSensor *pthisMag)
 	// [6]: m_rst=0: one-shot magnetic reset disabled
 	// [5]: m_ost=0: one-shot magnetic measurement disabled
 	// [4-2]: m_os=111=7: 8x oversampling (for 200Hz) to reduce magnetometer noise
+	// 					  4x oversampling (for 400Hz) to reduce magnetometer noise
 	// [1-0]: m_hms=11=3: select hybrid mode with accel and magnetometer active
 	I2C_Buf[i++] = FXOS8700_M_CTRL_REG1;
 	I2C_Buf[i++] = 0x1F;

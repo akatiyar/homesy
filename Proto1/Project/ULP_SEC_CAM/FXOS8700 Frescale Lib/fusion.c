@@ -93,7 +93,7 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	// low pass filter the orientation quaternion and compute the low pass rotation matrix
 	if(loopcounter <= 2)
 	{
-		DBG_PRINT("No LPF %d\n", loopcounter);
+		DEBG_PRINT("No LPF %d\n", loopcounter);
 		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), 1, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
 	}
 	else
