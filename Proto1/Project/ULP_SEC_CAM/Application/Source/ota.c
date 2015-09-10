@@ -147,7 +147,7 @@ static int32_t OTA_Run()
     }
     else
     {
-    	LED_Blink_2(.2,1,BLINK_FOREVER);
+    	//LED_Blink_2(.2,1,BLINK_FOREVER);
 
     	while(!lRetVal)	//lRetVal is non-zero only if OTA download is complete or an error has occured
     	{

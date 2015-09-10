@@ -531,9 +531,10 @@ int32_t CaptureImage(int32_t lFileHandle)
 {
     long lRetVal;
     struct u64_time time_now;
+    uint32_t uiImageFile_Offset;
 
     // Initial values set
-    uint32_t uiImageFile_Offset = 0;
+    uiImageFile_Offset = 0;
 	//g_image_buffer[0] = 0xFFFFFFFF;
 
 	//
@@ -560,7 +561,7 @@ int32_t CaptureImage(int32_t lFileHandle)
 				if (lRetVal < 0)
 				{
 					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+					ASSERT_ON_ERROR(FILE_WRITE_FAILED);
 				}
 
 				// Update Num of bytes written into flash
@@ -576,7 +577,7 @@ int32_t CaptureImage(int32_t lFileHandle)
     	}
     	if(captureTimeout_Flag)
     	{
-    		return CAMERA_CAPTURE_FAILED;
+    		return MT9D111_IMAGE_CAPTURE_FAILED;
     	}
     }
     while((g_frame_end == 0))
@@ -604,7 +605,7 @@ int32_t CaptureImage(int32_t lFileHandle)
 				if (lRetVal < 0)
 				{
 					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-					ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+					ASSERT_ON_ERROR(FILE_WRITE_FAILED);
 				}
 
 				// Update Num of bytes written into flash
@@ -626,7 +627,9 @@ int32_t CaptureImage(int32_t lFileHandle)
 		//DEBG_PRINT("F");
     }
 
-    MAP_CameraCaptureStop(CAMERA_BASE, true);
+    //When the buffer is not fully filled
+    g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
+    //MAP_CameraCaptureStop(CAMERA_BASE, true);
     //StopTimer();
     //DEBG_PRINT("pA");
     DEBG_PRINT("Image captured from Sensor\n");
@@ -645,12 +648,12 @@ int32_t CaptureImage(int32_t lFileHandle)
     lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
                       (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
 					  //(g_frame_size_in_bytes - uiImageFile_Offset + CAM_DMA_BLOCK_SIZE_IN_BYTES));
-					  (g_frame_size_in_bytes - uiImageFile_Offset));
-                      //(g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
+					  //(g_frame_size_in_bytes - uiImageFile_Offset));
+                      (g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+        ASSERT_ON_ERROR(FILE_WRITE_FAILED);
     }
     uiImageFile_Offset += lRetVal;
 
@@ -1071,7 +1074,7 @@ int32_t CaptureandSavePreviewImage()
     if(lRetVal < 0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+        ASSERT_ON_ERROR(FILE_OPEN_WRITE_FAILED);
     }
 
     lRetVal = sl_FsWrite(lFileHandle, 0,(uint8_t*) g_image_buffer,  fileInfo.FileLen+1);
@@ -1099,7 +1102,7 @@ int32_t CaptureandSavePreviewImage()
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+        ASSERT_ON_ERROR(FILE_WRITE_FAILED);
     }
     //
     // Close the file post writing the image

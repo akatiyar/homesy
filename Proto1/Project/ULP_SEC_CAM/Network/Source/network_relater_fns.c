@@ -1,6 +1,7 @@
 
 // Simplelink includes
 #include "app_common.h"
+#include "appFns.h"
 #include "network_related_fns.h"
 #include "camera_app.h"
 #include "flash_files.h"
@@ -804,7 +805,8 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 #ifdef USB_DEBUG
                 while(1);
 #else
-                PRCMSOCReset();
+                Reset_byStarvingWDT();
+                //PRCMSOCReset();
 #endif
                 /*sl_Stop(0);
                 DEBG_PRINT("NWP stop done");

@@ -173,7 +173,7 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 }
 
 
-	/*
+#ifdef COMPILE_THIS
 sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
 //
 // Error handling if File Operation fails
@@ -183,9 +183,10 @@ if(lRetVal < 0)
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
     ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
 }
-	 */
+#endif
 
-/*//
+#ifdef COMPILE_THIS
+//
 // NVMEM File Open to write to SFLASH
 //
 lRetVal = sl_FsOpen((unsigned char *)USER_FILE_NAME,//0x00212001,
@@ -203,9 +204,10 @@ if(lRetVal < 0)
 }
 // Close the created file
 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-ASSERT_ON_ERROR(lRetVal);*/
+ASSERT_ON_ERROR(lRetVal);
+#endif
 
-/*
+#ifdef COMPILE_THIS
 SlFsFileInfo_t fileInfo;
 sl_FsGetInfo((unsigned char *)USER_FILE_NAME, ulToken, &fileInfo);
- */
+#endif

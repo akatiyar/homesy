@@ -295,7 +295,7 @@ static  const s_RegList capture_cmds_list[]= {
 	//{1, 0xC8, 0x0267 },
 	{1, 0xC8, 0x0227 },	//Disable adaptive clocking
 	{1, 0xC6, 0x2774 }, // PCLk 1 and 2 setting
-	{1, 0xC8, 0x02FF },	// PCLK1 = 15
+	{1, 0xC8, 0x02F8 },	// PCLK1 = 15
 	{1, 0xC6, 0x2776 }, // Set Pclk 3
 	{1, 0xC8, 0x0001 },
 

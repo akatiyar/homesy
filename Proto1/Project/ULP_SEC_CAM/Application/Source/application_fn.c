@@ -97,7 +97,7 @@ int32_t application_fn()
 		Wakeup_ImageSensor();		//Wake the image sensor
 		ReStart_CameraCapture(ImageConfigData);	//Restart image capture
 		//Initialize image capture
-		memset((void*)g_image_buffer, 0xFF, IMAGE_BUF_SIZE_BYTES);
+		memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
 		ImagCapture_Init();
 		//Use this if you're debugging image
 		g_flag_door_closing_45degree = 1;
@@ -155,7 +155,7 @@ int32_t application_fn()
 //		stop_100mSecTimer();
 //		DEBG_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
 
-		LED_Blink_2(.5,.5,BLINK_FOREVER);
+		//LED_Blink_2(.5,.5,BLINK_FOREVER);
 		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
 
 		//NOTE: For Ground data upload to Parse only.
@@ -169,6 +169,7 @@ int32_t application_fn()
 			ASSERT_ON_ERROR(lRetVal);
 
 			//Upload GroundData object
+			LED_Blink_2(.2,1,BLINK_FOREVER);
 			//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
 			SendObject_ToParse(GROUND_DATA);
 
@@ -187,7 +188,9 @@ int32_t application_fn()
 		}
 #endif
 
-		//g_flag_door_closing_45degree = 1;	//Uncomment to always capture
+#ifdef IMAGE_DEBUG
+		g_flag_door_closing_45degree = 1;	//Uncomment to always capture
+#endif
 
 		start_100mSecTimer();	//For Timeout detection
 		//sensorsTriggerSetup(); //For Wake Time Profile
@@ -200,7 +203,6 @@ int32_t application_fn()
 			if(g_flag_door_closing_45degree)
 			{
 				g_ulAppStatus = IMAGING_POSITION_DETECTED;
-				LED_On();
 				break;
 			}
 
@@ -225,19 +227,20 @@ int32_t application_fn()
 				// or do OTA
 				if(IS_PUSHBUTTON_PRESSED)
 				{
-					LED_Off();
-					Reset_byStarvingWDT();
 					RELEASE_PRINT("Resetting...\n");
+					Reset_byStarvingWDT();
 				}
 			}
 		}
 		standby_accelMagn_fxos8700();
 		stop_100mSecTimer();
 		stop_periodicInterrupt_timer();
+		LED_Blink_2(.2,1,BLINK_FOREVER);
 
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
 		{
+			//LED_Blink_2(.2,1,BLINK_FOREVER);
 			g_ucReasonForFailure = IMAGE_NOTCAPTURED;
 			start_1Sec_TimeoutTimer();	//To timeout incase image capture is not successful
 			captureTimeout_Flag = 0;
@@ -259,7 +262,9 @@ int32_t application_fn()
 				CCMRegs_Read();
 				PCLK_Rate_read();
 
-				PRCMSOCReset();
+				LED_Blink_2(.2,.2,5);
+				osi_Sleep(.2*2*5*1000);
+				PRCMSOCReset();	//Should be replaced by SYSOFF reset
 			}
 			/*else
 			{
@@ -299,8 +304,6 @@ int32_t application_fn()
 				ASSERT_ON_ERROR(lRetVal);
 			}
 
-			LED_Blink_2(.2,1,BLINK_FOREVER);
-
 			//	Parse initialization
 			clientHandle = InitialiseParse();
 
@@ -337,7 +340,9 @@ int32_t application_fn()
 		}
 
 		//SendGroundData();
+#ifndef IMAGE_DEBUG
 		SendObject_ToParse(GROUND_DATA);
+#endif
 	}
 
 	return lRetVal;

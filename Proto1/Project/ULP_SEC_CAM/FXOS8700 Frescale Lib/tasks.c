@@ -491,18 +491,18 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				}
 			}
 
-			for (i = X; i <= Z; i++)
+			/*for (i = X; i <= Z; i++)
 				{
 					for (j = X; j <= Z; j++)
 					{
 						DEBG_PRINT("i:%d j:%d  %f\n",pthisMagCal->finvW[i][j], i, j);
 			//tag prakz
 					}
-				}
-				DEBG_PRINT("x:%f\ny:%f\nz:%f\n",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
-				DEBG_PRINT("Accepted\n");
+				}*/
+				//DEBG_PRINT("x:%f\ny:%f\nz:%f\n",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
+				//DEBG_PRINT("Accepted\n");
 				g_ucMagCalb++;
-				DEBG_PRINT("\nFitError:%f%%\n", pthisMagCal->fFitErrorpc);
+				//DEBG_PRINT("FitError:%f%%\n", pthisMagCal->fFitErrorpc);
 				//tag prakz
 
 		} // end of test to accept the new calibration 

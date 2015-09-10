@@ -20,8 +20,9 @@
 #include "timer_if.h"
 #include "rtc_hal.h"
 #include "osi.h"
+#include "Error_codes.h"
 
-#define FIRMWARE_VERSION 		"Release 0.0.17.1"
+#define FIRMWARE_VERSION 		"Release 0.0.18"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
 //#define FIRMWARE_VERSION 		"F 0.38"
 //#define FIRMWARE_VERSION 		"Lux"
@@ -31,24 +32,25 @@
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
 
-#define IMAGE_QUANTIZ_SCALE				(0x0030)	//48
-#define RETRIES_MAX_NETWORK				5
-#define LUX_THRESHOLD					2	//in Lux
-#define DOORCHECK_TIMEOUT_SEC			60	//in sec
-#define BATTERY_LOW_THRESHOLD			5	//in percent
+#define IMAGE_QUANTIZ_SCALE					(0x0030)	//=48d
+//#define IMAGE_QUANTIZ_SCALE					(0x0020)	//=32d
+#define RETRIES_MAX_NETWORK					5
+#define LUX_THRESHOLD						2			//in Lux
+#define DOORCHECK_TIMEOUT_SEC				60			//in sec
+#define BATTERY_LOW_THRESHOLD				5			//in percent
 
 
 #define SYSTEM_CLOCK						80000000
 #define SLEEP_TIME              			8000000
 //#define OSI_STACK_SIZE          			3000
-#define OSI_STACK_SIZE          			4500	//in bytes
-#define OSI_STACK_SIZE_MAIN_TASK			5000	//in bytes
-#define OSI_STACK_SIZE_USERCONFIG_TASK		4500	//in bytes
+#define OSI_STACK_SIZE          			4500		//in bytes
+#define OSI_STACK_SIZE_MAIN_TASK			5000		//in bytes
+#define OSI_STACK_SIZE_USERCONFIG_TASK		4500		//in bytes
 
-#define PI				(3.141592654F)
+#define PI									(3.141592654F)
 
 #define FN_SUCCESS							0
-#define FN_FAILED							1 //Funtion return values are uint16_t
+#define FN_FAILED							(-1) //Funtion return values are int16_t
 
 //To be passed to UtilsDelay(). Delay will be more if parallel tasks are also running
 #define NO_OF_OPS_PERCYCLE					4
@@ -79,45 +81,6 @@ typedef enum
 	APP_MODE_B
 }appModes;
 
-// Application specific status/error codes. Assign these to lRetVal or g_appStatus
-typedef enum
-{
-    // Choosing -0x7D0 to avoid overlap w/ host-driver's error codes
-    CAMERA_CAPTURE_FAILED = -0x7D0,
-	CAMERA_CONFIG_FAILED = CAMERA_CAPTURE_FAILED - 1,
-
-    DEVICE_NOT_IN_STATION_MODE = CAMERA_CAPTURE_FAILED - 1,
-    DEVICE_NOT_IN_AP_MODE = DEVICE_NOT_IN_STATION_MODE - 1,
-
-    //File System Related errocodes
-    FILE_OPEN_ERROR = DEVICE_NOT_IN_AP_MODE - 1,
-    FILE_ALREADY_EXIST = FILE_OPEN_ERROR -1,
-	FILE_CLOSE_ERROR = FILE_ALREADY_EXIST - 1,
-	FILE_NOT_MATCHED = FILE_CLOSE_ERROR - 1,
-	FILE_OPEN_READ_FAILED = FILE_NOT_MATCHED - 1,
-	FILE_OPEN_WRITE_FAILED = FILE_OPEN_READ_FAILED -1,
-	FILE_READ_FAILED = FILE_OPEN_WRITE_FAILED - 1,
-	FILE_WRITE_FAILED = FILE_READ_FAILED - 1,
-
-	//I2C device not found
-	MT9D111_NOT_FOUND = FILE_WRITE_FAILED - 1,		//Image Sensor
-	ISL29035_NOT_FOUND = MT9D111_NOT_FOUND - 1,		//Light Sensor
-	FXOS8700_NOT_FOUND = ISL29035_NOT_FOUND - 1,	//Accel, Magnetometer
-	SI7020_NOT_FOUND = FXOS8700_NOT_FOUND - 1,		//Temp RH
-	ADC081C021_NOT_FOUND = SI7020_NOT_FOUND - 1,	//Battery ADC
-	PCF8574_NOT_FOUND = ADC081C021_NOT_FOUND - 1,	//IO expander
-
-	UNABLE_TO_RESET_FXOS8700 = PCF8574_NOT_FOUND - 1,
-
-	// WiFi Provisioning through AP Mode
-	USER_WIFI_PROFILE_FAILED_TO_CONNECT = UNABLE_TO_RESET_FXOS8700 - 1,
-
-	MT9D111_FIRMWARE_STATE_ERROR = USER_WIFI_PROFILE_FAILED_TO_CONNECT - 1,
-	MT9D111_IMAGE_CAPTURE_FAILED = MT9D111_FIRMWARE_STATE_ERROR - 1,
-
-    STATUS_CODE_MAX = -0xBB8
-}e_AppErrorOrReturnCodes;
-
 // Application specific status codes. Assign this to g_lAppStatus variable
 //These are used for inter task communication
 typedef enum
@@ -146,6 +109,7 @@ typedef enum
             {\
                  if(error_code < 0) \
                    {\
+                	 	 g_latest_error = error_code;\
                 	 	 while(1);\
 					}\
             }
@@ -154,6 +118,7 @@ typedef enum
             {\
                  if(error_code < 0) \
                    {\
+                	 	 g_latest_error = error_code;\
                 	 	 PRCMSOCReset();\
 					}\
             }
@@ -162,6 +127,7 @@ typedef enum
             {\
                  if(error_code < 0) \
                    {\
+                	 	g_latest_error = error_code;\
                         ERR_PRINT(error_code);\
                  }\
             }
@@ -180,7 +146,12 @@ uint32_t g_ulSimplelinkStatus;//SimpleLink Status
 uint32_t g_ulAppTimeout_ms;
 
 //Ground data in Parse
-uint8_t g_ucReasonForFailure;
+struct u64_time g_Struct_TimeStamp_MaxAngle;
+struct u64_time g_Struct_TimeStamp_MinAngle;
+struct u64_time g_Struct_TimeStamp_SnapAngle;
+struct u64_time g_Struct_TimeStamp_OpenAngle;
+float_t g_fBatteryVolt_atStart;
+float_t g_fBatteryVolt_atEnd;
 uint64_t g_TimeStamp_cc3200Up;
 uint64_t g_TimeStamp_NWPUp;
 uint64_t g_TimeStamp_CamUp;
@@ -191,16 +162,12 @@ uint64_t g_TimeStamp_MinAngle;
 uint64_t g_TimeStamp_MaxAngle;
 uint64_t g_TimeStamp_SnapAngle;
 uint64_t g_TimeStamp_OpenAngle;
+int32_t g_latest_error;
 int16_t g_fMaxAngle;
 int16_t g_fMinAngle;
 int16_t g_RawMaxAngle;
 int16_t g_RawMinAngle;
-struct u64_time g_Struct_TimeStamp_MaxAngle;
-struct u64_time g_Struct_TimeStamp_MinAngle;
-struct u64_time g_Struct_TimeStamp_SnapAngle;
-struct u64_time g_Struct_TimeStamp_OpenAngle;
-float_t g_fBatteryVolt_atStart;
-float_t g_fBatteryVolt_atEnd;
+uint8_t g_ucReasonForFailure;
 
 typedef enum
 {
@@ -218,19 +185,6 @@ typedef enum
 	TIMERS_DISABLED,
 
 }e_Task1_NotificationValues;
-
-//Reasons for failure
-typedef enum
-{
-	NEVER_WENT_TO_ANGLECHECK = 1,	//Door shut before wake-up initializations were done (i.e door closed in < 1.5 sec)
-	NOTOPEN_NOTCLOSED, 	//or equivalently, light went out. Likely reason: door opening was too narrow
-	OPEN_NOTCLOSED,		//a likely problem with angle detection. Validate open and snap angles
-	NOTOPEN_CLOSED,		//user opens door very narrowly, so open condition was not met but snap condition was met
-	TIMEOUT_BEFORE_IMAGESNAP,	//Door open for too long
-	IMAGE_NOTCAPTURED,			//Image capture failure due to some image sensor/camera peripheral issue
-	IMAGE_NOTUPLOADED,			//Upload to Parse failed after 5 retries
-	DOOR_ATSNAP_DURING_FILEOPEN,//Image file open did not complete when snap position was detected
-}e_GroundData_FailureReasonCodes;
 
 #define NO		0
 #define YES		1

@@ -25,7 +25,7 @@ extern int32_t sendUserConfigData();
 void UserConfigure_Task(void *pvParameters)
 {
 	//LED_On();
-	UtilsDelay(1000000);	// To ensure Firmware title is printed first
+//	UtilsDelay(1000000);	// To ensure Firmware title is printed first
 	if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
 			(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET)||
 			(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
@@ -33,8 +33,8 @@ void UserConfigure_Task(void *pvParameters)
 		//Display Message to user
 		RELEASE_PRINT("***SHORT PRESS: User Config mode        LONG PRESS: OTA ***\n");
 
-		//Indicate to the user that he can press the button now
-		LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
+//		//Indicate to the user that he can press the button now
+//		LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
 
 		//Wait for button press. If button is not pressed at all, after 10
 		//seconds (specified in main task), the Main task will delete this task
@@ -48,7 +48,7 @@ void UserConfigure_Task(void *pvParameters)
 		//If long press, do OTA. Else do UserConfig
 		if(IsLongPress())
 		{
-			LED_On();
+			LED_Blink_2(.2,.2,BLINK_FOREVER);//LED_On();
 			OTA_Update();
 		}
 		else	//short press - UserConfig
@@ -56,9 +56,10 @@ void UserConfigure_Task(void *pvParameters)
 				//after button press is detected, ensures it is not the no-press
 				//case
 		{
-			LED_Blink_2(.25,.25,BLINK_FOREVER);
+			LED_Blink_2(1,.1,BLINK_FOREVER);//LED_Blink_2(.25,.25,BLINK_FOREVER);
 			User_Configure();
 			//sendUserConfigData();
+			//LED_Blink_2(.2,1,BLINK_FOREVER);
 			SendObject_ToParse(USER_CONFIGS);
 		}
 

@@ -33,14 +33,13 @@ void Main_Task_withHibernate(void *pvParameters)
 {
 	int32_t lRetVal;
 
-	WDT_init();
-
 	//This branch is entered only on wake up from hibernate
 	if (MAP_PRCMSysResetCauseGet() == PRCM_HIB_EXIT)
 	{
 		RELEASE_PRINT("\nI'm up\n");
+		LED_On();
 
-		//Enter the application funcitonality
+		//Enter the application functionality
 		application_fn();
 	}
 	//This branch is entered on power on (Battery insert) or SOC reset(OTA reboot)
@@ -49,6 +48,7 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
+    	UtilsDelay(1000000);	// To ensure Firmware title is printed first
     	RELEASE_PRINT("*** %s ***\n\r", FIRMWARE_VERSION);
 
     	//Give time to press the push button for OTA or MobileApp config
@@ -96,6 +96,7 @@ void Main_Task_withHibernate(void *pvParameters)
   		lRetVal = OTA_CommitImage();
   		if (lRetVal == NEW_FIRMWARE_COMMITTED)
   		{
+  			//LED_Blink_2(.2,1,BLINK_FOREVER);
   			SendObject_ToParse(FIRMWARE_VER);
   		}
 	}

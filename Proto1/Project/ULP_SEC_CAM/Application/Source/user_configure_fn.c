@@ -131,7 +131,7 @@ int32_t User_Configure()
 
 		if(g_ucCalibration == BUTTON_PRESSED)
 		{
-			RELEASE_PRINT("*** Calibration - ROTATE DEVICE NOW ***\n");
+			RELEASE_PRINT("*** Calibration - ROTATE DEVICE TILL LED STARTS BLINKING/GOES OFF ***\n");
 			LED_On();
 			g_ucCalibration = BUTTON_NOT_PRESSED;
 			Get_Calibration_MagSensor();
@@ -591,50 +591,85 @@ static long WlanConnect()
 //******************************************************************************
 //	This function does magnetometer calibration and saves the calibration values
 //		in flash file
+//
+//	Warning: the function also saves all other userconfigs currently in the
+//		buffer to the flash file
 //******************************************************************************
 static int32_t Get_Calibration_MagSensor()
 {
 	uint8_t tmpCnt=0;
 	long lRetVal = -1;
 	int32_t lFileHandle;
+	float_t previous_best_fit_error;
+	uint8_t calibRepeatCnt;
+	uint8_t i;
 
+	previous_best_fit_error = 1000.0F;
+	calibRepeatCnt = 0;
 
-	//Collect the readings
-	fxosDefault_Initializations();
+#define MAG_SENSOR_CALIBCOUNT		1	//Dont increase this. Increasing this
+										//can cause funciton to be stuck in loop
+										//indefinitely
+#define MAX_CALIB_REPEATS			20
+#define ACCEPTABLE_FITERROR			5
 
-	g_ucMagCalb = 0;
-
-#define MAG_SENSOR_CALIBCOUNT		1
-//#define MAG_SENSOR_CALIBCOUNT		3
-//#define MAG_SENSOR_CALIBCOUNT		2
-	while(g_ucMagCalb < MAG_SENSOR_CALIBCOUNT)
+	for(; calibRepeatCnt < MAX_CALIB_REPEATS; calibRepeatCnt++)
 	{
-		fxos_Calibration();
+		g_ucMagCalb = 0;
+		fxosDefault_Initializations();
+		while(g_ucMagCalb < MAG_SENSOR_CALIBCOUNT)
+		{
+			fxos_Calibration();
+
+			//If by any chance the 20 iteraions are not happening inspite of user
+			//rotating (should not happen in normal cases) in all directions, he
+			//can press the exit button. The best calibration so far will be
+			//saved. If the device was not rotated at all, the older
+			//configuration already in the flash file will be retained
+			//Better be replaced with a stop calibration button
+			if(g_ucExitButton == BUTTON_PRESSED)
+			{
+				g_ucExitButton = BUTTON_NOT_PRESSED;
+				break;
+			}
+		}
+		DEBG_PRINT("%d  %3.2f\n", calibRepeatCnt, thisMagCal.fFitErrorpc);
+
+		if (thisMagCal.fFitErrorpc < previous_best_fit_error)
+		{
+			//Save the calibration
+			tmpCnt = (OFFSET_MAG_CALB/sizeof(float_t));
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][0];
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][1];
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][2] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][0] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][1] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][2] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][0] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][1] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][2] ;
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[0];
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[1];
+			g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[2];
+			g_pfUserConfigData[(OFFSET_FIT_ERROR/sizeof(float_t))] = thisMagCal.fFitErrorpc;
+			DEBG_PRINT("Taken\n");
+
+			//Update previous_best_fit_error
+			previous_best_fit_error = thisMagCal.fFitErrorpc;
+
+			if (thisMagCal.fFitErrorpc < ACCEPTABLE_FITERROR)
+			{
+				break;
+			}
+		}
 	}
 
-	tmpCnt = (OFFSET_MAG_CALB/sizeof(float_t));
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][0];
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][1];
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[0][2] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][0] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][1] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[1][2] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][0] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][1] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.finvW[2][2] ;
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[0];
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[1];
-	g_pfUserConfigData[tmpCnt++] = thisMagCal.fV[2];
-
-	g_pfUserConfigData[(OFFSET_FIT_ERROR/sizeof(float_t))] = thisMagCal.fFitErrorpc;
-
-	uint8_t i=0;
 	for(i=OFFSET_MAG_CALB; i<12;i++)
 		DEBG_PRINT("%3.2f\n",g_pfUserConfigData[i]);
 	RELEASE_PRINT("%3.2f%%\n",g_pfUserConfigData[i]);
 
-#define ACCEPTABLE_FITERROR		5
-	//Switch off LED for 5 sec to indicate that the fit error was not within acceptable limits
+	//Switch off LED for 5 sec to indicate that the fit error was not within
+	//acceptable limits
 	if(thisMagCal.fFitErrorpc > ACCEPTABLE_FITERROR)
 	{
 		LED_Off();

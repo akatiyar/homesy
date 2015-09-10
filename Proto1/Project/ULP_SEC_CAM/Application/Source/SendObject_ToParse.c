@@ -25,6 +25,7 @@ int32_t SendObject_ToParse(uint8_t ucClassName)
 	struct u64_time time_now;
 
 	//LED_On();
+	//LED_Blink_2(.2,1,BLINK_FOREVER);
 
 	//Connect to WiFi
 	lRetVal = WiFi_Connect();
@@ -33,8 +34,6 @@ int32_t SendObject_ToParse(uint8_t ucClassName)
 		NWP_SwitchOff();
 		ASSERT_ON_ERROR(lRetVal);
 	}
-
-	LED_Blink_2(.2,1,BLINK_FOREVER);
 
 	//	Parse initialization
 	clientHandle = InitialiseParse();

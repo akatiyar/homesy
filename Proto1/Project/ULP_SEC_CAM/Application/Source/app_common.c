@@ -20,7 +20,7 @@ const char pcDigits[] = "0123456789"; /* variable used by itoa function */
 //!
 //
 //*****************************************************************************
-unsigned short intToASCII(long long cNum, char *cString)	//Tag:CS
+unsigned short intToASCII(long long cNum, char *cString)
 {
     char* ptr;
     //short uTemp = cNum;

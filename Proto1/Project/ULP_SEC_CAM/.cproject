@@ -52,7 +52,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_FOR_SPEED.1406226082" name="Speed vs. size trade-offs (--opt_for_speed, -mf)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_FOR_SPEED" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_FOR_SPEED._none" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH.2029534214" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\ti\CC3200SDK_1.1.0\cc3200-sdk\netapps\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}\netapps\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/driver/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/framework/pm&quot;"/>
@@ -181,6 +181,7 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.compilerDebug.2008401868" name="ARM Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.compilerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DEFINE.60006484" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="HD_FRAME"/>
+									<listOptionValue builtIn="false" value="IMAGE_DEBUG"/>
 									<listOptionValue builtIn="false" value="INTERNAL_TESTING"/>
 									<listOptionValue builtIn="false" value="DEBUG_PRINT_ENABLE"/>
 									<listOptionValue builtIn="false" value="RELEASE_PRINT_ENABLE"/>
@@ -201,7 +202,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_FOR_SPEED.229065746" name="Speed vs. size trade-offs (--opt_for_speed, -mf)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_FOR_SPEED" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_FOR_SPEED._none" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH.1268641335" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\ti\CC3200SDK_1.1.0\cc3200-sdk\netapps\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}\netapps\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/driver/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/framework/pm&quot;"/>
@@ -254,7 +255,7 @@
 									<listOptionValue builtIn="false" value="free_rtos.a"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.linkerID.SEARCH_PATH.400019640" name="Add &lt;dir&gt; to library search path (--search_path, -i)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.linkerID.SEARCH_PATH" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;D:\Projects\Vcognition\GIT Clone\ws\simplelink\OS\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink/ccs/OS&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/flc/ccs/Release&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink/ccs/OS&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/ota/ccs/Release&quot;"/>
@@ -263,7 +264,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/example/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/ccs/Release&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;D:\Projects\Vcognition\GIT Clone\ws\driverlib\Release&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/driverlib/ccs/Release&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/oslib/ccs/free_rtos&quot;"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.linkerID.DISPLAY_ERROR_NUMBER.2003757546" name="Emit diagnostic identifier numbers (--display_error_number)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.linkerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
@@ -292,7 +293,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="time_driverLevel_fn.c|Test_Debug/Source/watchdog_codes.c|experiment_orDbg_codes.c|Test_Debug/Source/test_modules.c|FXOS8700 Freescale Lib/mqx_tasks.c|appfile_magnmtr_old_logic.c|customer_demo1_collectAndTxitSensorData.c|Parse_Library/common/tests/simplejson_tests.cc|algorithm_1.c|Sensors/Source/fxos8700-112.c|algorithm2.c|Test_Debug/Source/rough_file.c|Image_Sensor/Source/camera_app_beforeCodeOrg.c|FXOS8700 Freescale Lib/user_tasks.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|Test_Debug/Source/older_codes.c|Sensors/Source/test_fns.c|Application/Source/appfile_magnmtr_old_logic.c|get_weather.cmd|FXOS8700 Freescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Freescale Lib/Events.c|Application/Source/collect_and_txit.c|Test_Debug/Source/codes_usedfor_debugging.c|FXOS8700 Freescale Lib/main.c|main1.c|demo1_collectAndTxitSensorData.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|rough_file.c|main_getweather.c|Application/Source/algorithm_1.c|FXOS8700 Frescale Lib/user_tasks.c|FXOS8700 Frescale Lib/main.c|Application/Source/algorithm.c|FXOS8700 Frescale Lib/tasks_backup.c|algorithm.c|network_if.c|test_modules.c|Test_Debug/Source/experiment_orDbg_codes.c|Application/Source/algorithm2.c|Test_Task.c|FXOS8700 Frescale Lib/mqx_tasks.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Application/Source/sendUserConfigDataToParse.c|Application/Source/sendGroundData.c|time_driverLevel_fn.c|Test_Debug/Source/watchdog_codes.c|experiment_orDbg_codes.c|Test_Debug/Source/test_modules.c|FXOS8700 Freescale Lib/mqx_tasks.c|appfile_magnmtr_old_logic.c|customer_demo1_collectAndTxitSensorData.c|Parse_Library/common/tests/simplejson_tests.cc|algorithm_1.c|Sensors/Source/fxos8700-112.c|algorithm2.c|Test_Debug/Source/rough_file.c|Image_Sensor/Source/camera_app_beforeCodeOrg.c|FXOS8700 Freescale Lib/user_tasks.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|Test_Debug/Source/older_codes.c|Sensors/Source/test_fns.c|Application/Source/appfile_magnmtr_old_logic.c|get_weather.cmd|FXOS8700 Freescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Freescale Lib/Events.c|Application/Source/collect_and_txit.c|Test_Debug/Source/codes_usedfor_debugging.c|FXOS8700 Freescale Lib/main.c|main1.c|demo1_collectAndTxitSensorData.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|rough_file.c|main_getweather.c|Application/Source/algorithm_1.c|FXOS8700 Frescale Lib/user_tasks.c|FXOS8700 Frescale Lib/main.c|Application/Source/algorithm.c|FXOS8700 Frescale Lib/tasks_backup.c|algorithm.c|network_if.c|test_modules.c|Test_Debug/Source/experiment_orDbg_codes.c|Application/Source/algorithm2.c|Test_Task.c|FXOS8700 Frescale Lib/mqx_tasks.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

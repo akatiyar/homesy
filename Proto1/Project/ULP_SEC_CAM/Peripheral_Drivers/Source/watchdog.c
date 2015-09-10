@@ -95,7 +95,7 @@ void WatchdogIntHandler(void)
 
 int16_t WDT_init()
 {
-	DEBG_PRINT("WDT Init\n");
+	//DEBG_PRINT("WDT Init\n");
 	WDT_IF_Init(WatchdogIntHandler, MILLISECONDS_TO_TICKS(WDT_KICK_GAP));
 
 	MAP_WatchdogStallEnable(WDT_BASE);	//CS

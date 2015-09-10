@@ -95,6 +95,7 @@
 
 #include "appFns.h"
 #include "hibernate_related_fns.h"
+#include "watchdog.h"
 //****************************************************************************
 //                          LOCAL DEFINES                                   
 //****************************************************************************
@@ -286,6 +287,11 @@ BoardInit(void)
 	//
 	UDMAInit();
 
+	//
+	// Initialize WDT
+	//
+	WDT_init();
+
 	LEDTimer_Enable();
 	LED_On();
 }
@@ -347,7 +353,9 @@ void main()
     //
     //To indicate to the user that device is up
     //
-    LED_On();
+    //LED_On();
+	//Indicate to the user that he can press the button now
+	LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
 
     //
     // Initialize application variables

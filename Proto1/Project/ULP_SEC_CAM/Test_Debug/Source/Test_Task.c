@@ -54,6 +54,28 @@ void Test_Task(void *pvParameters)
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	PRINT_ON_ERROR(lRetVal);
 
+	lRetVal = sl_FsDel((unsigned char *)JPEG_IMAGE_FILE_NAME, ulToken);
+	PRINT_ON_ERROR(lRetVal);
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,//0x00212001,
+						//FS_MODE_OPEN_CREATE(65260,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						//FS_MODE_OPEN_CREATE(65,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+							//FS_MODE_OPEN_CREATE(120535,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+						FS_MODE_OPEN_CREATE(153600,_FS_FILE_OPEN_FLAG_COMMIT|_FS_FILE_PUBLIC_WRITE),
+	                    &ulToken,
+	                    &lFileHandle);
+	PRINT_ON_ERROR(lRetVal);
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	PRINT_ON_ERROR(lRetVal);
+	start_100mSecTimer();
+	lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
+						   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
+	ulTimeDuration_ms = get_timeDuration();
+	stop_100mSecTimer();
+	DEBG_PRINT("Third open: %dms\n", ulTimeDuration_ms);
+	PRINT_ON_ERROR(lRetVal);
+	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
+	PRINT_ON_ERROR(lRetVal);
+
 	NWP_SwitchOff();
 
 #ifdef COMPILE_THIS
