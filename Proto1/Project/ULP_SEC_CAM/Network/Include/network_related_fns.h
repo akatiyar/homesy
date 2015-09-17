@@ -53,8 +53,9 @@ typedef enum
 
 typedef enum
 {
-	NONE =0,
-	CAM_RESTART_CAPTURE =1,
+	NONE = 0,
+	CAM_RESTART_CAPTURE = 1,
+	OTA_FIRMWARE_UPDATE = 2,
 }ButtonAction;
 
 extern unsigned long  g_ulGatewayIP; //Network Gateway IP address

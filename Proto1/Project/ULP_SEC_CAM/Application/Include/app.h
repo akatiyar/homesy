@@ -22,10 +22,10 @@
 #include "osi.h"
 #include "Error_codes.h"
 
-#define FIRMWARE_VERSION 		"Release 0.0.18"
+#define FIRMWARE_VERSION 		"Release 0.0.19"
 //#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
 //#define FIRMWARE_VERSION 		"F 0.38"
-//#define FIRMWARE_VERSION 		"Lux"
+//#define FIRMWARE_VERSION 		"OTA through App 0.4"
 
 //#define APP_SSID_NAME 			"Camera"
 //#define APP_SSID_PASSWORD		"abcdef1234"
@@ -56,24 +56,9 @@
 #define NO_OF_OPS_PERCYCLE					4
 #define ONESEC_NO_OF_CYCLES					(SYSTEM_CLOCK/NO_OF_OPS_PERCYCLE)
 
-#ifdef NOTERM
-#define DEBG_PRINT(x,...)
-#define RELEASE_PRINT(x,...)
-#else	//NOTERM
-
-#ifdef RELEASE_PRINT_ENABLE
-#define RELEASE_PRINT  Report
-#else	//RELEASE_PRINT_ENABLE
-#define RELEASE_PRINT(x,...)
-#endif	//RELEASE_PRINT_ENABLE
-
-#ifdef DEBUG_PRINT_ENABLE
-#define DEBG_PRINT  Report
-#else	//DEBUG_PRINT_ENABLE
-#define DEBG_PRINT(x,...)
-#endif	//DEBUG_PRINT_ENABLE
-
-#endif	//NOTERM
+#define NO		0
+#define YES		1
+#define NEVER	-1	//This is used only for the current fix for reducing Image sensor set up time
 
 typedef enum
 {
@@ -94,7 +79,6 @@ typedef enum
 	IMAGE_CAPTURED,
 	IMAGESENSOR_CAPTURECONFIGS_HAPPENING,
 	IMAGESENSOR_CAPTURECONFIGS_DONE,
-
 }e_AppStatusCodes;
 
 typedef enum
@@ -105,12 +89,52 @@ typedef enum
 	FIRMWARE_VER,
 }Parse_ClassNames;
 
+typedef enum
+{
+	READ_MAGNTMTRFILE_DONE = 1,
+	MAGNTMTRINIT_DONE,
+	READ_SENSORCONFIGFILE_DONE,
+	CAMERAINIT_DONE,
+}e_Task3_NotificationValues;
+
+typedef enum
+{
+	IMAGEFILE_OPEN_BEGUN = 1,
+	IMAGEFILE_OPEN_COMPLETE,
+	MAGNETOMETERINIT_STARTED,
+	TIMERS_DISABLED,
+
+}e_Task1_NotificationValues;
+
+#ifdef NOTERM
+#define DEBG_PRINT(x,...)
+#define RELEASE_PRINT(x,...)
+#define PRINT_ERROR(x)
+#else	//NOTERM
+
+#ifdef RELEASE_PRINT_ENABLE
+#define RELEASE_PRINT  Report
+#else	//RELEASE_PRINT_ENABLE
+#define RELEASE_PRINT(x,...)
+#endif	//RELEASE_PRINT_ENABLE
+
+#ifdef DEBUG_PRINT_ENABLE
+#define DEBG_PRINT  Report
+#define PRINT_ERROR(x) Report("Err[%d] at line[%d] in fn[%s]\n",x,__LINE__,__FUNCTION__)
+#else	//DEBUG_PRINT_ENABLE
+#define DEBG_PRINT(x,...)
+#define PRINT_ERROR(x)
+#endif	//DEBUG_PRINT_ENABLE
+
+#endif	//NOTERM
+
 #define STOPHERE_ON_ERROR(error_code)\
             {\
                  if(error_code < 0) \
                    {\
-                	 	 g_latest_error = error_code;\
-                	 	 while(1);\
+                	 	g_latest_error = error_code;\
+                	 	PRINT_ERROR(error_code);\
+                	 	while(1);\
 					}\
             }
 
@@ -118,8 +142,9 @@ typedef enum
             {\
                  if(error_code < 0) \
                    {\
-                	 	 g_latest_error = error_code;\
-                	 	 PRCMSOCReset();\
+                	 	g_latest_error = error_code;\
+                	 	PRINT_ERROR(error_code);\
+                	 	PRCMSOCReset();\
 					}\
             }
 
@@ -128,9 +153,20 @@ typedef enum
                  if(error_code < 0) \
                    {\
                 	 	g_latest_error = error_code;\
-                        ERR_PRINT(error_code);\
+                	 	PRINT_ERROR(error_code);\
                  }\
             }
+
+#define RETURN_ON_ERROR(error_code)\
+            {\
+                 if(error_code < 0) \
+                   {\
+                	 	g_latest_error = error_code;\
+                	 	PRINT_ERROR(error_code);\
+                        return error_code;\
+                 }\
+            }
+
 //
 //Global variable used through out the app
 //
@@ -168,26 +204,5 @@ int16_t g_fMinAngle;
 int16_t g_RawMaxAngle;
 int16_t g_RawMinAngle;
 uint8_t g_ucReasonForFailure;
-
-typedef enum
-{
-	READ_MAGNTMTRFILE_DONE = 1,
-	MAGNTMTRINIT_DONE,
-	READ_SENSORCONFIGFILE_DONE,
-	CAMERAINIT_DONE,
-}e_Task3_NotificationValues;
-
-typedef enum
-{
-	IMAGEFILE_OPEN_BEGUN = 1,
-	IMAGEFILE_OPEN_COMPLETE,
-	MAGNETOMETERINIT_STARTED,
-	TIMERS_DISABLED,
-
-}e_Task1_NotificationValues;
-
-#define NO		0
-#define YES		1
-#define NEVER	-1	//This is used only for the current fix for reducing Image sensor set up time
 
 #endif /* GENERAL_INCLUDES_H_ */

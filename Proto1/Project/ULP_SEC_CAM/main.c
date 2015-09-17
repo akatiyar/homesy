@@ -1,4 +1,4 @@
-//*****************************************************************************DigiCertHighAssuranceEVRootCA_der
+//*****************************************************************************
 //
 // Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/ 
 // 
@@ -292,9 +292,12 @@ BoardInit(void)
 	//
 	WDT_init();
 
+	//
+	// User LED initialization
+	//
 	LEDTimer_Enable();
-	LED_On();
 }
+
 //*****************************************************************************
 //
 //! \brief This function initializes the application variables
@@ -323,10 +326,13 @@ static void InitializeAppVariables()
 	g_TimeStamp_OpenAngle = 0;
 	g_ucReasonForFailure = NEVER_WENT_TO_ANGLECHECK;
 	g_fMinAngle = 361;
-	g_fMaxAngle = 0;
+	g_fMaxAngle = -1;
 	g_RawMinAngle = 361;
-	g_RawMaxAngle = 0;
+	g_RawMaxAngle = -1;
+
+	g_latest_error = 0;		//Meaning success or no error
 }
+
 //****************************************************************************
 //
 //! Main function
@@ -401,7 +407,7 @@ void main()
     lRetVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
     if(lRetVal < 0)
     {
-        ERR_PRINT(lRetVal);
+    	PRINT_ON_ERROR(lRetVal);
         LOOP_FOREVER();
     }
 
@@ -420,7 +426,7 @@ void main()
 					&g_UserConfigTaskHandle );
 	if(lRetVal < 0)
 	{
-		ERR_PRINT(lRetVal);
+		PRINT_ON_ERROR(lRetVal);
 		LOOP_FOREVER();
 	}
 
@@ -431,7 +437,6 @@ void main()
 	//				hibernate. This branch includes angle detection, image
 	//				capture and upload.
     lRetVal = osi_TaskCreate(
-					//Main_Task,
 					Main_Task_withHibernate,
 					//Test_Task,
 					(const signed char *)"Collect And Txit ImgTempRM",
@@ -441,7 +446,7 @@ void main()
 					&g_MainTaskHandle );
 	if(lRetVal < 0)
 	{
-		ERR_PRINT(lRetVal);
+		PRINT_ON_ERROR(lRetVal);
 		LOOP_FOREVER();
 	}
 
@@ -457,7 +462,7 @@ void main()
 					&g_ImageCaptureConfigs_TaskHandle );
 	if(lRetVal < 0)
 	{
-		ERR_PRINT(lRetVal);
+		PRINT_ON_ERROR(lRetVal);
 		LOOP_FOREVER();
 	}
 

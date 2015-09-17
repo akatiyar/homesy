@@ -434,7 +434,7 @@ int payloadSend( const char *httpRequestBody,
 			DEBUG_PRINT("\nPayload data written != data supposed to be written\n\r");
 			while(1);
 		}
-		UtilsDelay(80000);
+		//UtilsDelay(80000);
 		DEBG_PRINT("Last Write_toSocket: %d\n",  status);
 	}
 
@@ -527,7 +527,7 @@ int sendRequest(ParseClientInternal *parseClient, const char *host, const char *
         //DEBUG_PRINT("[Parse] --------Response--------- End -\r\n");
 #endif /* REQUEST_DEBUG */
 
-        UtilsDelay(80000000);
+        //UtilsDelay(80000000);
         socketClose(socketHandle);
 #ifdef REQUEST_DEBUG
     }

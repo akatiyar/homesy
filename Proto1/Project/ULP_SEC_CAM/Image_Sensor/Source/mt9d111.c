@@ -510,22 +510,22 @@ long CameraSensorInit()
 //    I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
     lRetVal = RegLstWrite((s_RegList *)init_cmds_list, \
                                     sizeof(init_cmds_list)/sizeof(s_RegList));
-//    ASSERT_ON_ERROR(lRetVal);
+//    RETURN_ON_ERROR(lRetVal);
 
 #ifndef ENABLE_JPEG
     lRetVal = RegLstWrite((s_RegList *)preview_cmds_list,
                       sizeof(preview_cmds_list)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
     lRetVal = RegLstWrite((s_RegList *)image_size_240_320_preview_cmds_list, \
                     sizeof(image_size_240_320_preview_cmds_list)/ \
                     sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
     lRetVal = RegLstWrite((s_RegList *)freq_setup_cmd_List,
                     sizeof(freq_setup_cmd_List)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
     lRetVal = RegLstWrite((s_RegList *)preview_on_cmd_list,
                     sizeof(preview_on_cmd_list)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 #endif 
     return lRetVal;
 }
@@ -580,7 +580,7 @@ long WriteConfigRegFile_toFlash()
 	ucHeader[1] = sizeof(capture_cmds_list)/sizeof(s_RegList);
 
 	lRetVal = CreateFile_Flash(FILENAME_SENSORCONFIGS, MAX_FILESIZE_SENSORCONFIGS);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	lRetVal = WriteFile_ToFlash(ucHeader,
 								FILENAME_SENSORCONFIGS,
@@ -588,7 +588,7 @@ long WriteConfigRegFile_toFlash()
 								offset,
 								MULTIPLE_WRITE_FIRST,
 								&lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	offset += lRetVal;
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)&init_cmds_list[0],
@@ -597,7 +597,7 @@ long WriteConfigRegFile_toFlash()
 									offset,
 									MULTIPLE_WRITE_MIDDLE,
 									&lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	offset += lRetVal;
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)&capture_cmds_list[0],
@@ -606,7 +606,7 @@ long WriteConfigRegFile_toFlash()
 										offset,
 										MULTIPLE_WRITE_LAST,
 										&lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	offset += lRetVal;
 
 	return offset;
@@ -625,7 +625,7 @@ long WriteConfigRegFilefromUser_toFlash(uint8_t* pFileContent,
 								OFFSET_MT9D111,
 								SINGLE_WRITE,
 								&lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -649,7 +649,7 @@ long StartSensorInJpegMode()
 
     lRetVal = RegLstWrite((s_RegList *)capture_cmds_list,
                         sizeof(capture_cmds_list)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 #endif
     return 0;
 }
@@ -713,7 +713,7 @@ long RestartSensorInJpegMode(uint16_t *ImageConfig)
 
     lRetVal = RegLstWrite((s_RegList *)recapture_cmds_list,
                         sizeof(recapture_cmds_list)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
     return 0;
 }
 
@@ -974,13 +974,13 @@ long ReadAllAEnAWBRegs()
 	long lRetVal;
 
 	lRetVal = AnalogGainReg_Read();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	lRetVal = DigitalGainRegs_Read();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	lRetVal = CCMRegs_Read();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	lRetVal = ShutterRegs_Read();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -1405,7 +1405,7 @@ int32_t SetInitialGain(uint8_t ValChange, bool IsInc)
 		NewGain = NewGain | (tmpIGain & INITIAL_GAIN_BITS);
 		lRetVal = Reg_Write(0x00,(Reg_Addr+Cnt),NewGain);
 
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	}
 
 	return lRetVal;
@@ -1422,7 +1422,7 @@ int32_t ReadGainReg(uint16_t* Gains)
 
 		lRetVal = Reg_Read(0x00,(Reg_Addr+Cnt),Gains + Cnt);
 		DEBG_PRINT("Reg %x : %x\n",(Reg_Addr+Cnt),*(Gains + Cnt));
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	}
 	return lRetVal;
 }
@@ -1477,13 +1477,13 @@ int32_t EnterStandby_mt9d111(uint8_t ucMethod)
 								};	//Sensor standby - use for soft standby
 
 	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	if(ucMethod == SOFT_STANDBY)
 	{
 		//lRetVal = RegLstWrite(&stndby_cmds,1);
 		lRetVal = RegLstWrite(&stndby_cmds[0],2);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	}
 	else if(ucMethod == HARD_STANDBY)
 	{
@@ -1525,7 +1525,7 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 	if(ucMethod == SOFT_STANDBY)
 	{
 		lRetVal = RegLstWrite(&stndby_cmds,1);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	}
 	else if(ucMethod == HARD_STANDBY)
 	{
@@ -1534,7 +1534,7 @@ int32_t ExitStandby_mt9d111(uint8_t ucMethod)
 
 	lRetVal = RegLstWrite(stndby_cmds_list,
 							(sizeof(stndby_cmds_list)/sizeof(s_RegList)));
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -1592,7 +1592,7 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
             {
                 ucBuffer[0] = pRegLst->ucRegAddr;
                 lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
-                ASSERT_ON_ERROR(lRetVal);
+                RETURN_ON_ERROR(lRetVal);
                 if(I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1))
                 {
                     return RET_ERROR;
@@ -1615,10 +1615,12 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
                 if(ulCounter > 1000)	//500*.01sec = 5 sec
                 {
                 	//stop_100mSecTimer();
+                	DEBG_PRINT("\n");
                 	return MT9D111_FIRMWARE_STATE_ERROR;
                 }
             }while(usTemp != pRegLst->usValue);
             //stop_100mSecTimer();
+            DEBG_PRINT("\n");
         }
         else
         {
@@ -1634,9 +1636,9 @@ static long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems)
 
             ucBuffer[0] = SENSOR_PAGE_REG;
             lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
-            ASSERT_ON_ERROR(lRetVal);
+            RETURN_ON_ERROR(lRetVal);
             lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
-            ASSERT_ON_ERROR(lRetVal);
+            RETURN_ON_ERROR(lRetVal);
 
             ucBuffer[0] = pRegLst->ucRegAddr;
 
@@ -1800,10 +1802,10 @@ static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 	}
 	ucBuffer[0] = SENSOR_PAGE_REG;
 	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,I2C_SEND_STOP);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,I2C_SEND_STOP);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	//usTemp = ucBuffer[0] << 8;
 	//usTemp |= ucBuffer[1];
@@ -1812,10 +1814,10 @@ static long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal)
 	//Read from the register
 	ucBuffer[0] = pRegLst->ucRegAddr;
 	lRetVal = I2CBufferWrite(CAM_I2C_SLAVE_ADDR,ucBuffer,1,1);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	lRetVal = I2CBufferRead(CAM_I2C_SLAVE_ADDR,ucBuffer,2,1);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	*pusRegVal = ucBuffer[0] << 8;
 	*pusRegVal |= ucBuffer[1];
@@ -1897,7 +1899,7 @@ long Snap()
 //
     lRetVal = RegLstWrite((s_RegList *)snap,
                         sizeof(snap)/sizeof(s_RegList));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
     return 0;
 
 //	uint16_t usRegVal=0;
@@ -1936,7 +1938,7 @@ int32_t toggle_standby()
 				};
 
 	lRetVal = RegLstWrite(stndby_cmds_list, (sizeof(stndby_cmds_list)/sizeof(s_RegList)));
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }

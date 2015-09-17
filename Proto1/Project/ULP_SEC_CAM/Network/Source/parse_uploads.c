@@ -109,7 +109,7 @@ int32_t UploadImageToParse(ParseClient client,
 		PRINT_ON_ERROR(lRetVal);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	memset(pucParseImageUrl, NULL, PARSE_IMAGE_URL_SIZE);
 	simpleJsonProcessor(dataBuffer, "name",
@@ -153,7 +153,7 @@ int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 		PRINT_ON_ERROR(lRetVal);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	//Save the object ID in the global variable
 	simpleJsonProcessor(dataBuffer, "objectId", g_cResponseObjectID,
@@ -269,15 +269,17 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 	ucLength = intToASCII((uint16_t)ucBatteryLevel, (char*)ucCharConv);
 	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, ucLength);
 	strncat((char*)pucSensorDataTxt, ",\"temp\":", sizeof("\"},\"temp\":"));
-	intToASCII((uint16_t)(fTemp*100), (char*)ucCharConv);
-	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, 2);
+	ucLength = intToASCII((uint16_t)(fTemp*100), (char*)ucCharConv);
+	ucLength--;	//ignoring null character
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, (ucLength-2));
 	strncat((char*)pucSensorDataTxt, ".", 1);
-	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv + 2, 2);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv + (ucLength-2), 2);
 	strncat((char*)pucSensorDataTxt, ",\"humidity\":", sizeof(",\"humidity\":"));
-	intToASCII((uint16_t)(fRH*100), (char*)ucCharConv);
-	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, 2);
+	ucLength = intToASCII((uint16_t)(fRH*100), (char*)ucCharConv);
+	ucLength--; //ignoring null character
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv, (ucLength-2));
 	strncat((char*)pucSensorDataTxt, ".", 1);
-	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv+2, 2);
+	strncat((char*)pucSensorDataTxt, (const char*)ucCharConv + (ucLength-2), 2);
 	strncat((char*)pucSensorDataTxt, "}", sizeof("}"));
 
 	RELEASE_PRINT("SensorDataObj:\n%s\n", pucSensorDataTxt);
@@ -316,7 +318,7 @@ int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 		PRINT_ON_ERROR(lRetVal);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -442,7 +444,7 @@ int32_t UploadUserConfigObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 		PRINT_ON_ERROR(lRetVal);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -604,7 +606,7 @@ int32_t UploadFirmwareVersionObjectToParse(ParseClient client, uint8_t* pucFridg
 		PRINT_ON_ERROR(lRetVal);
 		ucTryNum++;
 	}while( (0 > lRetVal) && (RETRIES_MAX_NETWORK > ucTryNum) );
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }

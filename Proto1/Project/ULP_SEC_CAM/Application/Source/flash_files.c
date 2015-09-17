@@ -29,15 +29,14 @@ int32_t CreateFile_Flash(uint8_t* pucFileName, uint32_t uiMaxFileSize)
 	//
 	if(lRetVal < 0)
 	{
-		ASSERT_ON_ERROR(lRetVal);
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	}
 	//
 	// Close the created file
 	//
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -84,7 +83,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
 		if(lRetVal < 0)
 		{
 			sl_FsClose(lFileHandle, 0, 0, 0);
-			ASSERT_ON_ERROR(lRetVal);
+			RETURN_ON_ERROR(lRetVal);
 		}
 
 		*plFileHandle = lFileHandle;
@@ -104,7 +103,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
     if (lRetVal <0)
     {
         sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(lRetVal);
+        RETURN_ON_ERROR(lRetVal);
     }
     else
     {
@@ -117,7 +116,7 @@ int32_t WriteFile_ToFlash(uint8_t* pucData,
 		// Close the file post writing the image
 		//
 		lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
     }
 
     return uiNumBytesWritten;
@@ -152,14 +151,14 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 	 if(lRetVal < 0)
 	 {
 		sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	 }
 
 	 lRetVal = sl_FsRead(lFileHandle, uiOffsetInFile, pucData, uiDataSize);
 	 if (lRetVal < 0)
 	 {
 		sl_FsClose(lFileHandle, 0, 0, 0);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	 }
 	 else
 	 {
@@ -167,7 +166,7 @@ int32_t ReadFile_FromFlash(uint8_t* pucData,
 	 }
 
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return uiNumBytesRead;
 }
@@ -181,7 +180,7 @@ sl_FsDel((unsigned char *)USER_FILE_NAME, ulToken);
 if(lRetVal < 0)
 {
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-    ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+    RETURN_ON_ERROR(CAMERA_CAPTURE_FAILED);
 }
 #endif
 
@@ -200,11 +199,11 @@ if(lRetVal < 0)
 {
 	DEBG_PRINT("File Open Error: %i", lRetVal);
 	lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-    ASSERT_ON_ERROR(CAMERA_CAPTURE_FAILED);
+    RETURN_ON_ERROR(CAMERA_CAPTURE_FAILED);
 }
 // Close the created file
 lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-ASSERT_ON_ERROR(lRetVal);
+RETURN_ON_ERROR(lRetVal);
 #endif
 
 #ifdef COMPILE_THIS

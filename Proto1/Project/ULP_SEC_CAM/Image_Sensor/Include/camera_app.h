@@ -59,10 +59,8 @@ extern "C"
 #define ENABLE							(1)
 #define SL_VERSION_LENGTH				(11)
 
-//#define IMAGE_BUF_SIZE_BYTES			71960	//70K
-//#define IMAGE_BUF_SIZE_BYTES			72192
-//#define IMAGE_BUF_SIZE_BYTES			25600
 #define IMAGE_BUF_SIZE_BYTES			81920	//80K //Image buffer
+//#define IMAGE_BUF_SIZE_BYTES			61440	//60K //Image buffer
 //#define IMAGE_BUF_SIZE_BYTES			40960	//40K //Image buffer
 
 #define PREVIEW_IMAGE_MAXSZ				40960	//40K

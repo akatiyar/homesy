@@ -27,12 +27,24 @@ int32_t SendObject_ToParse(uint8_t ucClassName)
 	//LED_On();
 	//LED_Blink_2(.2,1,BLINK_FOREVER);
 
+	//If ground data object is to be sent, the door closed timestamp is best
+	//recorded asap
+	if(ucClassName == GROUND_DATA)
+	{
+		// Collect remaining applicable timestamps
+		if(IsLightOff(LUX_THRESHOLD))
+		{
+			cc_rtc_get(&time_now);
+			g_TimeStamp_DoorClosed = time_now.secs * 1000 + time_now.nsec / 1000000;
+		}
+	}
+
 	//Connect to WiFi
 	lRetVal = WiFi_Connect();
 	if (lRetVal < 0)
 	{
 		NWP_SwitchOff();
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 	}
 
 	//	Parse initialization
@@ -45,12 +57,6 @@ int32_t SendObject_ToParse(uint8_t ucClassName)
 	{
 		case GROUND_DATA:
 		{
-			// Collect remaining applicable timestamps
-			if(IsLightOff(LUX_THRESHOLD))
-			{
-				cc_rtc_get(&time_now);
-				g_TimeStamp_DoorClosed = time_now.secs * 1000 + time_now.nsec / 1000000;
-			}
 			//DEBG_PRINT("%ld, %ld, %ld, %ld\n",g_TimeStamp_MaxAngle, g_TimeStamp_MinAngle, g_TimeStamp_SnapAngle, g_TimeStamp_OpenAngle);
 			g_TimeStamp_MaxAngle = g_Struct_TimeStamp_MaxAngle.secs * 1000 + g_Struct_TimeStamp_MaxAngle.nsec / 1000000;
 			g_TimeStamp_MinAngle = g_Struct_TimeStamp_MinAngle.secs * 1000 + g_Struct_TimeStamp_MinAngle.nsec / 1000000;
@@ -86,5 +92,3 @@ int32_t SendObject_ToParse(uint8_t ucClassName)
 
 	return 0;
 }
-
-

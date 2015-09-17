@@ -452,6 +452,7 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 		// call the 7 element eigenpair calibration
 		isolver = 7;
 		fUpdateCalibration7EIG(pthisMagCal, pthisMagBuffer, &thisMag);
+		//DEBG_PRINT("7:)");
 	}
 	// 10 element calibration case
 	else
@@ -464,6 +465,7 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 		// call the 10 element eigenpair calibration
 		isolver = 10;
 		fUpdateCalibration10EIG(pthisMagCal, pthisMagBuffer, &thisMag);
+		//DEBG_PRINT("10:)");
 	}
 
 	// the trial geomagnetic field must be in range (earth is 22uT to 67uT)
@@ -471,9 +473,9 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 	{
 		// always accept the calibration if i) no previous calibration exists ii) the calibration fit is reduced or
 		// an improved solver was used giving a good trial calibration (4% or under)
-		if ((pthisMagCal->iValidMagCal == 0) ||
+		if ( ((pthisMagCal->iValidMagCal == 0) ||
 				(pthisMagCal->ftrFitErrorpc <= pthisMagCal->fFitErrorpc) ||
-				((isolver > pthisMagCal->iValidMagCal) && (pthisMagCal->ftrFitErrorpc <= 4.0F)))
+				((isolver > pthisMagCal->iValidMagCal) && (pthisMagCal->ftrFitErrorpc <= 4.0F))) /*&& (isolver > 4)*/ )
 		{
 			// accept the new calibration solution
 			pthisMagCal->iValidMagCal = isolver;
@@ -502,7 +504,8 @@ void MagCal_Run(struct MagCalibration *pthisMagCal, struct MagneticBuffer *pthis
 				//DEBG_PRINT("x:%f\ny:%f\nz:%f\n",pthisMagCal->fV[X], pthisMagCal->fV[Y], pthisMagCal->fV[Z]);
 				//DEBG_PRINT("Accepted\n");
 				g_ucMagCalb++;
-				//DEBG_PRINT("FitError:%f%%\n", pthisMagCal->fFitErrorpc);
+				DEBG_PRINT("FitError:%f%%\n", pthisMagCal->fFitErrorpc);
+				//DEBG_PRINT("FitError:%f%%\nisolver:%d\n", pthisMagCal->fFitErrorpc, isolver);
 				//tag prakz
 
 		} // end of test to accept the new calibration 

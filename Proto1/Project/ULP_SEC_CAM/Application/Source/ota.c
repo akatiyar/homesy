@@ -185,7 +185,7 @@ static int32_t OTA_Run()
 //******************************************************************************
 int32_t OTA_Update()
 {
-	RELEASE_PRINT("OTA: Update\n");
+	RELEASE_PRINT("OTA Update\n");
 	//
 	//	Connect cc3200 to wifi AP
 	//

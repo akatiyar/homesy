@@ -132,7 +132,7 @@ long ConfigureSimpleLinkToDefaultState()
     long lMode = -1;
 
     lRetVal = NWP_SwitchOn();
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // If the device is not in station-mode, try configuring it in station-mode
     if (ROLE_STA != lMode)
@@ -151,14 +151,14 @@ long ConfigureSimpleLinkToDefaultState()
 
         // Switch to STA role and restart
         lRetVal = sl_WlanSetMode(ROLE_STA);
-        ASSERT_ON_ERROR(lRetVal);
+        RETURN_ON_ERROR(lRetVal);
 
         lRetVal = NWP_SwitchOff();
-        ASSERT_ON_ERROR(lRetVal);
+        RETURN_ON_ERROR(lRetVal);
 
         //lRetVal = sl_Start(0, 0, 0);
         lRetVal = NWP_SwitchOn();
-        ASSERT_ON_ERROR(lRetVal);
+        RETURN_ON_ERROR(lRetVal);
 
         // Check if the device is in station again
         if (ROLE_STA != lRetVal)
@@ -173,7 +173,7 @@ long ConfigureSimpleLinkToDefaultState()
     ucConfigLen = sizeof(ver);
     lRetVal = sl_DevGet(SL_DEVICE_GENERAL_CONFIGURATION, &ucConfigOpt,
                                 &ucConfigLen, (unsigned char *)(&ver));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
 //    DEBG_PRINT("Host Driver Version: %s\n\r",SL_DRIVER_VERSION);
 //    DEBG_PRINT("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n\r",
@@ -189,11 +189,11 @@ long ConfigureSimpleLinkToDefaultState()
     //                            SL_CONNECTION_POLICY(1, 0, 0, 0, 1), NULL, 0);
     lRetVal = sl_WlanPolicySet(SL_POLICY_CONNECTION,
                                     SL_CONNECTION_POLICY(1, 0, 0, 0, 0), NULL, 0);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // Remove all profiles
     lRetVal = sl_WlanProfileDel(0xFF);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     //
     // Device in station-mode. Disconnect previous connection if any
@@ -215,36 +215,36 @@ long ConfigureSimpleLinkToDefaultState()
 
     // Enable DHCP client
     lRetVal = sl_NetCfgSet(SL_IPV4_STA_P2P_CL_DHCP_ENABLE,1,1,&ucVal);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // Disable scan
     ucConfigOpt = SL_SCAN_POLICY(0);
     lRetVal = sl_WlanPolicySet(SL_POLICY_SCAN , ucConfigOpt, NULL, 0);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // Set Tx power level for station mode
     // Number between 0-15, as dB offset from max power - 0 will set max power
     ucPower = 0;
     lRetVal = sl_WlanSet(SL_WLAN_CFG_GENERAL_PARAM_ID,
             WLAN_GENERAL_PARAM_OPT_STA_TX_POWER, 1, (unsigned char *)&ucPower);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // Set PM policy to normal
     lRetVal = sl_WlanPolicySet(SL_POLICY_PM , SL_NORMAL_POLICY, NULL, 0);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // Unregister mDNS services
     lRetVal = sl_NetAppMDNSUnRegisterService(0, 0);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     // Remove  all 64 filters (8*8)
     memset(RxFilterIdMask.FilterIdMask, 0xFF, 8);
     lRetVal = sl_WlanRxFilterSet(SL_REMOVE_RX_FILTER, (_u8 *)&RxFilterIdMask,
                        sizeof(_WlanRxFilterOperationCommandBuff_t));
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     lRetVal = NWP_SwitchOff();
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
 
     InitializeUserConfigVariables();
@@ -268,7 +268,7 @@ int ConfigureMode(int iMode)
     long   lRetVal = -1;
 
     lRetVal = sl_WlanSetMode(iMode);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     /* Restart Network processor */
     //lRetVal = NWP_SwitchOff();
@@ -350,7 +350,7 @@ long GetSNTPTime(SlDateTime_t *dateTime, unsigned char ucGmtDiffHr, unsigned cha
     if (lRetVal != sizeof(cDataBuf))
     {
         // could not send SNTP request
-        ASSERT_ON_ERROR(-2050);
+        RETURN_ON_ERROR(SNTP_ERROR);
     }
 
     //
@@ -372,14 +372,14 @@ long GetSNTPTime(SlDateTime_t *dateTime, unsigned char ucGmtDiffHr, unsigned cha
                        cDataBuf, sizeof(cDataBuf), 0,
                        (SlSockAddr_t *)&sLocalAddr,
                        (SlSocklen_t*)&iAddrSize);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     //
     // Confirm that the MODE is 4 --> server
     //
     if ((cDataBuf[0] & 0x7) != 4)    // expect only server response
     {
-         ASSERT_ON_ERROR(-2050);  // MODE is not server, abort
+         RETURN_ON_ERROR(SNTP_ERROR);  // MODE is not server, abort
     }
     else
     {
@@ -518,7 +518,7 @@ long Network_IF_GetHostIP( char* pcHostName,unsigned long * pDestinationIP )
 	lStatus = sl_NetAppDnsGetHostByName((signed char *) pcHostName,
                                             strlen(pcHostName),
                                             pDestinationIP, SL_AF_INET);
-    ASSERT_ON_ERROR(lStatus);
+    RETURN_ON_ERROR(lStatus);
 
     return lStatus;
 
@@ -560,7 +560,7 @@ int32_t GetTimeNTP(SlDateTime_t *dateTime)
         lRetVal = sl_SetSockOpt(g_TimeData.iSockID,SL_SOL_SOCKET,SL_SO_RCVTIMEO,\
                         (unsigned char*)&timeVal, sizeof(timeVal));
 
-        ASSERT_ON_ERROR(lRetVal);
+        RETURN_ON_ERROR(lRetVal);
 
         do
         {
@@ -581,7 +581,7 @@ int32_t GetTimeNTP(SlDateTime_t *dateTime)
             count++;
         }
         while(count < 5);
-        ASSERT_ON_ERROR(lRetVal);
+        RETURN_ON_ERROR(lRetVal);
     }
     else
     {
@@ -609,14 +609,14 @@ int32_t WiFi_Connect()
 	ConfigureSimpleLinkToDefaultState();
 	//lRetVal = sl_Start(0, 0, 0);
 	lRetVal = NWP_SwitchOn();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
 									(uint8_t*)USER_CONFIGS_FILENAME,
 									WIFI_DATA_SIZE, WIFI_DATA_OFFSET);
 
 	pucWifiConfigFileData = &ucWifiConfigFileData[0];
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	strcpy((char*)ssid, (const char*)ucWifiConfigFileData);
 	pucWifiConfigFileData += strlen((const char*)pucWifiConfigFileData)+1;
@@ -629,7 +629,7 @@ int32_t WiFi_Connect()
 	keyParams.KeyLen = strlen((char *)ucWifiPassword);
 
 	lRetVal = initNetwork(ssid, &keyParams);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	// TODO: Set to current date/time (within an hour precision)
 	SlDateTime_t dateTime;
@@ -671,12 +671,12 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 	sl_WlanRxFilterSet(SL_REMOVE_RX_FILTER, (unsigned char *)&rxFilterIdMask, sizeof(_WlanRxFilterOperationCommandBuff_t));
 
 	status = sl_WlanPolicySet(SL_POLICY_CONNECTION, SL_CONNECTION_POLICY(1, 0, 0, 0, 0), NULL, 0);
-	ASSERT_ON_ERROR(status);
+	RETURN_ON_ERROR(status);
 
 	sl_WlanDisconnect();
 
 	status = sl_WlanSetMode(ROLE_STA);
-	ASSERT_ON_ERROR(status);
+	RETURN_ON_ERROR(status);
 
 	//DEBG_PRINT("\r\n[QuickStart] Network init\r\n");
 
@@ -695,7 +695,7 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 
 	DEBG_PRINT("WiFi SSID:%s\nPassword:%s\nSecurity Type:%x\n", ssid, keyParams->Key, keyParams->Type);
 	status = sl_WlanConnect(ssid, strlen((char *)ssid), NULL, keyParams, NULL);
-	ASSERT_ON_ERROR(status);
+	RETURN_ON_ERROR(status);
 
     // Wait for WLAN Event
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
@@ -861,7 +861,7 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
             //Gateway IP address
             g_ulGatewayIP = pEventData->gateway;
 
-            RELEASE_PRINT("IP Acquired: IP=%d.%d.%d.%d\n",
+            DEBG_PRINT("IP Acquired: IP=%d.%d.%d.%d\n",
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,3),
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,2),
             SL_IPV4_BYTE(pNetAppEvent->EventData.ipAcquiredV4.ip,1),
@@ -870,7 +870,7 @@ void SimpleLinkNetAppEventHandler(SlNetAppEvent_t *pNetAppEvent)
         break;
         case SL_NETAPP_IP_LEASED_EVENT:
         {
-        	RELEASE_PRINT("CC3200-AP has leased IP to Mobile Station\n");
+        	DEBG_PRINT("CC3200-AP has leased IP to Mobile Station\n");
         }
         break;
         default:
@@ -946,75 +946,6 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
 
     switch (pSlHttpServerEvent->Event)
     {
-        /*case SL_NETAPP_HTTPGETTOKENVALUE_EVENT:
-        {
-        	//DEBG_PRINT("Received GET Token");
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [0], pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-                if(g_ucConnectedToConfAP == 1)
-                {
-                    // Important - Connection Status
-                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "TRUE",strlen("TRUE"));
-                    pSlHttpServerResponse->ResponseData.token_value.len = strlen("TRUE");
-                }
-                else
-                {
-                    // Important - Connection Status
-                    memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "FALSE",strlen("FALSE"));
-                    pSlHttpServerResponse->ResponseData.token_value.len = strlen("FALSE");
-                }
-            }
-
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [1], pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[0].ssid,g_NetEntries[0].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[0].ssid_len;
-            }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [2], pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[1].ssid,g_NetEntries[1].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[1].ssid_len;
-            }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [3], pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[2].ssid,g_NetEntries[2].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[2].ssid_len;
-            }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [4], pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[3].ssid,g_NetEntries[3].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[3].ssid_len;
-            }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, g_token_get [5], pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-                // Important - Token value len should be < MAX_TOKEN_VALUE_LEN
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, g_NetEntries[4].ssid,g_NetEntries[4].ssid_len);
-                pSlHttpServerResponse->ResponseData.token_value.len = g_NetEntries[4].ssid_len;
-            }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, "Button90", pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-            	g_ucAngle90 = BUTTON_PRESSED;
-            	while(g_ucAngle90 != ANGLE_VALUE_COLLECTED);
-            	g_ucAngle90 = BUTTON_NOT_PRESSED;
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "Angle90 Collected",strlen("Angle90 Collected"));
-                pSlHttpServerResponse->ResponseData.token_value.len = strlen("Angle90 Collected");
-            }
-            if(0== memcmp(pSlHttpServerEvent->EventData.httpTokenName.data, "Button40", pSlHttpServerEvent->EventData.httpTokenName.len))
-            {
-            	g_ucAngle90 = BUTTON_PRESSED;
-            	while(g_ucAngle90 != ANGLE_VALUE_COLLECTED);
-            	g_ucAngle90 = BUTTON_NOT_PRESSED;
-                memcpy(pSlHttpServerResponse->ResponseData.token_value.data, "Angle40 Collected",strlen("Angle40 Collected"));
-                pSlHttpServerResponse->ResponseData.token_value.len = strlen("Angle40 Collected");
-            }
-
-        }
-        break;*/
-
         case SL_NETAPP_HTTPPOSTTOKENVALUE_EVENT:
         {
         	uint16_t Token_Len = pSlHttpServerEvent->EventData.httpPostData.token_name.len;
@@ -1151,7 +1082,11 @@ void SimpleLinkHttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent,
             }
         	else if(0 == memcmp(Token, TOK_ACTION4, Token_Len))		//__SL_P_US0
         	{
-
+        		if(0 == memcmp(Value, "OTA", Value_Len))
+				{
+					g_ucActionButton = BUTTON_PRESSED;
+					g_ucAction = OTA_FIRMWARE_UPDATE;
+				}
             }
         	else if(0 == memcmp(Token, TOK_PREVIEW, Token_Len))		//__SL_P_US0
         	{

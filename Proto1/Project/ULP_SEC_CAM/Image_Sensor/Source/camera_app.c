@@ -114,7 +114,7 @@ bool g_bCameraOn= true;
 
 #define CAM_DMA_BLOCK_SIZE_IN_BYTES		(TOTAL_DMA_ELEMENTS*sizeof(unsigned long))
 
-#define RETRIES_MAX_MT9D111STANDBY		5
+#define RETRIES_MAX_MT9D111STANDBY		10
 //*****************************************************************************
 //                      GLOBAL VARIABLES
 //*****************************************************************************
@@ -320,10 +320,10 @@ int32_t Config_CameraCapture()
 							// 10 is margin
 
 	lRetVal = SoftReset_ImageSensor();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	lRetVal = CameraSensorInit();	//Initial configurations
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -336,33 +336,42 @@ int32_t Standby_ImageSensor()
 	int32_t lRetVal;
 	uint8_t ucTryNum;
 
-	DEBG_PRINT("Cam Stndby\n");
+	DEBG_PRINT("\nCam Stndby:\n");
 
 	//lRetVal = EnterStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
-	ucTryNum = 0;
-	while((lRetVal == MT9D111_FIRMWARE_STATE_ERROR) && (ucTryNum < RETRIES_MAX_MT9D111STANDBY))
+	ucTryNum = 1;
+	while((lRetVal == MT9D111_FIRMWARE_STATE_ERROR) && (ucTryNum <= RETRIES_MAX_MT9D111STANDBY))
 	{
-		DEBG_PRINT("Retry\n");
+		DEBG_PRINT("\nRetry\n");
 		SoftReset_ImageSensor();
 		CameraSensorInit();
 		Start_CameraCapture();
 		lRetVal = EnterStandby_mt9d111(SOFT_STANDBY);
 		if(lRetVal == 0)
 		{
-			DEBG_PRINT("Success on Retry\n");
+			DEBG_PRINT("\nSuccess on retry\n");
 		}
 		else
 		{
 			ucTryNum++;
-			DEBG_PRINT("Failure on Retry\n");
+			DEBG_PRINT("\nFailure on Retry\n");
 		}
 	}
-	//ASSERT_ON_ERROR(lRetVal);
+	//RETURN_ON_ERROR(lRetVal);
 
-	MAP_PRCMPeripheralReset(PRCM_CAMERA);
-	MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
-	g_bCameraOn = false;
+	if(ucTryNum > RETRIES_MAX_MT9D111STANDBY)	//Failed after maximum number of retries
+	{
+		// Want to do a whole device reset here with SYSOFF pin
+		DEBG_PRINT("Standby Failure #@ #@\n");
+		lRetVal = MT9D111_STANDBY_FAILED;
+	}
+	else
+	{
+		MAP_PRCMPeripheralReset(PRCM_CAMERA);
+		MAP_PRCMPeripheralClkDisable(PRCM_CAMERA, PRCM_RUN_MODE_CLK);
+		g_bCameraOn = false;
+	}
 
 	return lRetVal;
 }
@@ -374,7 +383,7 @@ int32_t Wakeup_ImageSensor()
 {
 	int32_t lRetVal;
 
-	DEBG_PRINT("Cam Wake\n");
+	DEBG_PRINT("\nCam Wake:\n");
 
 	CamControllerInit();
 
@@ -382,7 +391,7 @@ int32_t Wakeup_ImageSensor()
 
 	//lRetVal = ExitStandby_mt9d111(HARD_STANDBY);	//Hard Standby is drawing more current
 	lRetVal = ExitStandby_mt9d111(SOFT_STANDBY);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	g_bCameraOn = true;
 
@@ -397,19 +406,19 @@ int32_t Start_CameraCapture()
 {
 	int32_t lRetVal;
 
-	DEBG_PRINT("Cam Start\n");
+	DEBG_PRINT("\nCam Start:\n");
 
 	lRetVal = StartSensorInJpegMode();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	disableAE();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	disableAWB();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	WriteAllAEnAWBRegs();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	Refresh_mt9d111Firmware();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	//UtilsDelay(80000000/6);
 
 	return lRetVal;
@@ -419,11 +428,11 @@ int32_t ReStart_CameraCapture(uint16_t* pImageConfig)
 {
 	int32_t lRetVal;
 
-	DEBG_PRINT("Cam Restart\n");
+	DEBG_PRINT("\nCam Restart:\n");
 
 	lRetVal = RestartSensorInJpegMode(pImageConfig);
 
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 	return lRetVal;
 }
@@ -458,7 +467,7 @@ int32_t Config_And_Start_CameraCapture()
 	// Configure Sensor in Capture Mode
 	//DEBG_PRINT("\n\rStart Sensor ");
 	lRetVal = StartSensorInJpegMode();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 //	uint16_t x;
 	disableAE();
@@ -476,7 +485,7 @@ int32_t Config_And_Start_CameraCapture()
 	Wakeup_ImageSensor();
 
 	lRetVal = StartSensorInJpegMode();
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
 //	uint16_t x;
 	disableAE();
@@ -561,7 +570,7 @@ int32_t CaptureImage(int32_t lFileHandle)
 				if (lRetVal < 0)
 				{
 					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-					ASSERT_ON_ERROR(FILE_WRITE_FAILED);
+					RETURN_ON_ERROR(FILE_WRITE_FAILED);
 				}
 
 				// Update Num of bytes written into flash
@@ -605,7 +614,7 @@ int32_t CaptureImage(int32_t lFileHandle)
 				if (lRetVal < 0)
 				{
 					lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-					ASSERT_ON_ERROR(FILE_WRITE_FAILED);
+					RETURN_ON_ERROR(FILE_WRITE_FAILED);
 				}
 
 				// Update Num of bytes written into flash
@@ -628,12 +637,12 @@ int32_t CaptureImage(int32_t lFileHandle)
     }
 
     //When the buffer is not fully filled
-    g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
+    //g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
     //MAP_CameraCaptureStop(CAMERA_BASE, true);
     //StopTimer();
     //DEBG_PRINT("pA");
     DEBG_PRINT("Image captured from Sensor\n");
-    DEBG_PRINT("g_frame_size_in_bytes: %ld\n", g_frame_size_in_bytes);
+    DEBG_PRINT("g_frame_size_in_bytes: %ld\n", g_frame_size_in_bytes+(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)));
 
     //float_t fPicCaptureDuration;
     //GetTimeDuration(&fPicCaptureDuration);
@@ -649,11 +658,11 @@ int32_t CaptureImage(int32_t lFileHandle)
                       (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
 					  //(g_frame_size_in_bytes - uiImageFile_Offset + CAM_DMA_BLOCK_SIZE_IN_BYTES));
 					  //(g_frame_size_in_bytes - uiImageFile_Offset));
-                      (g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
+                      ((g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES) + (TOTAL_DMA_ELEMENTS*sizeof(unsigned long))));
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(FILE_WRITE_FAILED);
+        RETURN_ON_ERROR(FILE_WRITE_FAILED);
     }
     uiImageFile_Offset += lRetVal;
 
@@ -787,12 +796,12 @@ int32_t CaptureImage(int32_t lFileHandle)
 //
 //	// Close the file post writing the image
 //    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-//    ASSERT_ON_ERROR(lRetVal);
+//    RETURN_ON_ERROR(lRetVal);
 //
 //
 //    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
 //    lRetVal = sl_Stop(0xFFFF);
-//	ASSERT_ON_ERROR(lRetVal);
+//	RETURN_ON_ERROR(lRetVal);
 //
 //
 //    return SUCCESS;
@@ -936,7 +945,7 @@ static void CameraIntHandler()
 
         g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
         if(g_frame_size_in_bytes < FRAME_SIZE_IN_BYTES && 
-                                    g_frame_size_in_bytes < JPEG_IMAGE_MAX_FILESIZE)
+        		(g_frame_size_in_bytes < (JPEG_IMAGE_MAX_FILESIZE-2*(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))))
         {
             if(g_dma_txn_done == 0)
             {
@@ -1074,7 +1083,7 @@ int32_t CaptureandSavePreviewImage()
     if(lRetVal < 0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(FILE_OPEN_WRITE_FAILED);
+        RETURN_ON_ERROR(FILE_OPEN_WRITE_FAILED);
     }
 
     lRetVal = sl_FsWrite(lFileHandle, 0,(uint8_t*) g_image_buffer,  fileInfo.FileLen+1);
@@ -1102,13 +1111,13 @@ int32_t CaptureandSavePreviewImage()
     if (lRetVal <0)
     {
         lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-        ASSERT_ON_ERROR(FILE_WRITE_FAILED);
+        RETURN_ON_ERROR(FILE_WRITE_FAILED);
     }
     //
     // Close the file post writing the image
     //
     lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-    ASSERT_ON_ERROR(lRetVal);
+    RETURN_ON_ERROR(lRetVal);
 
     return SUCCESS;
 

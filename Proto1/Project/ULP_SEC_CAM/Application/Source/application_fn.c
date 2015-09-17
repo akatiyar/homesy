@@ -70,7 +70,7 @@ int32_t application_fn()
 
 		// Start SimpleLink - NWP ON - required for all flash operations
 		lRetVal = NWP_SwitchOn();
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 
 		//g_tempflag=false;
 		//Initialize magnetometer for angle calculation
@@ -112,7 +112,7 @@ int32_t application_fn()
 						   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
 		if(lRetVal < 0)
 		{
-		   sl_FsClose(lFileHandle, 0, 0, 0); ASSERT_ON_ERROR(lRetVal);
+		   sl_FsClose(lFileHandle, 0, 0, 0); RETURN_ON_ERROR(lRetVal);
 		}
 		DEBG_PRINT("a Fileopen\n");	//Tag:Remove when waketime optimization is over
 		g_Task1_Notification = IMAGEFILE_OPEN_COMPLETE;
@@ -163,10 +163,10 @@ int32_t application_fn()
 		if((IsLightOff(LUX_THRESHOLD)) || (g_ucReasonForFailure == DOOR_ATSNAP_DURING_FILEOPEN))
 		{
 			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-			ASSERT_ON_ERROR(lRetVal);
+			RETURN_ON_ERROR(lRetVal);
 
 			lRetVal = NWP_SwitchOff();
-			ASSERT_ON_ERROR(lRetVal);
+			RETURN_ON_ERROR(lRetVal);
 
 			//Upload GroundData object
 			LED_Blink_2(.2,1,BLINK_FOREVER);
@@ -189,7 +189,7 @@ int32_t application_fn()
 #endif
 
 #ifdef IMAGE_DEBUG
-		g_flag_door_closing_45degree = 1;	//Uncomment to always capture
+		g_flag_door_closing_45degree = 1;
 #endif
 
 		start_100mSecTimer();	//For Timeout detection
@@ -213,6 +213,7 @@ int32_t application_fn()
 				if(IsLightOff(LUX_THRESHOLD))
 				{
 					g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
+					RELEASE_PRINT("Lightout\n");
 					break;
 				}
 				//Timeout
@@ -249,9 +250,9 @@ int32_t application_fn()
 			{
 				//NOTE: For Ground data upload to Parse only.
 				lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-				ASSERT_ON_ERROR(lRetVal);
+				RETURN_ON_ERROR(lRetVal);
 				lRetVal = NWP_SwitchOff();
-				ASSERT_ON_ERROR(lRetVal);
+				RETURN_ON_ERROR(lRetVal);
 
 				//Tag:Upload GroundData object
 				//SendGroundData();
@@ -284,11 +285,11 @@ int32_t application_fn()
 
 		// Close the file after writing the image into it
 	    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
-	    ASSERT_ON_ERROR(lRetVal);
+	    RETURN_ON_ERROR(lRetVal);
 
 	    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
 	    lRetVal = NWP_SwitchOff();
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 
 		//Uncomment
 		Standby_ImageSensor();	//Put the Image Sensor in standby
@@ -301,7 +302,7 @@ int32_t application_fn()
 			if (lRetVal < 0)
 			{
 				NWP_SwitchOff();
-				ASSERT_ON_ERROR(lRetVal);
+				RETURN_ON_ERROR(lRetVal);
 			}
 
 			//	Parse initialization

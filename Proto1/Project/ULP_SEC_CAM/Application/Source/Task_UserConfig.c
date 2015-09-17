@@ -45,7 +45,7 @@ void UserConfigure_Task(void *pvParameters)
 		}
 		g_ulAppStatus = USER_CONFIG_TAKING_PLACE;	//includes OTA also for now
 
-		//If long press, do OTA. Else do UserConfig
+/*		//If long press, do OTA. Else do UserConfig
 		if(IsLongPress())
 		{
 			LED_Blink_2(.2,.2,BLINK_FOREVER);//LED_On();
@@ -54,9 +54,10 @@ void UserConfigure_Task(void *pvParameters)
 		else	//short press - UserConfig
 				//0 means short or no press - calling IsLongPress imdeately
 				//after button press is detected, ensures it is not the no-press
-				//case
+				//case*/
 		{
 			LED_Blink_2(1,.1,BLINK_FOREVER);//LED_Blink_2(.25,.25,BLINK_FOREVER);
+			RELEASE_PRINT("Config Mode\n");
 			User_Configure();
 			//sendUserConfigData();
 			//LED_Blink_2(.2,1,BLINK_FOREVER);

@@ -15,7 +15,8 @@
 #include "hibernate_related_fns.h"
 #include "appFns.h"
 #include "timer_fns.h"
-//Tag:Try and remove these driver level includes
+#include "flash_files.h"
+//Try and remove these driver level includes
 #include "tempRHSens_si7020.h"
 #include "lightSens_isl29035.h"
 
@@ -39,6 +40,7 @@ void Main_Task_withHibernate(void *pvParameters)
 		RELEASE_PRINT("\nI'm up\n");
 		LED_On();
 
+		//UtilsDelay(80000000);
 		//Enter the application functionality
 		application_fn();
 	}
@@ -48,8 +50,8 @@ void Main_Task_withHibernate(void *pvParameters)
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
     	//Give firmware ID/Version or gist of firmware change here
-    	UtilsDelay(1000000);	// To ensure Firmware title is printed first
-    	RELEASE_PRINT("*** %s ***\n\r", FIRMWARE_VERSION);
+    	UtilsDelay(1000000);	// To ensure Firmware title is printed continuously
+    	RELEASE_PRINT("*** %s ***\n", FIRMWARE_VERSION);
 
     	//Give time to press the push button for OTA or MobileApp config
 #ifndef	DEBUG_MODE
@@ -83,13 +85,32 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Modify_JPEGHeaderFile();
 
-//Use the folowing code to test without hibernate
+//Use the folowing code to test without hibernate - using the debugger
 #ifdef USB_DEBUG
 		while(1)
 		{
 			application_fn();
-			MAP_UtilsDelay(1000);
 		}
+
+		/*NWP_SwitchOn();
+		ReadFile_FromFlash((uint8_t*)g_image_buffer,
+							(uint8_t*)FILENAME_SENSORCONFIGS,
+							CONTENT_LENGTH_SENSORS_CONFIGS, 0);
+		uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
+		ImageConfigData = ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t));
+		NWP_SwitchOff();
+		while(1)
+		{
+			//application_fn();
+			Wakeup_ImageSensor();						//Wake the image sensor
+			ReStart_CameraCapture(ImageConfigData);		//Restart image capture
+
+			MAP_UtilsDelay(6*80000000/6);					//1ms delay
+
+			Standby_ImageSensor();
+
+			MAP_UtilsDelay(80000/6);
+		}*/
 #endif
 
   		//Commits image if running in test mode

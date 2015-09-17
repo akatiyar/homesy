@@ -39,15 +39,14 @@ static long WlanConnect();
 static int32_t Get_Calibration_MagSensor();
 static int32_t CollectAngle(uint8_t ucAngle);
 int32_t SaveImageConfig();
-uint16_t g_shutterwidth=0;
-uint16_t g_Gain[4];
+int32_t save_user_configs();
 
 #define CONFIG_MODE_USER_ACTION_TIMEOUT		600	//in units of 100ms
 												//1 minute = 1*60*10 = 600
 
-
+uint16_t g_shutterwidth=0;
+uint16_t g_Gain[4];
 float_t* g_pfUserConfigData = (float_t*) &g_image_buffer[(USER_CONFIGS_OFFSET_BUF)/sizeof(long)];
-
 //******************************************************************************
 // This function calls the function corresponding to button presses (button
 //	presses are translated to global flag changes in network_related_fns.c) from
@@ -74,17 +73,21 @@ int32_t User_Configure()
 	g_ulWatchdogCycles = 0;
 	g_ulAppTimeout_ms = USERCONFIG_TIMEOUT;
 
+	InitializeUserConfigVariables();
+
 	AccessPtMode_HTTPServer_Start();
 
 	// Initialize the camera
-	//if(g_bCameraOn == false)
-	{
-		Wakeup_ImageSensor();
-	}
-
+	Wakeup_ImageSensor();
 	SoftReset_ImageSensor();
 	Config_CameraCapture();
 	Start_CameraCapture();	//Do this once. Not needed after standby wake_up
+
+	//User Message
+	if(!g_PhoneConnected_ToCC3200AP_flag)
+	{
+		RELEASE_PRINT("Please connect phone to CC3200-AP\n");
+	}
 
 	// Reading the file, since write erases contents already present
 	ReadFile_FromFlash((uint8_t*)g_pfUserConfigData,
@@ -94,9 +97,10 @@ int32_t User_Configure()
 	start_100mSecTimer();	//The timer does not timeout on it's own. We check
 							//the elapsed time and break the while loop on timeout
 
-
-	//Wait till phone connect to cc3200 AP or till push button is pressed or
-	//timeout happens
+	//Wait till one of these happen:
+	//	1. phone connect to cc3200 AP
+	//	2. push button on hardware is pressed - to abort Config mode and exit
+	//	3. timeout
 	while(1)
 	{
 		if(IS_PUSHBUTTON_PRESSED || g_PhoneConnected_ToCC3200AP_flag)
@@ -107,9 +111,15 @@ int32_t User_Configure()
 		{
 			stop_100mSecTimer();	//Stop the timeout timer.
 			RELEASE_PRINT("Timeout... No phone connected\n");
-			return 0;
+			return 0;	//Gotta replace this by run_flag = false
 		}
 		osi_Sleep(10);
+	}
+
+	//Message to user
+	if(g_PhoneConnected_ToCC3200AP_flag)
+	{
+		RELEASE_PRINT("Please open mobile app to configure\n");
 	}
 
 	LED_Blink_2(.5,.5,BLINK_FOREVER);
@@ -135,6 +145,9 @@ int32_t User_Configure()
 			LED_On();
 			g_ucCalibration = BUTTON_NOT_PRESSED;
 			Get_Calibration_MagSensor();
+			//We save so that the angle mmts user is likely to do immediately
+			//will be based on the new calibration
+			save_user_configs();
 			standby_accelMagn_fxos8700();
 			LED_Blink_2(0.5,0.5,BLINK_FOREVER);
 			//Elapsed_100MilliSecs = 0;	//Resetting the timer count
@@ -171,6 +184,7 @@ int32_t User_Configure()
 		if(g_ucAWBOn == BUTTON_PRESSED)
 		{
 			LED_On();
+			RELEASE_PRINT("AWB on\n");
 //			//Refresh_mt9d111Firmware();
 //			osi_Sleep(100);
 			enableAWB();
@@ -190,6 +204,7 @@ int32_t User_Configure()
 
 		if(g_ucAWBOff == BUTTON_PRESSED)
 		{
+			RELEASE_PRINT("AWB off\n");
 //			Variable_Write(0xA912,0x00);
 //			Refresh_mt9d111Firmware();
 			disableAWB();
@@ -209,6 +224,7 @@ int32_t User_Configure()
 
 		if(g_ucPreviewStart == BUTTON_PRESSED)
 		{
+			RELEASE_PRINT("Preview On\n");
 			//    Wakeup_ImageSensor();
 
 			// Set the IMage size to 640x480
@@ -237,6 +253,7 @@ int32_t User_Configure()
 
 		if(g_ucPreviewStop == BUTTON_PRESSED)
 		{
+			RELEASE_PRINT("Preview Off\n");
 			lRetVal = sl_FsDel(JPEG_PREVIEW_IMAGE_FILE_NAME,NULL);
 			if(lRetVal<0)
 			{
@@ -250,7 +267,7 @@ int32_t User_Configure()
 		if(g_ucActionButton == BUTTON_PRESSED)
 		{
 			LED_On();
-			if(g_ucAction ==  CAM_RESTART_CAPTURE)
+			if(g_ucAction == CAM_RESTART_CAPTURE)
 			{
 				Restart_Camera();
 				Variable_Write(0x2707,640);
@@ -258,6 +275,23 @@ int32_t User_Configure()
 
 				Refresh_mt9d111Firmware();
 				osi_Sleep(200);
+			}
+			else if (g_ucAction == OTA_FIRMWARE_UPDATE)
+			{
+				LED_Blink_2(.2,.2,BLINK_FOREVER);
+				//We save so that if the user has jst configured WiFi
+				//credentials, it would be used for the OTA
+				save_user_configs();
+				OTA_Update();
+
+				//If OTA update was successful, CC3200 is reset so that the
+				//firmware can be run. Therefore, following lines of code are
+				//not executed. The user has to enter UserConfig again by
+				//resetting
+				//If no updates are available / the OTA was a failure, CC3200
+				//should come back to AP mode
+				InitializeUserConfigVariables();
+				AccessPtMode_HTTPServer_Start();
 			}
 			g_ucAction = NONE;
 			g_ucActionButton = BUTTON_NOT_PRESSED;
@@ -283,13 +317,8 @@ int32_t User_Configure()
 		if((g_ucExitButton == BUTTON_PRESSED)/*||(Elapsed_100MilliSecs > CONFIG_MODE_USER_ACTION_TIMEOUT)*/)
 		{
 			LED_On();
-			*(g_pfUserConfigData + (OFFSET_ANGLE_OPEN/sizeof(float))) = Calculate_DoorOpenThresholdAngle(*(g_pfUserConfigData + (OFFSET_ANGLE_40/sizeof(float))),*(g_pfUserConfigData + (OFFSET_ANGLE_90/sizeof(float))));
-			//Write all the User Config contents into the flash
-			lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
-									(uint8_t*)USER_CONFIGS_FILENAME,
-									CONTENT_LENGTH_USER_CONFIGS, 0,
-									SINGLE_WRITE, &lFileHandle);
-			ASSERT_ON_ERROR(lRetVal);
+			RELEASE_PRINT("Exiting Config Mode\n");
+			save_user_configs();
 
 			/*//Verification
 			for(i=0;i<15;i++)
@@ -311,7 +340,6 @@ int32_t User_Configure()
 		osi_Sleep(10);
     }
 
-	//free(g_pfUserConfigData);
 	//Stop Internal HTTP Server
 	lRetVal = sl_NetAppStop(SL_NET_APP_HTTP_SERVER_ID);
 	if(lRetVal < 0)
@@ -322,13 +350,11 @@ int32_t User_Configure()
 
 	if(ConfigureMode(ROLE_STA) !=ROLE_STA)
 	{
-		ASSERT_ON_ERROR(ROLE_STA_ERR);
+		RETURN_ON_ERROR(ROLE_STA_ERR);
 	}
 
 	Restart_Camera();
-
 	ReadGainReg(g_Gain);
-
 	Reg_Read(0x00,0x09,&g_shutterwidth);
 	Standby_ImageSensor();
 
@@ -345,8 +371,6 @@ static int32_t AccessPtMode_HTTPServer_Start()
 	int32_t lRetVal = -1;
 	unsigned char ucFridgeCamID[50];
 	unsigned short  length;
-
-	InitializeUserConfigVariables();
 
 	//
 	// Following function configure the device to default state by cleaning
@@ -491,14 +515,14 @@ static int32_t WiFiProvisioning()
 									(uint8_t*)USER_CONFIGS_FILENAME,
 									CONTENT_LENGTH_USER_CONFIGS,
 									0, 1, &lFileHandle);
-		ASSERT_ON_ERROR(lRetVal);
+		RETURN_ON_ERROR(lRetVal);
 
 		// For verification - DBG
 		lRetVal = ReadFile_FromFlash((ucConfigFileData+3),
 										(uint8_t*)USER_CONFIGS_FILENAME,
 										WIFI_DATA_SIZE-3,
 										WIFI_DATA_OFFSET);
-		ASSERT_ON_ERROR(lRetVal);*/
+		RETURN_ON_ERROR(lRetVal);*/
 	}
 	else
 	{
@@ -568,7 +592,7 @@ static long WlanConnect()
     //Connecting to the Access point
 	lRetVal = sl_WlanConnect(g_cWlanSSID, strlen((char*)g_cWlanSSID), 0,
 								&g_SecParams, 0);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 
     // Wait for WLAN Event
     while(uiConnectTimeoutCnt<CONNECTION_TIMEOUT_COUNT &&
@@ -598,8 +622,6 @@ static long WlanConnect()
 static int32_t Get_Calibration_MagSensor()
 {
 	uint8_t tmpCnt=0;
-	long lRetVal = -1;
-	int32_t lFileHandle;
 	float_t previous_best_fit_error;
 	uint8_t calibRepeatCnt;
 	uint8_t i;
@@ -613,11 +635,14 @@ static int32_t Get_Calibration_MagSensor()
 #define MAX_CALIB_REPEATS			20
 #define ACCEPTABLE_FITERROR			5
 
+	//fxosDefault_Initializations();
+
 	for(; calibRepeatCnt < MAX_CALIB_REPEATS; calibRepeatCnt++)
 	{
 		g_ucMagCalb = 0;
 		fxosDefault_Initializations();
 		while(g_ucMagCalb < MAG_SENSOR_CALIBCOUNT)
+		//while( g_ucMagCalb < (calibRepeatCnt+1) )
 		{
 			fxos_Calibration();
 
@@ -629,9 +654,14 @@ static int32_t Get_Calibration_MagSensor()
 			//Better be replaced with a stop calibration button
 			if(g_ucExitButton == BUTTON_PRESSED)
 			{
-				g_ucExitButton = BUTTON_NOT_PRESSED;
+				//g_ucExitButton = BUTTON_NOT_PRESSED;
 				break;
 			}
+		}
+		if(g_ucExitButton == BUTTON_PRESSED)
+		{
+			g_ucExitButton = BUTTON_NOT_PRESSED;
+			break;
 		}
 		DEBG_PRINT("%d  %3.2f\n", calibRepeatCnt, thisMagCal.fFitErrorpc);
 
@@ -676,11 +706,11 @@ static int32_t Get_Calibration_MagSensor()
 		osi_Sleep(5000);	//5 seconds delay
 	}
 
-	lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
-							(uint8_t*)USER_CONFIGS_FILENAME,
-							CONTENT_LENGTH_USER_CONFIGS, 0,
-							SINGLE_WRITE, &lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
+//	lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
+//							(uint8_t*)USER_CONFIGS_FILENAME,
+//							CONTENT_LENGTH_USER_CONFIGS, 0,
+//							SINGLE_WRITE, &lFileHandle);
+//	RETURN_ON_ERROR(lRetVal);
 
 	return 0;
 }
@@ -761,8 +791,24 @@ int32_t SaveImageConfig()
 							(uint8_t*)FILENAME_SENSORCONFIGS,
 							CONTENT_LENGTH_SENSORS_CONFIGS, 0,
 							SINGLE_WRITE, &lFileHandle);
-	ASSERT_ON_ERROR(lRetVal);
+	RETURN_ON_ERROR(lRetVal);
 	//ReadAllAEnAWBRegs();
 	return lRetVal;
 }
 
+int32_t save_user_configs()
+{
+	int32_t lRetVal;
+	int32_t lFileHandle;
+
+	DEBG_PRINT("saving user configs\n");	//Temp - for testing
+	*(g_pfUserConfigData + (OFFSET_ANGLE_OPEN/sizeof(float))) = Calculate_DoorOpenThresholdAngle(*(g_pfUserConfigData + (OFFSET_ANGLE_40/sizeof(float))),*(g_pfUserConfigData + (OFFSET_ANGLE_90/sizeof(float))));
+	//Write all the User Config contents into the flash
+	lRetVal = WriteFile_ToFlash((uint8_t*)g_pfUserConfigData,
+							(uint8_t*)USER_CONFIGS_FILENAME,
+							CONTENT_LENGTH_USER_CONFIGS, 0,
+							SINGLE_WRITE, &lFileHandle);
+	PRINT_ON_ERROR(lRetVal);
+
+	return lRetVal;
+}
