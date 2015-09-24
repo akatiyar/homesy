@@ -3,6 +3,7 @@
 #define HIBERNATE_RELATED_FNS_H_
 
 //Includes needed to call fns declared in this file
+#include "hw_types.h"
 #include "prcm.h"
 
 //Defines used as parameter at function call

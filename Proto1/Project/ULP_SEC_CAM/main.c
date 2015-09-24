@@ -31,85 +31,63 @@
 //  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 //  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-//*****************************************************************************
+//******************************************************************************
 
-//*****************************************************************************
+//******************************************************************************
 //
-// Application Name     - Get Weather
-// Application Overview - Get Weather application connects to "openweathermap.org"
-//                        server, requests for weather details of the specified
-//                        city, process data and displays it on the Hyperterminal.
+// Application Name     -	Fridge WiFi Camera
+// Application Overview -	An image of the fridge is captured when the door
+//							of the fridge is at 40 degrees and uploaded to Parse
 //
-// Application Details  -
-// http://processors.wiki.ti.com/index.php/CC32xx_Info_Center_Get_Weather_Application
-// or
-// docs\examples\CC32xx_Info_Center_Get_Weather_Application.pdf
-//
-//*****************************************************************************
-
-
-//****************************************************************************
-//
-//! \addtogroup get_weather
-//! @{
-//
-//****************************************************************************
+//******************************************************************************
 
 // Standard includes
+#include <app_fns.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // simplelink includes
+#include "simplelink.h"
 #include "device.h"
 
 // driverlib includes
-
 #include "hw_types.h"
 #include "hw_ints.h"
 #include "interrupt.h"
 #include "prcm.h"
 #include "rom.h"
 #include "rom_map.h"
-//#include "timer.h"
 #include "utils.h"
 #include "pinmux.h"
 
-#include "simplelink.h"
 //Free_rtos/ti-rtos includes
 #include "osi.h"
 
 // common interface includes
-
-#include "gpio_if.h"
 #include "timer_if.h"
 #include "udma_if.h"
 #include "common.h"
-
 #include "i2c_if.h"
 #include "i2c_app.h"
 
 #include "camera_app.h"
 #include "network_related_fns.h"
 #include "app_common.h"
-
-#include "appFns.h"
 #include "hibernate_related_fns.h"
 #include "watchdog.h"
-//****************************************************************************
-//                          LOCAL DEFINES                                   
-//****************************************************************************
-#define SERVER_RESPONSE_TIMEOUT 10
-#define SUCCESS                 0
+
 //*****************************************************************************
-//                 GLOBAL VARIABLES -- Start
+//                 				GLOBAL VARIABLES
 //*****************************************************************************
 unsigned long g_ulTimerInts;   //  Variable used in Timer Interrupt Handler
 volatile unsigned char g_CaptureImage; //An app status
 SlSecParams_t SecurityParams = {0};  // AP Security Parameters
 
-//unsigned long g_image_buffer[NUM_OF_4B_CHUNKS]; //Appropriate name change to be done
-unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))]; //Appropriate name change to be done
+//The large buffer (80KB) used for storing Image or any other large data such
+//as file contents read from Flash and Parse object
+//Use with care
+unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 
 unsigned long  g_ulGatewayIP = 0; //Network Gateway IP address
 unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
@@ -127,7 +105,6 @@ OsiTaskHandle g_UserConfigTaskHandle = NULL ;
 OsiTaskHandle g_MainTaskHandle = NULL ;
 OsiTaskHandle g_ImageCaptureConfigs_TaskHandle = NULL ;
 
-//Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE] = {"__SL_G_US0",
                                         "__SL_G_US1", "__SL_G_US2","__SL_G_US3",
                                                     "__SL_G_US4", "__SL_G_US5"};
@@ -138,22 +115,15 @@ extern void (* const g_pfnVectors[])(void);
 #if defined(ewarm)
 extern uVectorEntry __vector_table;
 #endif
-//*****************************************************************************
-//                 GLOBAL VARIABLES -- End
-//*****************************************************************************
-
 
 //****************************************************************************
 //                      LOCAL FUNCTION PROTOTYPES                           
 //****************************************************************************
 static void BoardInit();
-
-
-extern void Main_Task(void *pvParameters);
 extern void Main_Task_withHibernate(void *pvParameters);
 extern void UserConfigure_Task(void *pvParameters);
-extern void Test_Task(void *pvParameters);
 extern void ImageSensor_CaptureConfigs_Task(void *pvParameters);
+extern void Test_Task(void *pvParameters);
 
 #ifdef USE_FREERTOS
 //*****************************************************************************
@@ -302,7 +272,7 @@ BoardInit(void)
 //
 //! \brief This function initializes the application variables
 //!
-//! \param    None
+//! \param None
 //!
 //! \return None
 //!
@@ -340,8 +310,10 @@ static void InitializeAppVariables()
 //! \param none
 //! 
 //! This function  
-//!    1. Invokes the SLHost task
-//!    2. Invokes the GetWeather Task
+//!		1. Initializes cc3200 for the application
+//!		2. Shutsdown system if battery is too low
+//!		3. Invokes the SLHost task
+//!		4. Invokes three application Tasks
 //!
 //! \return None.
 //
@@ -357,11 +329,9 @@ void main()
     BoardInit();
 
     //
-    //To indicate to the user that device is up
-    //
-    //LED_On();
 	//Indicate to the user that he can press the button now
-	LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
+    //
+    LED_Blink_2(0.5, 0.5, BLINK_FOREVER);
 
     //
     // Initialize application variables
@@ -375,7 +345,7 @@ void main()
 	//
 	//	Turn off if battery is too low. To protect flash data from corruption
 	//
-	g_fBatteryVolt_atStart = Get_BatteryVoltage();
+	g_fBatteryVolt_atStart = Get_BatteryVoltage();	//To upload to parse
 	if(Get_BatteryPercent() <= BATTERY_LOW_THRESHOLD)
 	{
 		RELEASE_PRINT("Low Battery\n");

@@ -5,6 +5,7 @@
  *      Author: Chrysolin
  */
 
+#include <app_fns.h>
 #include "app.h"
 
 #include "osi.h"
@@ -13,23 +14,29 @@
 #include "camera_app.h"
 #include "ota.h"
 #include "hibernate_related_fns.h"
-#include "appFns.h"
 #include "timer_fns.h"
 #include "flash_files.h"
-//Try and remove these driver level includes
-#include "tempRHSens_si7020.h"
-#include "lightSens_isl29035.h"
-
-#include "dbgFns.h"	//Can be removed when debug fns are not used
-
+#include "dbgFns.h"	//@Can be removed when debug fns are not used
 #include "watchdog.h"
-
 #include "jpeg.h"
+
+#include <light_sens_isl29035.h>
+#include <temp_rh_sens_si7020.h>
 
 extern OsiTaskHandle g_UserConfigTaskHandle;
 
-extern int32_t sendUserConfigData();
-
+//******************************************************************************
+//	This task
+//	Case (i): on wake-up from hibernate
+//		1. Calls the application function
+//		2. Hibernates
+//	Case (ii): on power-on/soc-reset/wdt-reset
+//		1. Wait for 10 sec, so user can press push button and enter config mode
+//		2. Do the first time configuraiton of sensors
+//		3. Commit the firmware if it is running in test mode (OTA)
+//		4. Hibernates
+//	Aliased as task1
+//******************************************************************************
 void Main_Task_withHibernate(void *pvParameters)
 {
 	int32_t lRetVal;
@@ -40,17 +47,17 @@ void Main_Task_withHibernate(void *pvParameters)
 		RELEASE_PRINT("\nI'm up\n");
 		LED_On();
 
-		//UtilsDelay(80000000);
 		//Enter the application functionality
 		application_fn();
 	}
-	//This branch is entered on power on (Battery insert) or SOC reset(OTA reboot)
+	//This branch is entered on power on (Battery insert) or SOC reset(OTA
+	//reboot/application request)
     if ((MAP_PRCMSysResetCauseGet() == PRCM_POWER_ON)||
     		(MAP_PRCMSysResetCauseGet() == PRCM_SOC_RESET)||
 				(MAP_PRCMSysResetCauseGet() == PRCM_WDT_RESET))
 	{
-    	//Give firmware ID/Version or gist of firmware change here
-    	UtilsDelay(1000000);	// To ensure Firmware title is printed continuously
+    	UtilsDelay(1000000);	// To ensure Firmware title is printed without
+    							//discontinuity
     	RELEASE_PRINT("*** %s ***\n", FIRMWARE_VERSION);
 
     	//Give time to press the push button for OTA or MobileApp config
@@ -71,7 +78,8 @@ void Main_Task_withHibernate(void *pvParameters)
 
 		Check_I2CDevices();		//Tag:Remove once I2C issues are resolved
 
-		//Configure Light sensor for reading Lux. It has to be done the first time
+		//Configure Light sensor for reading Lux. It has to be done the first
+		//time
 		configureISL29035(0, NULL, NULL);
 
 		//Configure Temperature and RH sensor. Done once on power-on.
@@ -83,7 +91,8 @@ void Main_Task_withHibernate(void *pvParameters)
 		Start_CameraCapture();	//Do this once. Not needed after standby wake_up
 		Standby_ImageSensor();
 
-		Modify_JPEGHeaderFile();
+		Modify_JPEGHeaderFile();	//In case JPEG quantisation scale is changed
+									// from previous firmware
 
 //Use the folowing code to test without hibernate - using the debugger
 #ifdef USB_DEBUG
@@ -91,26 +100,6 @@ void Main_Task_withHibernate(void *pvParameters)
 		{
 			application_fn();
 		}
-
-		/*NWP_SwitchOn();
-		ReadFile_FromFlash((uint8_t*)g_image_buffer,
-							(uint8_t*)FILENAME_SENSORCONFIGS,
-							CONTENT_LENGTH_SENSORS_CONFIGS, 0);
-		uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
-		ImageConfigData = ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t));
-		NWP_SwitchOff();
-		while(1)
-		{
-			//application_fn();
-			Wakeup_ImageSensor();						//Wake the image sensor
-			ReStart_CameraCapture(ImageConfigData);		//Restart image capture
-
-			MAP_UtilsDelay(6*80000000/6);					//1ms delay
-
-			Standby_ImageSensor();
-
-			MAP_UtilsDelay(80000/6);
-		}*/
 #endif
 
   		//Commits image if running in test mode
@@ -121,23 +110,6 @@ void Main_Task_withHibernate(void *pvParameters)
   			SendObject_ToParse(FIRMWARE_VER);
   		}
 	}
-
-    /*//A way to reset the device without removing the battery
-    if(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
-    {
-    	RELEASE_PRINT("Reset button press detected\nRelease button now\n");
-    	LED_Off();
-    	while(!GPIOPinRead(GPIOA1_BASE, GPIO_PIN_0))
-    	{
-    		osi_Sleep(100);
-    	}
-    	RELEASE_PRINT("Button released\n");
-#ifdef WATCHDOG_ENABLE
-    	Reset_byStarvingWDT();
-#else
-    	PRCMSOCReset();
-#endif
-    }*/
 
     // Hibernate. Setting up wake-up source is part of this function
 	HIBernate(ENABLE_GPIO_WAKESOURCE, FALL_EDGE, NULL, NULL);

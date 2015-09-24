@@ -59,12 +59,6 @@ extern "C"
 #define ENABLE							(1)
 #define SL_VERSION_LENGTH				(11)
 
-#define IMAGE_BUF_SIZE_BYTES			81920	//80K //Image buffer
-//#define IMAGE_BUF_SIZE_BYTES			61440	//60K //Image buffer
-//#define IMAGE_BUF_SIZE_BYTES			40960	//40K //Image buffer
-
-#define PREVIEW_IMAGE_MAXSZ				40960	//40K
-
 #define ONE_KB                      	(1024)
 
 #ifdef ENABLE_JPEG
@@ -112,17 +106,56 @@ extern "C"
 #define NUM_OF_1KB_CHUNKS           	(IMAGE_BUF_SIZE_BYTES/ONE_KB)
 #define NUM_OF_4B_CHUNKS_IN_1KB     	(ONE_KB/(sizeof(unsigned long)))
 
-
 #define MAX_EMAIL_ID_LENGTH         	34
 #define SMTP_BUF_LEN                	1024
 
 // Defines for g_Image buffer utilization
-
+#define PREVIEW_IMAGE_MAXSZ					40960	//40K
 #define PREVIEWIMAGE_MARGINBUFFER_SZ		5120
 #define SENSOR_CONFIGS_OFFSET_BUF			PREVIEWIMAGE_MARGINBUFFER_SZ + PREVIEW_IMAGE_MAXSZ
 #define SENSOR_CONFIGS_SZ					8192
 #define USER_CONFIGS_OFFSET_BUF				SENSOR_CONFIGS_OFFSET_BUF + SENSOR_CONFIGS_SZ
 #define USER_CONFIGS_SZ						8192
+
+#define TOTAL_DMA_ELEMENTS      		64
+#define CAM_DMA_BLOCK_SIZE_IN_BYTES		(TOTAL_DMA_ELEMENTS*sizeof(unsigned long))
+
+// The circular image buffer consisting of blocks
+#define BLOCK_SIZE_IN_BYTES				4096	//4K
+#define NUM_BLOCKS_IN_IMAGE_BUFFER		(IMAGE_BUF_SIZE_BYTES / BLOCK_SIZE_IN_BYTES)
+#define LAST_BLOCK_IN_BUFFER			(NUM_BLOCKS_IN_IMAGE_BUFFER-1)
+#define DMA_TRANSFERS_TOFILL_BUFFER		( IMAGE_BUF_SIZE_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
+#define DMA_TRANSFERS_TOFILL_BLOCK		( BLOCK_SIZE_IN_BYTES/(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)))
+
+//*****************************************************************************
+//                      GLOBAL VARIABLES
+//*****************************************************************************
+unsigned long g_frame_size_in_bytes;
+
+volatile unsigned char g_frame_end;
+volatile unsigned char g_collect_timestamp;
+
+volatile long g_block_lastFilled; //Holds the block number that was filled latest by Cam
+								 // can hold values -1(initialize) or between 0 and NUM_OB_BLOCKS_IN_IMAGE_BUFFER
+volatile long g_position_in_block;
+
+volatile long g_readHeader; //The block number that is to be read next and
+							//stored in Flash
+
+extern volatile unsigned char g_CaptureImage;
+
+volatile uint8_t g_flag_blockFull[NUM_BLOCKS_IN_IMAGE_BUFFER];
+						//Flag is set if the block has been written by camera,
+						//but not stored in flash yet
+volatile uint8_t g_flag_DataBlockFilled;
+						//To denote that atleast one data block is filled
+
+//unsigned long  g_ulPingPacketsRecv = 0; //Number of Ping Packets received
+
+//#ifdef ENABLE_JPEG
+//char g_header[SMTP_BUF_LEN] = {'\0'};
+//unsigned long g_header_length;
+//#endif
 
 //*****************************************************************************
 //
@@ -134,7 +167,6 @@ extern "C"
 extern "C"
 {
 #endif
-
 
 #define CAM_BT_CORRECT_EN   0x00001000
 
@@ -151,12 +183,11 @@ typedef struct cmd_struct{
     char    email_id[MAX_EMAIL_ID_LENGTH];
 }s_cmd_struct;
 
-
 //******************************************************************************
 // Externs
 //******************************************************************************
-//extern unsigned long g_image_buffer[NUM_OF_4B_CHUNKS];
 extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
+
 //******************************************************************************
 // APIs
 //******************************************************************************
@@ -177,10 +208,11 @@ int32_t Start_CameraCapture();
 int32_t Config_CameraCapture();
 int32_t ReStart_CameraCapture(uint16_t* pImageConfig);
 
-int32_t toggle_standby();//Tag:Remove later
+int32_t toggle_standby();
 
 void ImagCapture_Init();
 int32_t CaptureImage(int32_t lFileHandle);
+
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

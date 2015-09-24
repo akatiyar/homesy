@@ -4,6 +4,7 @@
  *  Created on: 19-May-2015
  *      Author: Chrysolin
  */
+#if 0
 #include "app.h"
 
 #include "mt9d111.h"
@@ -202,3 +203,4 @@ void Test_HibernateSlwClkCtrWakeup()
 		//HIBernate(ENABLE_GPIO02_WAKESOURCE, HIGH_LEVEL, 0);
 	}
 }
+#endif

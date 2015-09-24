@@ -1,5 +1,4 @@
 
-
 #ifndef GENERAL_INCLUDES_H_
 #define GENERAL_INCLUDES_H_
 
@@ -23,26 +22,22 @@
 #include "Error_codes.h"
 
 #define FIRMWARE_VERSION 		"Release 0.0.19"
-//#define FIRMWARE_VERSION 		"Uthra Testing 0.25"
-//#define FIRMWARE_VERSION 		"F 0.38"
-//#define FIRMWARE_VERSION 		"OTA through App 0.4"
 
-//#define APP_SSID_NAME 			"Camera"
+//#define APP_SSID_NAME 		"Camera"
 //#define APP_SSID_PASSWORD		"abcdef1234"
 //#define APP_SSID_SEC_TYPE		SL_SEC_TYPE_WPA_WPA2
 
-
 #define IMAGE_QUANTIZ_SCALE					(0x0030)	//=48d
-//#define IMAGE_QUANTIZ_SCALE					(0x0020)	//=32d
 #define RETRIES_MAX_NETWORK					5
 #define LUX_THRESHOLD						2			//in Lux
 #define DOORCHECK_TIMEOUT_SEC				60			//in sec
 #define BATTERY_LOW_THRESHOLD				5			//in percent
-
+#define IMAGE_BUF_SIZE_BYTES			81920	//80K //Image buffer
+//#define IMAGE_BUF_SIZE_BYTES			61440	//60K //Image buffer
+//#define IMAGE_BUF_SIZE_BYTES			40960	//40K //Image buffer
 
 #define SYSTEM_CLOCK						80000000
 #define SLEEP_TIME              			8000000
-//#define OSI_STACK_SIZE          			3000
 #define OSI_STACK_SIZE          			4500		//in bytes
 #define OSI_STACK_SIZE_MAIN_TASK			5000		//in bytes
 #define OSI_STACK_SIZE_USERCONFIG_TASK		4500		//in bytes
@@ -50,15 +45,18 @@
 #define PI									(3.141592654F)
 
 #define FN_SUCCESS							0
-#define FN_FAILED							(-1) //Funtion return values are int16_t
+#define FN_FAILED							(-1)//Function return values are
+												//int16_t
 
-//To be passed to UtilsDelay(). Delay will be more if parallel tasks are also running
+//To be passed to UtilsDelay(). Delay will be more if parallel tasks are also
+//running
 #define NO_OF_OPS_PERCYCLE					4
 #define ONESEC_NO_OF_CYCLES					(SYSTEM_CLOCK/NO_OF_OPS_PERCYCLE)
 
 #define NO		0
 #define YES		1
-#define NEVER	-1	//This is used only for the current fix for reducing Image sensor set up time
+#define NEVER	-1	//This is used only for the current fix for reducing Image
+					//sensor set up time
 
 typedef enum
 {
@@ -105,6 +103,20 @@ typedef enum
 	TIMERS_DISABLED,
 
 }e_Task1_NotificationValues;
+
+typedef enum
+{
+	BUTTON_NOT_PRESSED = 0,
+	BUTTON_PRESSED,
+	ANGLE_VALUE_COLLECTED
+}doorbuttonstatus;
+
+typedef enum
+{
+	NONE = 0,
+	CAM_RESTART_CAPTURE = 1,
+	OTA_FIRMWARE_UPDATE = 2,
+}ButtonAction;
 
 #ifdef NOTERM
 #define DEBG_PRINT(x,...)
@@ -170,6 +182,7 @@ typedef enum
 //
 //Global variable used through out the app
 //
+extern unsigned long g_image_buffer[(IMAGE_BUF_SIZE_BYTES/sizeof(unsigned long))];
 uint32_t g_ulAppStatus;
 int8_t g_I2CPeripheral_inUse_Flag;
 int8_t g_Task3_Notification;	//Can be set in Task3 or in other tasks.
@@ -178,7 +191,7 @@ int8_t g_Task3_Notification;	//Can be set in Task3 or in other tasks.
 int8_t g_Task1_Notification;
 uint8_t g_flag_door_closing_45degree;
 uint8_t g_ucFeedWatchdog;
-uint32_t g_ulSimplelinkStatus;//SimpleLink Status
+uint32_t g_ulSimplelinkStatus;	//SimpleLink Status
 uint32_t g_ulAppTimeout_ms;
 
 //Ground data in Parse
@@ -204,5 +217,20 @@ int16_t g_fMinAngle;
 int16_t g_RawMaxAngle;
 int16_t g_RawMinAngle;
 uint8_t g_ucReasonForFailure;
+
+unsigned char g_ucProfileAdded;
+unsigned char g_ucAngle90;
+unsigned char g_ucAngle40;
+unsigned char g_ucConfig;
+unsigned char g_ucCalibration;
+unsigned char g_ucExitButton;
+unsigned char g_ucPushButtonPressedTwice;
+unsigned char g_ucPreviewStart;
+unsigned char g_ucPreviewStop;
+unsigned char g_ucAWBOn;
+unsigned char g_ucAWBOff;
+unsigned char g_ucActionButton;
+volatile unsigned char g_ucAction;
+unsigned char g_ucSAVE;
 
 #endif /* GENERAL_INCLUDES_H_ */

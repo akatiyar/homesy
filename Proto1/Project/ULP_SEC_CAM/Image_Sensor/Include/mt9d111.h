@@ -1,6 +1,52 @@
 #ifndef __MT9D111_H__
 #define __MT9D111_H__
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "hw_types.h"
+#include "rom.h"
+#include "rom_map.h"
+#include "hw_memmap.h"
+#include "osi.h"
+#include "i2c.h"
+#include "common.h"
+
+#include "app.h"
+#include "flash_files.h"
+#include "i2cconfig.h"
+
+#define RET_OK                  	0
+#define RET_ERROR               	-1
+
+#define CAM_I2C_SLAVE_ADDR     		((0xBA >> 1))
+//#define CAM_I2C_SLAVE_ADDR      	((0x90 >> 1))
+#define MARGIN_NUMCLKS				10
+#define CHIP_VERSION				(0x1519)
+
+#define MT9D111_CLKIN_MIN			6000000
+
+#define SENSOR_PAGE_REG        		0xF0
+#define SIZE_REGLIST				sizeof(struct MT9D111RegLst)
+#define OFFSET_PAGE_ADDR			0
+#define OFFSET_REG_ADDR				sizeof(s_RegList.ucPageAddr)
+#define OFFSET_VALUE				(sizeof(s_RegList.ucPageAddr) + sizeof(s_RegList.ucRegAddr))
+
+#define SOFT_STANDBY				1
+#define HARD_STANDBY				2
+
+#define ANALOG_GAIN_BITS			0x0180
+#define DIGITAL_GAIN_BITS			0x0E00
+#define INITIAL_GAIN_BITS			0x007F
+
+typedef struct MT9D111RegLst
+{
+    unsigned char ucPageAddr;
+    unsigned char ucRegAddr;
+    unsigned short usValue;
+} s_RegList;
+
 //*****************************************************************************
 //
 // If building with a C++ compiler, make all of the definitions in this header
@@ -12,33 +58,15 @@ extern "C"
 {
 #endif
 
-/*!
-    \brief                      This function initilizes the camera sensor
+long RegLstWrite(s_RegList *pRegLst, unsigned long ulNofItems);
+//static long RegLstWrite_fromFlash(s_RegList *pRegLst, unsigned long ulNofItems);
+extern void MT9D111Delay(unsigned long ucDelay);
+long Register_Read(s_RegList *pRegLst, uint16_t* pusRegVal);
 
-    \param[in]                  None
-
-    \return                     0 - Success
-                               -1 - Error
-
-    \note
-    \warning
-*/
 long CameraSensorInit();
 long CameraSensorInit_SettingsFromFlash();
 long StartCapture_SettingsFromFlash();
 long WriteConfigRegFile_toFlash();
-/*!
-    \brief                      Configures sensor in JPEG mode
-
-    \param[in]                  None
-
-    \return                     0 - Success
-                               -1 - Error
-
-    \note
-    \warning
-*/
-#include <stdint.h>
 
 long StartSensorInJpegMode();
 long RestartSensorInJpegMode();
@@ -85,12 +113,6 @@ int32_t ReadGainReg(uint16_t* Gains);
 
 int32_t EnterStandby_mt9d111(uint8_t ucMethod);
 int32_t ExitStandby_mt9d111(uint8_t ucMethod);
-#define SOFT_STANDBY				1
-#define HARD_STANDBY				2
-
-#define ANALOG_GAIN_BITS			0x0180
-#define DIGITAL_GAIN_BITS			0x0E00
-#define INITIAL_GAIN_BITS			0x007F
 
 int32_t Refresh_mt9d111Firmware();
 int32_t BeginCapture_MT9D111();

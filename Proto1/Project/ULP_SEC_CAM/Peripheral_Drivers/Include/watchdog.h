@@ -14,7 +14,6 @@
 									//= 53 sec (approx).
 									//Registered WDT interrupt handler will be
 									//triggered every WDT_KICK_GAP
-
 #define APPLICATION_TIMEOUT			300000	//in milli sec. 5min = 5*60*1000 msec = 300000
 //#define USERCONFIG_TIMEOUT			420000	//in milli sec. 7min = 7*60*1000 msec = 420000
 #define USERCONFIG_TIMEOUT			900000	//in milli sec. 15min = 15*60*1000 msec = 900000
@@ -24,6 +23,5 @@ volatile uint32_t g_ulWatchdogCycles;
 
 int16_t WDT_init();
 void WatchdogIntHandler(void);
-
 
 #endif /* APPLICATION_INCLUDE_WATCHDOG_H_ */

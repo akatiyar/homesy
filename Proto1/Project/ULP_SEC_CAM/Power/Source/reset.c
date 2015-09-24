@@ -6,6 +6,7 @@
  */
 
 #include "app_common.h"
+
 #include "wdt.h"
 #include "rom_map.h"
 

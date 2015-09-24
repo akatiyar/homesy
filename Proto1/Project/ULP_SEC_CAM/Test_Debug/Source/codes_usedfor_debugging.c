@@ -6,8 +6,7 @@
  */
 
 
-
-
+#if 0
 long CaptureinRAM()
 {
 	// Initialize camera controller
@@ -110,3 +109,5 @@ long CaptureinRAM_StoreAfterCapture_Image()
 
 	return lRetVal;
 }
+
+#endif

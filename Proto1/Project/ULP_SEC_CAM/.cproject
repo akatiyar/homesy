@@ -51,6 +51,9 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_LEVEL.1537896201" name="Optimization level (--opt_level, -O)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_LEVEL" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_LEVEL.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH.717910271" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Ecompass/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Common/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}\netapps\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/driver/hal&quot;"/>
@@ -58,16 +61,18 @@
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Sensors/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Image_Sensor/Include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/FXOS8700 Frescale Lib/&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Ecompass_Library/&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Network/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Power/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Peripheral_Drivers/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/SDK_Common/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Test_Debug/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Application/Include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/example/common&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/SDK_Common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/driverlib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/OTA/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink/&quot;"/>
@@ -124,7 +129,7 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.hex.2046112061" name="ARM Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.hex"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1908027724.FXOS8700 Frescale Lib" name="FXOS8700 Frescale Lib" resourcePath="FXOS8700 Frescale Lib">
+					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1908027724.FXOS8700 Frescale Lib" name="FXOS8700 Frescale Lib" resourcePath="Ecompass_Library">
 						<toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.DebugToolchain.2119539106" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.DebugToolchain" unusedChildren="">
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1519989616.909903701" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1519989616"/>
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1120877451.1527578285" name="Compiler version" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1120877451"/>
@@ -140,7 +145,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Application/Source/sendGroundData.c|Application/Source/sendUserConfigDataToParse.c|Test_Debug/Source/watchdog_codes.c|experiment_orDbg_codes.c|Test_Debug/Source/test_modules.c|FXOS8700 Freescale Lib/mqx_tasks.c|appfile_magnmtr_old_logic.c|customer_demo1_collectAndTxitSensorData.c|Parse_Library/common/tests/simplejson_tests.cc|algorithm_1.c|Sensors/Source/fxos8700-112.c|algorithm2.c|Test_Debug/Source/rough_file.c|Image_Sensor/Source/camera_app_beforeCodeOrg.c|FXOS8700 Freescale Lib/user_tasks.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|Test_Debug/Source/older_codes.c|Sensors/Source/test_fns.c|Application/Source/appfile_magnmtr_old_logic.c|get_weather.cmd|FXOS8700 Freescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Freescale Lib/Events.c|Application/Source/collect_and_txit.c|Test_Debug/Source/codes_usedfor_debugging.c|FXOS8700 Freescale Lib/main.c|main1.c|demo1_collectAndTxitSensorData.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|rough_file.c|main_getweather.c|Application/Source/algorithm_1.c|FXOS8700 Frescale Lib/user_tasks.c|FXOS8700 Frescale Lib/main.c|Application/Source/algorithm.c|FXOS8700 Frescale Lib/tasks_backup.c|algorithm.c|network_if.c|test_modules.c|Test_Debug/Source/experiment_orDbg_codes.c|Application/Source/algorithm2.c|Test_Task.c|FXOS8700 Frescale Lib/mqx_tasks.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Peripheral_Drivers/Source/LED_timer.c|experiment_orDbg_codes.c|FXOS8700 Freescale Lib/mqx_tasks.c|Test_Debug/Source/watchdog_codes.c|Application/Source/sendUserConfigDataToParse.c|appfile_magnmtr_old_logic.c|customer_demo1_collectAndTxitSensorData.c|Parse_Library/common/tests/simplejson_tests.cc|algorithm_1.c|Sensors/Source/fxos8700-112.c|algorithm2.c|Test_Debug/Source/rough_file.c|Image_Sensor/Source/camera_app_beforeCodeOrg.c|FXOS8700 Freescale Lib/user_tasks.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|Test_Debug/Source/older_codes.c|Sensors/Source/test_fns.c|Application/Source/appfile_magnmtr_old_logic.c|get_weather.cmd|Application/Source/sendGroundData.c|FXOS8700 Freescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Freescale Lib/Events.c|Application/Source/collect_and_txit.c|main1.c|FXOS8700 Freescale Lib/main.c|demo1_collectAndTxitSensorData.c|rough_file.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|main_getweather.c|FXOS8700 Frescale Lib/user_tasks.c|Application/Source/algorithm_1.c|FXOS8700 Frescale Lib/main.c|Application/Source/algorithm.c|FXOS8700 Frescale Lib/tasks_backup.c|algorithm.c|network_if.c|FXOS8700 Frescale Lib/mqx_tasks.c|Test_Task.c|Application/Source/algorithm2.c|Test_Debug/Source/experiment_orDbg_codes.c|test_modules.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -199,6 +204,8 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_LEVEL.591239970" name="Optimization level (--opt_level, -O)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_LEVEL" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.OPT_LEVEL.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH.1291296418" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Common/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/OTA/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}\netapps\&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/simplelink_extlib/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/middleware/driver/hal&quot;"/>
@@ -206,12 +213,14 @@
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Sensors/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Image_Sensor/Include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/FXOS8700 Frescale Lib/&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Ecompass_Library/&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Ecompass/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Network/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Power/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Peripheral_Drivers/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Test_Debug/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Application/Include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse/Include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/example/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CC3200_SDK_ROOT}/driverlib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${PROJECT_LOC}/Parse_Library/Include&quot;"/>
@@ -271,7 +280,7 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.hex.1224998013" name="ARM Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.hex"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1908027724.358903068.FXOS8700 Frescale Lib" name="FXOS8700 Frescale Lib" resourcePath="FXOS8700 Frescale Lib">
+					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Debug.1908027724.358903068.FXOS8700 Frescale Lib" name="FXOS8700 Frescale Lib" resourcePath="Ecompass_Library">
 						<toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.DebugToolchain.6396084" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.DebugToolchain" unusedChildren="">
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1419568481.211965364" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1419568481"/>
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1683108902.1846461336" name="Compiler version" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_CODEGEN_VERSION.1683108902"/>
@@ -287,7 +296,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Application/Source/sendUserConfigDataToParse.c|Application/Source/sendGroundData.c|time_driverLevel_fn.c|Test_Debug/Source/watchdog_codes.c|experiment_orDbg_codes.c|Test_Debug/Source/test_modules.c|FXOS8700 Freescale Lib/mqx_tasks.c|appfile_magnmtr_old_logic.c|customer_demo1_collectAndTxitSensorData.c|Parse_Library/common/tests/simplejson_tests.cc|algorithm_1.c|Sensors/Source/fxos8700-112.c|algorithm2.c|Test_Debug/Source/rough_file.c|Image_Sensor/Source/camera_app_beforeCodeOrg.c|FXOS8700 Freescale Lib/user_tasks.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|Test_Debug/Source/older_codes.c|Sensors/Source/test_fns.c|Application/Source/appfile_magnmtr_old_logic.c|get_weather.cmd|FXOS8700 Freescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Freescale Lib/Events.c|Application/Source/collect_and_txit.c|Test_Debug/Source/codes_usedfor_debugging.c|FXOS8700 Freescale Lib/main.c|main1.c|demo1_collectAndTxitSensorData.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|rough_file.c|main_getweather.c|Application/Source/algorithm_1.c|FXOS8700 Frescale Lib/user_tasks.c|FXOS8700 Frescale Lib/main.c|Application/Source/algorithm.c|FXOS8700 Frescale Lib/tasks_backup.c|algorithm.c|network_if.c|test_modules.c|Test_Debug/Source/experiment_orDbg_codes.c|Application/Source/algorithm2.c|Test_Task.c|FXOS8700 Frescale Lib/mqx_tasks.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="time_driverLevel_fn.c|experiment_orDbg_codes.c|Test_Debug/Source/test_modules.c|FXOS8700 Freescale Lib/mqx_tasks.c|Test_Debug/Source/watchdog_codes.c|Application/Source/sendUserConfigDataToParse.c|appfile_magnmtr_old_logic.c|customer_demo1_collectAndTxitSensorData.c|Parse_Library/common/tests/simplejson_tests.cc|algorithm_1.c|Sensors/Source/fxos8700-112.c|algorithm2.c|Test_Debug/Source/rough_file.c|Image_Sensor/Source/camera_app_beforeCodeOrg.c|FXOS8700 Freescale Lib/user_tasks.c|FXOS8700 Frescale Lib/tasks_backup_8May.c|Test_Debug/Source/older_codes.c|Sensors/Source/test_fns.c|Application/Source/appfile_magnmtr_old_logic.c|get_weather.cmd|Application/Source/sendGroundData.c|FXOS8700 Freescale Lib/fns_to_be_called_from_mainTask.c|FXOS8700 Frescale Lib/Events.c|FXOS8700 Freescale Lib/Events.c|Application/Source/collect_and_txit.c|Test_Debug/Source/codes_usedfor_debugging.c|main1.c|FXOS8700 Freescale Lib/main.c|demo1_collectAndTxitSensorData.c|rough_file.c|FXOS8700 Frescale Lib/fns_to_be_called_from_mainTask.c|main_getweather.c|FXOS8700 Frescale Lib/user_tasks.c|Application/Source/algorithm_1.c|FXOS8700 Frescale Lib/main.c|Application/Source/algorithm.c|FXOS8700 Frescale Lib/tasks_backup.c|algorithm.c|network_if.c|FXOS8700 Frescale Lib/mqx_tasks.c|Test_Task.c|Application/Source/algorithm2.c|Test_Debug/Source/experiment_orDbg_codes.c|test_modules.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

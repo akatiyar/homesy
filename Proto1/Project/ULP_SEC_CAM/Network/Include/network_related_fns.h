@@ -3,6 +3,7 @@
 #ifndef NETWORK_RELATED_FNS_H_
 #define NETWORK_RELATED_FNS_H_
 
+#include "nwp.h"
 #include "simplelink.h"
 #include "app.h"
 
@@ -15,7 +16,6 @@
 //#define CONNECTION_TIMEOUT_COUNT  5000  /* 5sec when while loop has osi_Sleep(1)*/
 #define CONNECTION_TIMEOUT_COUNT  6000  /* 60sec when while loop has osi_Sleep(10)*/
 #define TOKEN_ARRAY_SIZE          6
-//#define TOKEN_ARRAY_SIZE          1
 #define STRING_TOKEN_SIZE         10
 #define SCAN_TABLE_SIZE           20
 
@@ -44,20 +44,6 @@
 #define GMT_DIFF_TIME_HRS       5
 #define GMT_DIFF_TIME_MINS      30
 
-typedef enum
-{
-	BUTTON_NOT_PRESSED = 0,
-	BUTTON_PRESSED,
-	ANGLE_VALUE_COLLECTED
-}doorbuttonstatus;
-
-typedef enum
-{
-	NONE = 0,
-	CAM_RESTART_CAPTURE = 1,
-	OTA_FIRMWARE_UPDATE = 2,
-}ButtonAction;
-
 extern unsigned long  g_ulGatewayIP; //Network Gateway IP address
 extern unsigned char  g_ucConnectionSSID[SSID_LEN_MAX+1]; //Connection SSID
 extern unsigned char  g_ucConnectionBSSID[BSSID_LEN_MAX]; //Connection BSSID
@@ -67,39 +53,18 @@ extern signed char g_cWlanSecurityType[2];
 extern signed char g_cWlanSecurityKey[50];
 extern SlSecParams_t g_SecParams;
 
-unsigned char g_ucProfileAdded;
-unsigned char g_ucAngle90;
-unsigned char g_ucAngle40;
-unsigned char g_ucConfig;
-unsigned char g_ucCalibration;
-unsigned char g_ucExitButton;
-unsigned char g_ucPushButtonPressedTwice;
 unsigned char g_PhoneConnected_ToCC3200AP_flag;
 extern unsigned char g_ucConnectedToConfAP, g_ucProvisioningDone;
 extern unsigned char g_ucPriority;
 
-unsigned char g_ucPreviewStart;
-unsigned char g_ucPreviewStop;
-unsigned char g_ucAWBOn;
-unsigned char g_ucAWBOff;
-unsigned char g_ucActionButton;
-volatile unsigned char g_ucAction;
-unsigned char g_ucSAVE;
-
 extern Sl_WlanNetworkEntry_t g_NetEntries[SCAN_TABLE_SIZE];
 extern char g_token_get [TOKEN_ARRAY_SIZE][STRING_TOKEN_SIZE];
 
-void InitializeUserConfigVariables();	//Shift fn to suitable place
-
-
 long ConfigureSimpleLinkToDefaultState();
-long ConnectToNetwork();
 int ConfigureMode(int iMode);
-
-//int32_t ConnectToNetwork_STA();
 int32_t WiFi_Connect();
-
-void ConnectToNetwork_STA_2();
-
+int32_t AccessPtMode_HTTPServer_Start();
+int32_t WiFiProvisioning();
+int32_t GetTimeNTP(SlDateTime_t *dateTime);
 
 #endif /* NETWORK_RELATED_FNS_H_ */

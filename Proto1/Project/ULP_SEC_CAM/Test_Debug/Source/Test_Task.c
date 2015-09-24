@@ -5,23 +5,19 @@
  *      Author: Chrysolin
  */
 
+#include <app_fns.h>
 #include "app.h"
 #include "camera_app.h"
 #include "app_common.h"
 #include "osi.h"
-#include "LED_Timer.h"
-#include "appFns.h"
+#include "timer_fns.h"
 #include "timer_fns.h"
 
 #include "fs.h"
 #include "flash_files.h"
 
-extern float gdoor_90deg_angle;//290
-extern float gdoor_40deg_angle; //110
-extern float gdoor_OpenDeg_angle;
-extern float g_angleOffset_to180;
-extern void Check_MinMax(float_t angle_avg);
-extern void Calculate_TrueMinMaxAngles();
+#include "nwp.h"
+
 
 void Test_Task(void *pvParameters)
 {
@@ -78,7 +74,7 @@ void Test_Task(void *pvParameters)
 
 	NWP_SwitchOff();
 
-#ifdef COMPILE_THIS
+#if 0
 	uint16_t lux_reading[50];
 	int i;
 
@@ -99,7 +95,7 @@ void Test_Task(void *pvParameters)
 	while(1);
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	uint8_t data;
 	FXOS8700_Init(NULL, NULL);
 	i2cReadRegisters(0x1E, 0x5B, 1, &data);
@@ -119,7 +115,7 @@ void Test_Task(void *pvParameters)
 	}
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	g_fMinAngle = 361;
 	g_fMaxAngle = 0;
 
@@ -140,14 +136,14 @@ void Test_Task(void *pvParameters)
 	Calculate_TrueMinMaxAngles();
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	while(1)
 	{
 		DEBG_PRINT("%x\n",IS_PUSHBUTTON_PRESSED);
 	}
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	float OpenAngle;
 
 	OpenAngle = Calculate_DoorOpenThresholdAngle(30.56,80.32);
@@ -161,7 +157,7 @@ void Test_Task(void *pvParameters)
 	DEBG_PRINT("Open Door Angle : %f\n",OpenAngle);
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	LEDTimer_Enable();
 	LED_Blink_2(.2,.2,BLINK_FOREVER);
 	int i = 100;
@@ -192,7 +188,7 @@ void Test_Task(void *pvParameters)
 	//LED_Blink_2(1,.5,5);
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	Config_And_Start_CameraCapture();
 
 	Config_CameraCapture();
@@ -213,7 +209,7 @@ void Test_Task(void *pvParameters)
 	Get_FridgeCamID(FridgeCamID);
 	DEBG_PRINT("%s\n\r",FridgeCamID);
 #endif
-#ifdef COMPILE_THIS
+#if 0
 	uint32_t ulTimeDuration_ms;
 	start_100mSecTimer();
 	MAP_UtilsDelay(0.3*80000000/6);
@@ -223,7 +219,7 @@ void Test_Task(void *pvParameters)
 	DEBG_PRINT("%d ms\n\r", ulTimeDuration_ms);
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	uint32_t ulToken = 0;
 	SlFsFileInfo_t FileInfo;
 	int32_t lRetVal;
@@ -244,10 +240,10 @@ void Test_Task(void *pvParameters)
 
 	while(1);
 #endif
-#ifdef COMPILE_THIS
+#if 0
 	Check_FlashFiles();
 #endif
-#ifdef COMPILE_THIS
+#if 0
 	Check_I2CDevices();
 	while(1)
 	{
@@ -260,7 +256,7 @@ void Test_Task(void *pvParameters)
 #endif
 
 //#define COMPILE_THIS_1
-#ifdef COMPILE_THIS_1
+#if 0
 	uint8_t ucADCVal;
 	while(1)
 	{
@@ -270,7 +266,7 @@ void Test_Task(void *pvParameters)
 	}
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	Config_And_Start_CameraCapture();
 	while(1)
 	{
@@ -278,7 +274,7 @@ void Test_Task(void *pvParameters)
 	}
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	DEBG_PRINT("%d\n",GPIOPinRead(GPIOA0_BASE, 0x04));
 while(1)
 {
@@ -296,7 +292,7 @@ while(1)
 }
 #endif
 
-#ifdef COMPILE_THIS
+#if 0
 	while(1)
 	{
 		start_100mSecTimer();
@@ -307,14 +303,16 @@ while(1)
 	}
 #endif
 
+#if 0
 //	while(1)
 //	{
 //		InitializeTimer();
 //		StartTimer();
 //		UtilsDelay(5*80000000/6);
 //	}
+#endif
 
-#ifdef COMPILE_THIS
+#if 0
 	verifyISL29035();
 	configureISL29035(0);
 	uint16_t lux;
@@ -332,6 +330,7 @@ while(1)
 	}
 #endif
 
+#if 0
 	//verifyISL29035();
 	//verifyTempRHSensor();
 	//verifyAccelMagnSensor();
@@ -347,4 +346,5 @@ while(1)
 //	}
 //	while(1)
 //		fxos_main();
+#endif
 }

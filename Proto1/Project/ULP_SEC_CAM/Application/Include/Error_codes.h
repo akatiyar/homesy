@@ -8,12 +8,11 @@
 #ifndef APPLICATION_INCLUDE_ERROR_CODES_H_
 #define APPLICATION_INCLUDE_ERROR_CODES_H_
 
-
-// Application specific status/error codes. Assign these to lRetVal or g_appStatus
+//Application specific status/error codes. Assign these to lRetVal or
+//g_appStatus
 typedef enum
 {
     // Choosing -0x7D0 = -2000 to avoid overlap w/ host-driver's error codes
-
 	//I2C device not found
 	MT9D111_NOT_FOUND = -2000,						//Image Sensor
 	ISL29035_NOT_FOUND = MT9D111_NOT_FOUND - 1,		//Light Sensor
@@ -47,20 +46,30 @@ typedef enum
 	FILE_READ_FAILED = FILE_OPEN_WRITE_FAILED - 1,
 	FILE_WRITE_FAILED = FILE_READ_FAILED - 1,
 
+	//Upper limit
     STATUS_CODE_MAX = -0xBB8
 }e_AppErrorOrReturnCodes;
 
-//Reasons for failure
+//Reasons for failure to capture and upload image
 typedef enum
 {
-	NEVER_WENT_TO_ANGLECHECK = 1,	//Door shut before wake-up initializations were done (i.e door closed in < 1.5 sec)
-	NOTOPEN_NOTCLOSED, 	//or equivalently, light went out. Likely reason: door opening was too narrow
-	OPEN_NOTCLOSED,		//a likely problem with angle detection. Validate open and snap angles
-	NOTOPEN_CLOSED,		//user opens door very narrowly, so open condition was not met but snap condition was met
-	TIMEOUT_BEFORE_IMAGESNAP,	//Door open for too long
-	IMAGE_NOTCAPTURED,			//Image capture failure due to some image sensor/camera peripheral issue
-	IMAGE_NOTUPLOADED,			//Upload to Parse failed after 5 retries
-	DOOR_ATSNAP_DURING_FILEOPEN,//Image file open did not complete when snap position was detected
+	NEVER_WENT_TO_ANGLECHECK = 1,	//Door shut before wake-up initializations
+									//were done (i.e door closed in < 1.5 sec)
+	NOTOPEN_NOTCLOSED, 				//2: or equivalently, light went out. Likely
+									//reason: door opening was too narrow
+	OPEN_NOTCLOSED,					//3: a likely problem with angle detection.
+									//Validate open and snap angles. Happens
+									//when user obstructs all light falling on
+									//image sensor after opening the door
+	NOTOPEN_CLOSED,					//4: user opens door very narrowly, so open
+									//condition was not met but snap condition
+									//was met
+	TIMEOUT_BEFORE_IMAGESNAP,		//5: Door open for too long
+	IMAGE_NOTCAPTURED,				//6: Image capture failure due to some image
+									//sensor/camera peripheral issue
+	IMAGE_NOTUPLOADED,				//7: Upload to Parse failed after 5 retries
+	DOOR_ATSNAP_DURING_FILEOPEN,	//8: Image file open did not complete when
+									//snap position was detected
 }e_GroundData_FailureReasonCodes;
 
 #endif /* APPLICATION_INCLUDE_ERROR_CODES_H_ */

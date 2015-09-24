@@ -11,11 +11,12 @@
  */
  ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef __I2C_APP_H__
+#define __I2C_APP_H__
+
 #include "app.h"
 
 #define I2C_APP_MODE 			I2C_MASTER_MODE_STD //	Used by higher level API
-
-
 #define LENGTH_IS_ONE 			1	//	Used by both same-level and higher level
 									//	API
 #define LENGTH_IS_TWO 			2
@@ -36,3 +37,5 @@ int32_t i2cReadRegistersTwoBytes(uint8_t ucDevI2CAddr,
 									uint8_t* pucRegAddr,
 									uint8_t ucLen,
 									uint8_t* pucRegReadValues);
+
+#endif

@@ -5,11 +5,11 @@
  *      Author: Chrysolin
  */
 
+#include <accelomtr_magntomtr_fxos8700.h>
+#include <app_fns.h>
+#include <light_sens_isl29035.h>
+#include <temp_rh_sens_si7020.h>
 #include "app.h"
-#include "accelomtrMagntomtr_fxos8700.h"
-#include "tempRHSens_si7020.h"
-#include "lightSens_isl29035.h"
-#include "appFns.h"
 #include "mt9d111.h"
 #include "camera_app.h"
 

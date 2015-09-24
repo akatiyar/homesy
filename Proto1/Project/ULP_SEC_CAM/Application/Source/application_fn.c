@@ -1,39 +1,44 @@
-#include "app.h"
-#include "parse_uploads.h"
-#include "app_common.h"
-
 #include "stdlib.h"
 #include "math.h"
 #include "string.h"
+#include "stdbool.h"
+
+#include <app_fns.h>
+#include "app.h"
+#include "app_common.h"
 
 #include "camera_app.h"
+#include "parse_uploads.h"
 #include "network_related_fns.h"
 #include "mt9d111.h"
-#include "tempRHSens_si7020.h"
-#include "accelomtrMagntomtr_fxos8700.h"
-
-#include "flash_files.h"
-#include "appFns.h"
 #include "timer_fns.h"
+#include <temp_rh_sens_si7020.h>
+#include <accelomtr_magntomtr_fxos8700.h>
 
-#include "stdbool.h"
-bool g_tempflag=true;
-
-extern int32_t g_lFileHandle;
-extern int32_t SendGroundData();
-
-//Tightly coupled with ImageCaptureConfig task
+//******************************************************************************
+// 	The main application function
+//
+//	It does the following main functions:
+//	1. Checks for door snap position continuously
+//	2. Captures an image and uploads it to Parse
+//	3. Collects and uploads Temperature, RH and Battery charge percent to Parse
+//	4. Collects and uploads ground data
+// 	5. Wake-up initializations
+//
+//	This function is the main function that is run each time the device wakes
+//from hibernate.
+//
+//	NOTE: This function is tightly coupled with ImageCaptureConfig task
+//******************************************************************************
 int32_t application_fn()
 {
     long lRetVal;
     long lFileHandle;
 	unsigned long ulToken = NULL;
     struct u64_time time_now;
-    //uint32_t ulTimeDuration_ms;
 
     uint8_t ucSensorDataTxt[DEVICE_STATE_OBJECT_SIZE]; // DeviceState JSONobject
 	ParseClient clientHandle = NULL;
-	//ParseClient clientHandle1 = NULL;
 	uint8_t ucParseImageUrl[PARSE_IMAGE_URL_SIZE];
 	float_t fTemp = 12.34, fRH = 56.78;
 	uint8_t ucBatteryLvl = 80;
@@ -53,45 +58,52 @@ int32_t application_fn()
 	if(!IsLightOff(LUX_THRESHOLD))
 	{
 		//* * * * * * * * * Wake-up Initializations * * * * * * * * *
-		//Task3 also runs parallelly, doing some of the initializations.
-		//Initializations done on this task:
+		//Task3 also runs parallelly, doing some of the initializations. NWP
+		// related init steps are done by this task. I2C related init steps are
+		// done by task3
+		//Initializations done by this task:
 		//	1. NWP on
-		//	2. Magnetometer flash file reading
-		//	3. File open
-		//	4. Wait for Task3 to finish
-		//Initializations done on Task3:
+		//	2. Magnetometer configs flash file reading
+		//	3.
+		//	4. Image File in flash open
+		//	5. Wait for Task3 to finish
+		//Initializations done by Task3:
 		//	1. MT9D111 wakeup, start capture
 		//	2. Magnetometer I2C configuration
 		//	3. Few intitial angle reads
 
-		g_I2CPeripheral_inUse_Flag = NO;
+		g_I2CPeripheral_inUse_Flag = NO;	//Both tasks should not try to
+											//access I2C at a time
 
-		start_100mSecTimer();	//Tag:Remove when waketime optimization is over
+		start_100mSecTimer();	//@Remove when waketime optimization is over
 
 		// Start SimpleLink - NWP ON - required for all flash operations
 		lRetVal = NWP_SwitchOn();
 		RETURN_ON_ERROR(lRetVal);
 
-		//g_tempflag=false;
 		//Initialize magnetometer for angle calculation
 		angleCheck_Initializations();
-		start_periodicInterrupt_timer(2.5);	//Once started, it is stopped on exiting the angle check loop
+		start_periodicInterrupt_timer(2.5);	//Once started, it is stopped on
+											//exiting the angle check loop
 
-		g_Task3_Notification = READ_MAGNTMTRFILE_DONE;
+		g_Task3_Notification = READ_MAGNTMTRFILE_DONE; //Indication to task3
 
-#ifdef USB_DEBUG
+#ifdef USB_DEBUG	//Debugger will not work with CC3200 hibernate
+					//So, to do task3 functionalities in this this task itself
 		g_Task1_Notification = MAGNETOMETERINIT_STARTED;
 		magnetometer_initialize();
 		uint16_t* ImageConfigData = (uint16_t *) g_image_buffer;
 		ImageConfigData = ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t));
 #endif
 
+		//Read image sensor configurations from the flash sensor configs file
 		ReadFile_FromFlash((uint8_t*)g_image_buffer,
 							(uint8_t*)FILENAME_SENSORCONFIGS,
 							CONTENT_LENGTH_SENSORS_CONFIGS, 0);
-		while(g_Task1_Notification != MAGNETOMETERINIT_STARTED);
 
-		g_Task3_Notification = READ_SENSORCONFIGFILE_DONE;
+		//Wait for indication from task3 before changing notification to Task3
+		while(g_Task1_Notification != MAGNETOMETERINIT_STARTED);
+		g_Task3_Notification = READ_SENSORCONFIGFILE_DONE; //Indication to task3
 
 #ifdef USB_DEBUG
 		Wakeup_ImageSensor();		//Wake the image sensor
@@ -107,59 +119,30 @@ int32_t application_fn()
 		//time, so we do it ahead of angle check, so that at the instant angle
 		//is detected, image can be clicked
 		g_Task1_Notification = IMAGEFILE_OPEN_BEGUN;
-		DEBG_PRINT("b Fileopen\n");	//Tag:Remove when waketime optimization is over
+		DEBG_PRINT("b Fileopen\n");	//@Remove when waketime optimization is over
 		lRetVal = sl_FsOpen((unsigned char *)JPEG_IMAGE_FILE_NAME,
 						   FS_MODE_OPEN_WRITE, &ulToken, &lFileHandle);
 		if(lRetVal < 0)
 		{
 		   sl_FsClose(lFileHandle, 0, 0, 0); RETURN_ON_ERROR(lRetVal);
 		}
-		DEBG_PRINT("a Fileopen\n");	//Tag:Remove when waketime optimization is over
+		DEBG_PRINT("a Fileopen\n");	//@Remove when waketime optimizatn is over
 		g_Task1_Notification = IMAGEFILE_OPEN_COMPLETE;
 
-		//Tag:Timestamp NWP up
 		cc_rtc_get(&time_now);
 		g_TimeStamp_NWPUp = time_now.secs * 1000 + time_now.nsec / 1000000;
 
-//Use the folowing code to test without hibernate
-/*
-		// Wake the image sensor and begin image capture
-		Wakeup_ImageSensor();
-		ReStart_CameraCapture();
-		ImagCapture_Init();				//Initialize image capture
-		//Tag:Timestamp Camera module up
-		cc_rtc_get(&time_now);
-		g_TimeStamp_CamUp = time_now.secs * 1000 + time_now.nsec / 1000000;
-		magnetometer_initialize();
-		g_I2CPeripheral_inUse_Flag = NO;
-		g_Task3_Notification = MAGNTMTRINIT_DONE;
-*/
-
 #ifndef USB_DEBUG
-
-//		while(g_Task3_Notification != MAGNTMTRINIT_DONE)
-//		{
-//			DEBG_PRINT("#");
-//			osi_Sleep(10);
-//		}
-
 		while(g_I2CPeripheral_inUse_Flag == YES)
 		{
 			DEBG_PRINT("&");
 			osi_Sleep(1);
 		}
-
 #endif
 
-//		ulTimeDuration_ms = get_timeDuration();
-//		stop_100mSecTimer();
-//		DEBG_PRINT("Wake Time(not including OTA bootloader) - %d ms\n\r", ulTimeDuration_ms);
-
-		//LED_Blink_2(.5,.5,BLINK_FOREVER);
-		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
-
 		//NOTE: For Ground data upload to Parse only.
-		//Check once more for light. If light is off, then upload the GroundData object and exit function
+		//Check once more for light. If light is off, then upload the
+		//GroundData object and exit function
 		if((IsLightOff(LUX_THRESHOLD)) || (g_ucReasonForFailure == DOOR_ATSNAP_DURING_FILEOPEN))
 		{
 			lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
@@ -170,7 +153,8 @@ int32_t application_fn()
 
 			//Upload GroundData object
 			LED_Blink_2(.2,1,BLINK_FOREVER);
-			//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
+			//g_ucReasonForFailure will either be DOOR_SHUT_DURING_FILEOPEN or
+			//NOTOPEN_NOTCLOSED or OPEN_NOTCLOSED
 			SendObject_ToParse(GROUND_DATA);
 
 			g_ulAppStatus = LIGHT_IS_OFF_BEFORE_IMAGING;
@@ -187,16 +171,16 @@ int32_t application_fn()
 			DEBG_PRINT("$");
 		}
 #endif
+		//* * * * * * * * * End of Wake-up Initializations * * * * * * * * *
 
-#ifdef IMAGE_DEBUG
+#ifdef IMAGE_DEBUG	//To debug image without magnetometer functionality
 		g_flag_door_closing_45degree = 1;
 #endif
 
-		start_100mSecTimer();	//For Timeout detection
-		//sensorsTriggerSetup(); //For Wake Time Profile
+		start_100mSecTimer();	//For timeout detection - door open for too long
+		//sensorsTriggerSetup(); //Use to Profile Wake-up Time using CRO
 		while(1)
 		{
-			//angleCheck();
 			get_angle();
 			check_doorpos();
 
@@ -206,8 +190,8 @@ int32_t application_fn()
 				break;
 			}
 
-			//Cases where we have to abort and hibernate
-			if(checkForLight_Flag)	//This flag Goes up once every 100mSec
+			//Cases where we have to abort angle checking and hibernate
+			if(checkForLight_Flag)	//This flag goes up once every 100mSec
 			{
 				//Light is off
 				if(IsLightOff(LUX_THRESHOLD))
@@ -241,7 +225,6 @@ int32_t application_fn()
 		// Capture image if Imaging position is detected
 		if(g_ulAppStatus == IMAGING_POSITION_DETECTED)
 		{
-			//LED_Blink_2(.2,1,BLINK_FOREVER);
 			g_ucReasonForFailure = IMAGE_NOTCAPTURED;
 			start_1Sec_TimeoutTimer();	//To timeout incase image capture is not successful
 			captureTimeout_Flag = 0;
@@ -254,8 +237,7 @@ int32_t application_fn()
 				lRetVal = NWP_SwitchOff();
 				RETURN_ON_ERROR(lRetVal);
 
-				//Tag:Upload GroundData object
-				//SendGroundData();
+				//Upload GroundData object
 				SendObject_ToParse(GROUND_DATA);
 
 				//Read MT9D111 register statuses. View in UART PRINTs
@@ -267,17 +249,7 @@ int32_t application_fn()
 				osi_Sleep(.2*2*5*1000);
 				PRCMSOCReset();	//Should be replaced by SYSOFF reset
 			}
-			/*else
-			{
-				//Rm
-				DEBG_PRINT("Image captured\n");
-				Read_AllRegisters();
-			}*/
 			stop_1Sec_TimeoutTimer();
-
-//			//Tag:Timestamp photo click
-//			cc_rtc_get(&time_now);
-//			g_TimeStamp_PhotoSnap = time_now.secs * 1000 + time_now.nsec / 1000000;
 
 			g_ulAppStatus = IMAGE_CAPTURED;
 			g_ucReasonForFailure = IMAGE_NOTUPLOADED;
@@ -287,11 +259,9 @@ int32_t application_fn()
 	    lRetVal = sl_FsClose(lFileHandle, 0, 0, 0);
 	    RETURN_ON_ERROR(lRetVal);
 
-	    //ReadFile_FromFlash((char*)(g_image_buffer+20), (char*)JPEG_IMAGE_FILE_NAME, uiImageFile_Offset, 0);
 	    lRetVal = NWP_SwitchOff();
 		RETURN_ON_ERROR(lRetVal);
 
-		//Uncomment
 		Standby_ImageSensor();	//Put the Image Sensor in standby
 
 		//Upload only if image was capture
@@ -316,12 +286,13 @@ int32_t application_fn()
 			//	Collect and Upload sensor data to Parse
 			if (lRetVal >= 0)	//Check whether image upload was successful
 			{
-				getTempRH(&fTemp, &fRH);	//Collect Temperature and RH values from
-															//Si7020 IC
-				ucBatteryLvl = Get_BatteryPercent();	//Get Battery Level from ADC
-
-				Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from unique MAC
-													//ID of the CC3200 device
+				getTempRH(&fTemp, &fRH);	//Collect Temperature and RH values
+											//from Si7020 IC
+				ucBatteryLvl = Get_BatteryPercent();	//Get Battery Level
+														//from ADC
+				Get_FridgeCamID(&ucFridgeCamID[0]);	//Get FridgeCam ID from
+													//unique MAC ID of the
+													//CC3200 device
 
 				//	Upload sensor data to Parse
 				lRetVal = UploadSensorDataToParse(clientHandle,
@@ -330,7 +301,6 @@ int32_t application_fn()
 				if(lRetVal >= 0)
 				{
 					g_ucReasonForFailure = SUCCESS;
-					//Tag:Timestamp
 					cc_rtc_get(&time_now);
 					g_TimeStamp_PhotoUploaded = time_now.secs * 1000 + time_now.nsec / 1000000;
 				}
@@ -340,7 +310,6 @@ int32_t application_fn()
 			NWP_SwitchOff();
 		}
 
-		//SendGroundData();
 #ifndef IMAGE_DEBUG
 		SendObject_ToParse(GROUND_DATA);
 #endif
@@ -348,4 +317,3 @@ int32_t application_fn()
 
 	return lRetVal;
 }
-

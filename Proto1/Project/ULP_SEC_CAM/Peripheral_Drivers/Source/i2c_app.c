@@ -10,16 +10,16 @@
  *
  */
  ///////////////////////////////////////////////////////////////////////////////
-#include "i2c_app.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "i2c_if.h"
 #include "hw_memmap.h"
 #include "hw_types.h"
 #include "i2c.h"
 #include "rom_map.h"
-
 #include "prcm.h"
+#include "i2c_app.h"
 //******************************************************************************
 //                      		MACRO DEFINITIONS
 //******************************************************************************

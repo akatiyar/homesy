@@ -25,11 +25,6 @@
 MEMORY
 {
     /* Application uses internal RAM for program and data */
-    /*SRAM_CODE (RWX) : origin = 0x20004000, length = 0x00019000
-    SRAM_DATA (RWX) : origin = 0x2001D000, length = 0x0001F000*/
-//	Use this
-//    SRAM_CODE (RWX) : origin = 0x20004000, length = 0x0001E000
-//    SRAM_DATA (RWX) : origin = 0x20022000, length = 0x0001E000
     SRAM_CODE (RWX) : origin = 0x20004000, length = 0x0001FC00
     SRAM_DATA (RWX) : origin = 0x20023C00, length = 0x0001C400
 

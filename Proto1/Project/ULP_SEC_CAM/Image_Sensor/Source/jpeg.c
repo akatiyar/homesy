@@ -4,12 +4,12 @@
  *  Created on: 22-Aug-2015
  *      Author: Chrysolin
  */
+
+#include <nwp.h>
 #include "app.h"
 #include "flash_files.h"
 #include "fs.h"
 #include "jpeg.h"
-#include "NWP.h"
-
 #include "camera_app.h"	//For g_image_buffer declaration only
 
 #define OFFSET_LUM_QTABLE_INHEADER				25

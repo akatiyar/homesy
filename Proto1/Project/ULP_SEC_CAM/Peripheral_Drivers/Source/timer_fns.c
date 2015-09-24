@@ -4,6 +4,8 @@
  *  Created on: 21-Apr-2015
  *      Author: Chrysolin
  */
+#include <stdbool.h>
+
 #include "hw_types.h"
 #include "hw_memmap.h"
 #include "prcm.h"
@@ -14,20 +16,19 @@
 #include "simplelink.h"
 
 #include "app_common.h"
-#include <stdbool.h>
-#define APP_PROFILING_TIMER_BASE		TIMERA0_BASE
 
+#define APP_PROFILING_TIMER_BASE		TIMERA0_BASE
 //#define RELOADVAL_100MILLISEC			0x007A11FF	//(100m*80,000,000-1)
 #define RELOADVAL_100MILLISEC			100		//in milli sec
 #define RELOADVAL_1SEC					1000	//in milli sec
-
 #define CAMERA_CAPTURE_TIMEOUT			2		//in sec
+
+uint32_t g_ulReloadVal;
 
 void ISR_periodicInterrupt_timer();
 void IntHandler_100mSecTimer(void);
 void IntHandler_1Sec_TimeoutTimer(void);
 
-uint32_t g_ulReloadVal;
 //******************************************************************************
 // 100ms timer. TimerA0 is used
 //******************************************************************************
@@ -179,4 +180,71 @@ int32_t stop_periodicInterrupt_timer()
 	return 0;
 }
 
+
+uint8_t cnt_LED_Timer;
+volatile int8_t g_BlinkCount;
+
+void IntrptHandler_LEDTimer()
+{
+	Timer_IF_InterruptClear(TIMERA2_BASE);
+	cnt_LED_Timer++;
+	if(cnt_LED_Timer == (g_OnTime - 1))
+	{
+		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, 0);			//LED off
+		//DEBG_PRINT("Off");
+	}
+	else if(cnt_LED_Timer == (g_OffTime + g_OnTime - 1))
+	{
+		MAP_GPIOPinWrite(GPIOA1_BASE, GPIO_PIN_1, GPIO_PIN_1);	//LED on
+		cnt_LED_Timer = 0;
+		//DEBG_PRINT("On");
+		g_BlinkCount++;
+		if(g_BlinkCount == g_NoOfBlinks)
+		{
+			if(g_NoOfBlinks != BLINK_FOREVER)
+			{
+				//DEBG_PRINT("Timer off");
+				LEDTimer_Stop();
+			}
+			else
+			{
+				//DEBG_PRINT("Blink forever");
+			}
+		}
+	}
+}
+int32_t LEDTimer_Enable()
+{
+	MAP_PRCMPeripheralClkEnable(PRCM_TIMERA2, PRCM_RUN_MODE_CLK);
+	MAP_PRCMPeripheralReset(PRCM_TIMERA2);
+
+	MAP_TimerConfigure(TIMERA2_BASE, TIMER_CFG_PERIODIC);
+	MAP_TimerPrescaleSet(TIMERA2_BASE, TIMER_A, 0);
+
+	Timer_IF_IntSetup(TIMERA2_BASE, TIMER_A, IntrptHandler_LEDTimer);
+
+	return 0;
+}
+int32_t LEDTimer_Stop()
+{
+	MAP_TimerDisable(TIMERA2_BASE, TIMER_A);
+
+	return 0;
+}
+int32_t LEDTimer_Start()
+{
+	cnt_LED_Timer = 0;
+	g_BlinkCount = 0;
+
+	MAP_TimerLoadSet(TIMERA2_BASE,TIMER_A,MILLISECONDS_TO_TICKS(100));
+	MAP_TimerEnable(TIMERA2_BASE,TIMER_A);
+
+	return 0;
+}
+int32_t LEDTimer_Disable()
+{
+	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA2, PRCM_RUN_MODE_CLK);
+
+	return 0;
+}
 

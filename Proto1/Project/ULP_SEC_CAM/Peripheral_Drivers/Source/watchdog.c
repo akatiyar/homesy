@@ -5,11 +5,12 @@
  *      Author: Chrysolin
  */
 #include "app.h"
+
 #include "wdt_if.h"
 #include "wdt.h"
-#include "watchdog.h"
 #include "osi.h"
 
+#include "watchdog.h"
 //*****************************************************************************
 //
 //! The interrupt handler for the watchdog timer

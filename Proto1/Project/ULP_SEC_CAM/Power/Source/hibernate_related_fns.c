@@ -1,19 +1,19 @@
+#include "stdbool.h"
 
 #include "common.h"
+
 #include "app.h"
-#include "prcm.h"
-
-#include "lightSens_isl29035.h"
-#include "accelomtrMagntomtr_fxos8700.h"
-
-#include "hibernate_related_fns.h"
 #include "app_common.h"
-#include "stdbool.h"
+#include "hibernate_related_fns.h"
+#include <accelomtr_magntomtr_fxos8700.h>
+#include <light_sens_isl29035.h>
+
 
 #define SEC_PER_MINUTE					60
 #define RTCCLKS_PER_SEC					32768
 
 extern int16_t IsLightOff(uint16_t usThresholdLux);
+
 //******************************************************************************
 //	This function puts the device in hibernate
 //
@@ -121,7 +121,8 @@ void sensorsTriggerSetup()
 	//	DEBG_PRINT("Configured Accelerometer for wake up\n\r");
 }
 
-/*{
+#if 0
+{
     //
     // Setup Wake Source
     //
@@ -163,7 +164,5 @@ void sensorsTriggerSetup()
     // Enter HIBernate mode
     //
     MAP_PRCMHibernateEnter();
-}*/
-
-
-
+}
+#endif
