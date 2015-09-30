@@ -1,0 +1,7 @@
+Lib folder contains
+1. simplelink.a - a recompiled simplelink library after removing a delay in the
+					CC3200 SDK simplelink source code, as suggested by TI to 
+					speed up NWP start
+2. application_bootloader.bin - this bin file in not used by this project
+					But, this bootloader is an optimised build of application
+					bootloader using the optimised simplelink library

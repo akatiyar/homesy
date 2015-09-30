@@ -22,11 +22,10 @@
 //
 //  This function checks I2C communication with FXOS8700 by reading the Device
 //	ID which is set to 0xC7 for production devices and verifying the same.
-//	OUTPUT: UART message - whether success or fialure
 //
 //	\param none
 //
-//	\return none
+//	\return 0 on success and FXOS8700_NOT_FOUND on failure
 //
 //******************************************************************************
 int32_t verifyAccelMagnSensor()
@@ -45,7 +44,6 @@ int32_t verifyAccelMagnSensor()
 
 	if(DEVICE_ID == ucDeviceID)
 	{
-//		DEBG_PRINT("Device ID read thru' I2C = expected device ID of FXOS8700\n\r"
 		DEBG_PRINT("I2C comm. with FXOS8700 SUCCESS\n");
 		lRetVal = SUCCESS;
 	}
@@ -59,8 +57,11 @@ int32_t verifyAccelMagnSensor()
 }
 
 //******************************************************************************
-// This function puts FXOS8700 in standby. Most register values are retained.
-//	Some register vals are lost. I2C communications can happen during standby.
+// This function puts FXOS8700 in standby.
+//
+// During standby,
+//	Most register values are retained. Some register vals are lost.
+//	I2C communications can happen during standby.
 //	Typical Standby current = 2uA
 //******************************************************************************
 int32_t standby_accelMagn_fxos8700()
@@ -76,32 +77,11 @@ int32_t standby_accelMagn_fxos8700()
 
 //******************************************************************************
 //
-//  This function fetches current magnetometer readings of all the 3 axis from
-//	FXOS8700 by calling i2cReadRegister API
+//  This function fetches current magnetometer readings of all the 3 axis and
+//	accerlerometer readings of all the 3 axis from FXOS8700
 //
-//	\param[out] pucData - pointer to array to which magnetometer data is
-//								stored
-//
-//	\return 0: Success or <0: Failure
-//
-//******************************************************************************
-int32_t getMagntData(uint8_t* pucMagntData)
-{
-	int32_t lRetVal;
-
-	lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS, MAGNT_OUTPUT_DATA_REG,
-									LENGTH_OUTPUT_DATA, pucMagntData);
-	PRINT_ON_ERROR(lRetVal);
-	return lRetVal;
-}
-
-//******************************************************************************
-//
-//  This function fetches current magnetometer readings of all the 3 axis from
-//	FXOS8700 by calling i2cReadRegister API
-//
-//	\param[out] pucData - pointer to array to which magnetometer data is
-//								stored
+//	\param[out] pucData - pointer to array to which magnetometer and
+//							accelerometer data are stored
 //
 //	\return 0: Success or <0: Failure
 //
@@ -113,6 +93,7 @@ int32_t getAccelMagntData(uint8_t* pucAccelMagntData)
 	lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS, ACCEL_OUTPUT_DATA_REG,
 									LENGTH_OUTPUT_DATA*2, pucAccelMagntData);
 	PRINT_ON_ERROR(lRetVal);
+
 	return lRetVal;
 }
 
@@ -137,6 +118,8 @@ int32_t reset_accelMagn_fxos8700()
 	UtilsDelay((ONESEC_NO_OF_CYCLES/1000 + 100));	//give a one milli sec delay
 													//before any other operation
 													//with FXOS
+
+	//	Wait till CTRL_REG2 is equal to 0x00
 	ucTryNum = 1;
 	while((data != 0x00) && (ucTryNum <= 5))
 	{
@@ -156,6 +139,27 @@ int32_t reset_accelMagn_fxos8700()
 }
 
 #if 0
+//******************************************************************************
+//
+//  This function fetches current magnetometer readings of all the 3 axis from
+//	FXOS8700 by calling i2cReadRegister API
+//
+//	\param[out] pucData - pointer to array to which magnetometer data is
+//								stored
+//
+//	\return 0: Success or <0: Failure
+//
+//******************************************************************************
+int32_t getMagntData(uint8_t* pucMagntData)
+{
+	int32_t lRetVal;
+
+	lRetVal = i2cReadRegisters(FXOS8700_I2C_ADDRESS, MAGNT_OUTPUT_DATA_REG,
+									LENGTH_OUTPUT_DATA, pucMagntData);
+	PRINT_ON_ERROR(lRetVal);
+	return lRetVal;
+}
+
 //******************************************************************************
 //
 //	This function sets the Acceleration Threshold value crossing which Motion

@@ -64,7 +64,7 @@ int32_t application_fn()
 		//Initializations done by this task:
 		//	1. NWP on
 		//	2. Magnetometer configs flash file reading
-		//	3.
+		//	3. Images sensor configs flash file reading
 		//	4. Image File in flash open
 		//	5. Wait for Task3 to finish
 		//Initializations done by Task3:

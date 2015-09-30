@@ -374,9 +374,9 @@ int payloadSend( const char *httpRequestBody,
 				}
 				size_SumSocketWriteReturnVal += status;
 			}
-#ifndef INTERNAL_TESTING
+//#ifndef INTERNAL_TESTING
 			UtilsDelay(80000);
-#endif
+//#endif
 		}
 		DEBG_PRINT("1.Read_fromFile:%d  Written_toSocket: %d\n", size_readBytes, size_SumSocketWriteReturnVal);
 		if(0 != fileInfo.FileLen%SIZE_SOCK_WRITE_DATA)

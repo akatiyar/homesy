@@ -10,10 +10,16 @@
 #include "app_common.h"
 
 //******************************************************************************
+//	This function adds a number field (field name, value) as JSON string to
+//	character array
 //
-// ullField entry data type is long long, but any lesser sized number can be passed
-// ucFieldPosition - Position of the field in the JSOn string. Can be first, middle or last
-//
+//	param[out] pucGroundDataObject - pointer to character array where the new
+//									field has to be added. @has to be renamed
+//	param[in] pucFieldName - pointer to field name character array
+// 	param[in] ullFieldEntry - value/entry. Data type is long long, but any lesser
+//									sized number can be	passed
+//	param[in] ucFieldPosition - Position of the field in the JSON string. Can be
+//									first, middle or last. To add { and }.
 //******************************************************************************
 int32_t Add_NumberField_ToJSONString(uint8_t* pucGroundDataObject,
 										uint8_t* pucFieldName,

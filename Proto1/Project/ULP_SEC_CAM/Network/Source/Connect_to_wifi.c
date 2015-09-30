@@ -15,6 +15,11 @@
 
 static int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams);
 
+//******************************************************************************
+//	This function
+//	1. Connects to WiFi using credentials read from the flash
+//	2. Gets time from SNTP server
+//******************************************************************************
 int32_t WiFi_Connect()
 {
 	int32_t lRetVal;
@@ -26,41 +31,37 @@ int32_t WiFi_Connect()
 	SlSecParams_t keyParams;
 
 	ConfigureSimpleLinkToDefaultState();
-	//lRetVal = sl_Start(0, 0, 0);
 	lRetVal = NWP_SwitchOn();
 	RETURN_ON_ERROR(lRetVal);
 
+	//	Read WiFi credentials from flash
 	lRetVal = ReadFile_FromFlash(ucWifiConfigFileData,
 									(uint8_t*)USER_CONFIGS_FILENAME,
 									WIFI_DATA_SIZE, WIFI_DATA_OFFSET);
 
 	pucWifiConfigFileData = &ucWifiConfigFileData[0];
 	RETURN_ON_ERROR(lRetVal);
-
 	strcpy((char*)ssid, (const char*)ucWifiConfigFileData);
 	pucWifiConfigFileData += strlen((const char*)pucWifiConfigFileData)+1;
 	strcpy((char*)ucWifiSecType, (const char*)pucWifiConfigFileData);
 	pucWifiConfigFileData += strlen((const char*)pucWifiConfigFileData)+1;
 	strcpy((char*)ucWifiPassword, (const char*)pucWifiConfigFileData);
-
 	keyParams.Type = ucWifiSecType[0];
 	keyParams.Key = ucWifiPassword;
 	keyParams.KeyLen = strlen((char *)ucWifiPassword);
 
+	//Connect to WiFi
 	lRetVal = initNetwork(ssid, &keyParams);
 	RETURN_ON_ERROR(lRetVal);
 
-	// TODO: Set to current date/time (within an hour precision)
+	//Set to current date/time (within an hour precision)
 	SlDateTime_t dateTime;
 	memset(&dateTime, 0, sizeof(dateTime));
-
 	dateTime.sl_tm_year = 2015;
 	dateTime.sl_tm_mon = 8;
 	dateTime.sl_tm_day = 12;
 	dateTime.sl_tm_hour = 10;
-
 	GetTimeNTP(&dateTime);
-
 	sl_DevSet(SL_DEVICE_GENERAL_CONFIGURATION,
 				SL_DEVICE_GENERAL_CONFIGURATION_DATE_TIME,
 				sizeof(SlDateTime_t), (unsigned char *)&dateTime);
@@ -68,6 +69,7 @@ int32_t WiFi_Connect()
 	return lRetVal;
 }
 
+//	Connects to WiFi
 int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 {
 	short status;
@@ -117,4 +119,3 @@ int32_t initNetwork(signed char *ssid, SlSecParams_t *keyParams)
 
 	return ((int32_t)status);
 }
-

@@ -1,0 +1,12 @@
+List of changes to Parse Library:
+1.  In cc3200_certificate.c, certificate file size reduced to 8KB
+2.  In cc3200_debug.c, UART peripheral number is changed
+3.	In cc3200_socket.c, debug UART prints
+4.	Adding Payload_Type parameter to parseSendRequestInternal()
+5.	Return type of socketWrite() and parseSendRequestInternal() changed to long
+6.	In request.c, databuffer is changed as pointer to image buffer
+7.	In request.c, provision to build HTTP header for image data, send image 
+	payload are added
+8.	HTTP header and payload are constructed and sent using seperate functions
+	headerSend() and payloadSend()  
+9.	In request.c, some debug prints are added and some are removed

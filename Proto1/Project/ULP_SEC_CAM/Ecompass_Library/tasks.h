@@ -124,8 +124,8 @@ struct SV_6DOF_GB_BASIC
 	float fLPPhi;					// low pass roll (deg)
 	float fLPThe;					// low pass pitch (deg)
 	float fLPPsi;					// low pass yaw (deg)
-	float fLPRho;					// low pass compass (deg) - euler alpha/phi
-	float fLPChi;					// low pass tilt from vertical (deg) - euler beta/theta
+	float fLPRho;					// low pass compass (deg) - compass heading
+	float fLPChi;					// low pass tilt from vertical (deg)
 	// orientation matrix, quaternion and rotation vector
 	float fLPR[3][3];				// low pass filtered orientation matrix
 	struct fquaternion fLPq;		// low pass filtered orientation quaternion

@@ -94,6 +94,7 @@ void fRun_6DOF_GB_BASIC(struct SV_6DOF_GB_BASIC *pthisSV, struct MagSensor *pthi
 	if(loopcounter <= 2)
 	{
 		//DEBG_PRINT("No LPF %d\n", loopcounter);
+		//Bypass LPF. flpf = 1 implies all pass
 		fLPFOrientationQuaternion(&(pthisSV->fq), &(pthisSV->fLPq), 1, pthisSV->fdeltat, pthisSV->fOmega, loopcounter);
 	}
 	else

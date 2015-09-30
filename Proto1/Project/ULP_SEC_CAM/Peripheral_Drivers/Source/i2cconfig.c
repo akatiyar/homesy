@@ -95,28 +95,6 @@ void MT9D111Delay(unsigned long ucDelay);
 
 #endif
 
-//*****************************************************************************
-//
-//!     I2CInit
-//!    
-//!    \param                      Delay  
-//!     \return                     None or error code                            
-//
-//*****************************************************************************
-unsigned long I2CInit()
-{
-    // Enable I2C Peripheral 
-    MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
-    MAP_PRCMPeripheralReset(PRCM_I2CA0);
-
-    // Configure I2C module, 400 Kbps fast mode 
-    MAP_I2CMasterInitExpClk(I2CA0_BASE,80000000,false);
-    //MAP_I2CMasterInitExpClk(I2CA0_BASE,80000000,true);
-    //  MAP_I2CMasterDisable(I2CA0_BASE);
-
-    return 0;
-}
-
 //****************************************************************************
 //
 //! Invokes the I2C driver APIs to read from the device. This assumes the 
@@ -294,6 +272,7 @@ long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
 
     return 0;
 }
+
 //****************************************************************************
 //
 //! Invokes the I2C driver APIs to write to the specified address
@@ -310,7 +289,6 @@ long I2CBufferRead(unsigned char ucDevAddr, unsigned char *ucBuffer,
 //! \return 0: Success, < 0: Failure.
 //
 //****************************************************************************
-
 long I2CBufferWrite(unsigned char ucDevAddr, unsigned char *ucBuffer,
                              unsigned long ulSize,unsigned char ucFlags)
 {

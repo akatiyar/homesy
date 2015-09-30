@@ -21,9 +21,7 @@ extern float_t get_angle();
 //******************************************************************************
 //	Collects ecompass value and stores the same in flash
 //
-//	param	ucAngle - can be either ANGLE_40 or ANGLE_90. This parameter
-//				determines the offset within the flash file where the compass
-//				value will be stored
+//	param	ucAngle - can be either ANGLE_40 or ANGLE_90.
 //******************************************************************************
 int32_t CollectAngle(uint8_t ucAngle)
 {

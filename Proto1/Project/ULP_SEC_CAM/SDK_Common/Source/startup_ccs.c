@@ -61,7 +61,7 @@ extern void xPortSysTickHandler(void);
 #endif
 
 #include "common.h"
-#include "uartA1_if.h"
+#include <uart_if.h>
 //*****************************************************************************
 //
 // Linker variable that marks the top of the stack.

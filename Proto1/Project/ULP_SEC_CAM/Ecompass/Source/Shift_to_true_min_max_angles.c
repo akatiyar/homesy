@@ -12,8 +12,9 @@
 //	Calculates the true min/max door angles from the offset_to180 min/max angles
 //
 //STEPS:
-//	(1)reversing offset and handling out-of-range angle(negative and >360)
-//	(2)swappping min and max incase Angle90<Angle40
+//	(1) reversing offset
+//	(2) handling out-of-range angle(negative and >360) after offseting
+//	(3) swappping min and max incase of anti-clockwise door-opening
 //Swaps timestamps also if door angles are swapped
 //******************************************************************************
 void Calculate_TrueMinMaxAngles()
@@ -24,12 +25,16 @@ void Calculate_TrueMinMaxAngles()
 	DEBG_PRINT("TrueMinMaxAngles()\n");
 	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
 
+	//
 	//Reverse offset
+	//
 	g_fMinAngle -= g_angleOffset_to180;
 	g_fMaxAngle -= g_angleOffset_to180;
 	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
 
+	//
 	//Handle <0 and >360 cases
+	//
 	if(g_fMaxAngle < 0)
 	{
 		g_fMaxAngle += 360;
@@ -48,9 +53,11 @@ void Calculate_TrueMinMaxAngles()
 	}
 	DEBG_PRINT("%d, %d\n", g_fMinAngle, g_fMaxAngle);
 
-	//Swap the min and max angles if Angle90<Angle40
-	if (((gdoor_90deg_angle < gdoor_40deg_angle) && (abs(gdoor_90deg_angle-gdoor_40deg_angle) < A40_A90_DIFFMAG_MAX))
-		|| ((gdoor_90deg_angle > gdoor_40deg_angle) && (abs(gdoor_90deg_angle-gdoor_40deg_angle) > A40_A90_DIFFMAG_MAX)))
+	//
+	//Swap the min and max angles for anti-clock wise opening of door
+	//
+	if (((gdoor_90deg_angle < gdoor_40deg_angle) && (abs(gdoor_90deg_angle-gdoor_40deg_angle) < A40_A90_DIFFMAG_MAX))	//no 360-0 crossover
+		|| ((gdoor_90deg_angle > gdoor_40deg_angle) && (abs(gdoor_90deg_angle-gdoor_40deg_angle) > A40_A90_DIFFMAG_MAX))) //360-0 cross-over case
 	{
 		temp_swap_variable = g_fMinAngle;
 		g_fMinAngle = g_fMaxAngle;
@@ -64,4 +71,3 @@ void Calculate_TrueMinMaxAngles()
 
 	return;
 }
-

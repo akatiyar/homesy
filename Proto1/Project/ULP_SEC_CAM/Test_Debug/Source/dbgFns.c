@@ -16,6 +16,15 @@
 #include "flash_files.h"
 #include "fs.h"
 
+//******************************************************************************
+//	Checks if the I2C devices are present. See UART messages for results.
+//	I2C devices checked:
+//		1. Light sensor
+//		2. Accelerometer and magnetometer
+//		3. Image Sensor
+//		4. Temperature and RH sensor
+//		5. ADC fo monitioring battery voltage
+//******************************************************************************
 int32_t Check_I2CDevices()
 {
 	DEBG_PRINT("\nLightSens...\n");
@@ -38,7 +47,10 @@ int32_t Check_I2CDevices()
 	return 0;
 }
 
+//******************************************************************************
+//	Checks if a file is there in flash
 // Give the file name inside the fn.
+//******************************************************************************
 int32_t Check_FlashFiles()
 {
 	uint32_t ulToken = 0;

@@ -43,6 +43,7 @@
 
 // Standard includes
 #include <app_fns.h>
+#include <hibernate.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,7 +75,6 @@
 #include "camera_app.h"
 #include "network_related_fns.h"
 #include "app_common.h"
-#include "hibernate_related_fns.h"
 #include "watchdog.h"
 
 //*****************************************************************************

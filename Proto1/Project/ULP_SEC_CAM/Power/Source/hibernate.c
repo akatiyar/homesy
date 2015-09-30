@@ -4,10 +4,9 @@
 
 #include "app.h"
 #include "app_common.h"
-#include "hibernate_related_fns.h"
 #include <accelomtr_magntomtr_fxos8700.h>
+#include <hibernate.h>
 #include <light_sens_isl29035.h>
-
 
 #define SEC_PER_MINUTE					60
 #define RTCCLKS_PER_SEC					32768
@@ -15,7 +14,7 @@
 extern int16_t IsLightOff(uint16_t usThresholdLux);
 
 //******************************************************************************
-//	This function puts the device in hibernate
+//	This function puts CC3200 in hibernate
 //
 //	param[in]	ucWakeSources - choice of source for wake up from hibernate. Can
 //						be one of the following macros or the or of the two
@@ -28,14 +27,14 @@ extern int16_t IsLightOff(uint16_t usThresholdLux);
 //							PRCM_HIB_HIGH_LEVEL
 //							PRCM_HIB_FALL_EDGE
 //							PRCM_HIB_RISE_EDGE
-//	param[in]	ucGPIOWakeCondition	- Can use WAKEON_LIGHT_ON or WAKEON_LIGHT_OFF
-//									- but presently not used
+//	param[in]	ucGPIOWakeCondition	-Can use WAKEON_LIGHT_ON or WAKEON_LIGHT_OFF
+//									-not used presently
 //	param[in]	fHibIntervalInMinutes-Hibernation interval before the Slow Clock
 //						counter wakes the device up fom Hibernate
 //
 //	Description:
-//		1. Disable the wakeup sources
-//		2. Enable the wakeup source(s)
+//		1. Disable the wakeup sources (CC3200 timer, CC3200 GPIO)
+//		2. Enable the wakeup source(s) (CC3200 timer and/or CC3200 GPIO)
 //		3. Sets Hibernate interval incase time based interrupt is enabled
 //		4. Sets up type of wake trigger, if GPIO WakeSource is enabled
 //		5. Prepares peripheral devices to give interrupt
@@ -48,15 +47,17 @@ void HIBernate(uint32_t ulWakeSources,
 				uint8_t ucGPIOWakeCondition,
 				float_t fHibIntervalInMinutes)
 {
-//	uint8_t count=0;
-
 	RELEASE_PRINT("HIBernating\n");
+
 	//
-    // Setup Wake Source
+    // Enable Wake Source (CC3200 timer and/or CC3200 GPIO)
     //
 	MAP_PRCMHibernateWakeupSourceDisable(PRCM_HIB_GPIO2|PRCM_HIB_SLOW_CLK_CTR);
 	MAP_PRCMHibernateWakeupSourceEnable(ulWakeSources);
 
+	//
+	// Set-up Wake Source (CC3200 timer and/or CC3200 GPIO)
+	//
 	if(ulWakeSources&PRCM_HIB_SLOW_CLK_CTR)
 	{
 		MAP_PRCMHibernateIntervalSet(fHibIntervalInMinutes*((float_t)SEC_PER_MINUTE)*((float_t)RTCCLKS_PER_SEC));
@@ -65,30 +66,26 @@ void HIBernate(uint32_t ulWakeSources,
 	if(ulWakeSources&PRCM_HIB_GPIO2)
 	{
 		MAP_PRCMHibernateWakeUpGPIOSelect(PRCM_HIB_GPIO2, ulGPIOInterruptType);
-
 		MAP_UtilsDelay(80000);
+
 		//
-		//	Configure or clear interrupts of wake-up trigger sensors
+		//	Configure wake-up trigger sensors
 		//
-		//if(ucGPIOWakeCondition == WAKEON_LIGHT_OFF)
+		//If light is off now, trigger should be given on light on
 		if(IsLightOff(LUX_THRESHOLD))
 		{
 			configureISL29035(0, LUX_THRESHOLD, LIGHTON_TRIGGER);
-			//while(!IsLightOff(LUX_THRESHOLD));
 			RELEASE_PRINT("***OPEN DOOR TO CAPTURE IMAGE***\n");
-			UtilsDelay(800000);
+			UtilsDelay(800000);	//Delay for UART peripheral to finish printing
 			sensorsTriggerSetup();
-			//DEBG_PRINT("Cleared sensors\n\r");
 		}
 		else
-		//if(ucGPIOWakeCondition == WAKEON_LIGHT_ON)
+		//If light is on now, trigger should be given on light off
 		{
 			configureISL29035(0, LUX_THRESHOLD, LIGHTOFF_TRIGGER);
-			//while(IsLightOff(LUX_THRESHOLD));
 			RELEASE_PRINT("***CLOSE DOOR TO WAKE DEVICE***\n");
-			UtilsDelay(800000);
+			UtilsDelay(800000); //Delay for UART peripheral to finish printing
 			sensorsTriggerSetup();
-			//DEBG_PRINT("Cleared sensors\n\r");
 		}
 #ifdef IOEXPANDER_PRESENT
 		ClearInterrupt_IOExpander();
@@ -101,17 +98,17 @@ void HIBernate(uint32_t ulWakeSources,
     MAP_PRCMHibernateEnter();
 }
 
+//******************************************************************************
+//	Simply clears the interrupt
+//******************************************************************************
 void sensorsTriggerSetup()
 {
 	//
 	// If Light sensor is to be used
 	//
-	//DEBG_PRINT("\n\rLIGHT SENSOR:\n\r");
-	//verifyISL29035();
-	//configureISL29035(0);
 	getLightsensor_intrptStatus(); //To clear the interrupt
-	//DEBG_PRINT("Configured Light Sensor for wake up\n\r");
 
+#if 0
 	//
 	// If Accelerometer trigger is to be used
 	//
@@ -119,6 +116,7 @@ void sensorsTriggerSetup()
 	//	clearAccelMotionIntrpt();
 	//	configureFXOS8700(MODE_ACCEL_INTERRUPT);
 	//	DEBG_PRINT("Configured Accelerometer for wake up\n\r");
+#endif
 }
 
 #if 0

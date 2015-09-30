@@ -32,7 +32,8 @@ float angle_avg;
 float gdoor_90deg_angle;//290
 float gdoor_40deg_angle; //110
 float gdoor_OpenDeg_angle;
-float g_angleOffset_to180;
+float g_angleOffset_to180;	//This variable offsets angle40 compass heading to
+							//180
 extern uint8_t g_flag_door_closing_45degree;
 
 void check_doorpos();

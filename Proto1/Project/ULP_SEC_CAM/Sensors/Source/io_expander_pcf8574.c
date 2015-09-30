@@ -12,6 +12,9 @@
 
 //******************************************************************************
 //	Reads the port data of PCF8574
+//
+//	param[out] - character pointer to place port data
+//	return  - SUCCESS/failure code
 //******************************************************************************
 int32_t ReadPorts_pcf8574(uint8_t* pucData)
 {

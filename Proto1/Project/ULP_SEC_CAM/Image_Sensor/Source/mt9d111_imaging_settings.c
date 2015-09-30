@@ -7,12 +7,15 @@
 
 #include "mt9d111.h"
 
+//*****************************************************************************
+//	Write values to the MT9D111 registers that control exposure and white
+//	balance of the image
+//*****************************************************************************
 long WriteAllAEnAWBRegs()
 {
 	long lRetVal;
 
-/*
-	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0026},
+/*	s_RegList StatusRegLst[] = {{0x00, 0x2B, 0x0026},
 								{0x00, 0x2C, 0x0030},
 								{0x00, 0x2D, 0x002E},
 								{0x00, 0x2E, 0x0026},
@@ -188,6 +191,10 @@ long WriteAllAEnAWBRegs()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read values from the MT9D111 registers that control exposure and white
+//	balance of the image
+//*****************************************************************************
 long ReadAllAEnAWBRegs()
 {
 	long lRetVal;
@@ -204,6 +211,9 @@ long ReadAllAEnAWBRegs()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Enable Auto White Balance driver
+//*****************************************************************************
 long enableAWB()
 {
 	long lRetVal;
@@ -223,6 +233,9 @@ long enableAWB()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Disable Auto White Balance driver
+//*****************************************************************************
 long disableAWB()
 {
 	long lRetVal;
@@ -242,6 +255,9 @@ long disableAWB()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Enable Auto Exposure driver
+//*****************************************************************************
 long enableAE()
 {
 	long lRetVal;
@@ -261,6 +277,9 @@ long enableAE()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Disable Auto Exposure driver
+//*****************************************************************************
 long disableAE()
 {
 	long lRetVal;
@@ -281,6 +300,9 @@ long disableAE()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read color correction matrix registers
+//*****************************************************************************
 long CCMRegs_Read()
 {
 	long lRetVal;
@@ -304,6 +326,9 @@ long CCMRegs_Read()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read digital gain registers
+//*****************************************************************************
 long DigitalGainRegs_Read()
 {
 	long lRetVal;
@@ -326,6 +351,9 @@ long DigitalGainRegs_Read()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read shutter width register - related to integration time
+//*****************************************************************************
 long ShutterRegs_Read()
 {
 	long lRetVal;
@@ -344,6 +372,9 @@ long ShutterRegs_Read()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read analog gain registers
+//*****************************************************************************
 long AnalogGainReg_Read()
 {
 	long lRetVal;
@@ -365,6 +396,9 @@ long AnalogGainReg_Read()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read registers that decide the pixel clock
+//*****************************************************************************
 long PCLK_Rate_read()
 {
 	long lRetVal;
@@ -388,6 +422,11 @@ long PCLK_Rate_read()
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read a collection of registers that decide the image configuration
+//
+//	param	RegValues - pointer to where the register values have to be stored
+//*****************************************************************************
 int32_t ReadImageConfigReg(uint16_t *RegValues)
 {
 	long lRetVal;
@@ -423,7 +462,6 @@ int32_t ReadImageConfigReg(uint16_t *RegValues)
 
 								};
 
-
 	for(i=0; i<(sizeof(StatusRegLst)/sizeof(s_RegList)); i++)
 	{
 		lRetVal = Register_Read(&StatusRegLst[i], RegValues);
@@ -433,8 +471,10 @@ int32_t ReadImageConfigReg(uint16_t *RegValues)
 	return lRetVal;
 }
 
-
-//Teg:Remove later
+//******************************************************************************
+//	Read all configuration register
+//	Function is used for debug purposes
+//******************************************************************************
 int32_t Read_AllRegisters()
 {
 	uint16_t i;
@@ -538,11 +578,28 @@ int32_t Read_AllRegisters()
 		return 0;
 }
 
+//*****************************************************************************
+//	Sets the shutter width - related to integration time
+//
+//	param	ShutterWidth
+//*****************************************************************************
 int32_t SetShutterWidth(uint16_t ShutterWidth)
 {
 	return Reg_Write(0x00,0x09,ShutterWidth);
 }
 
+//*****************************************************************************
+//	Sets the digital gain registers
+//
+//	param	G1Gain - Gain of green 1 pixels
+//	param	BGain - Gain of blue pixels
+//	param	RGain - Gain of red pixels
+//	param	G2Gain - Gain of green 2 pixels
+//
+//	All these params can take values 1 or 3 only.
+//	Param = 1 multiplies gain by 2
+//			3 multiplies gain by 4
+//*****************************************************************************
 int32_t SetAnalogGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain)
 {
 	int32_t lRetVal;
@@ -571,6 +628,19 @@ int32_t SetAnalogGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain)
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Sets the digital gain registers
+//
+//	param	G1Gain - Gain of green 1 pixels
+//	param	BGain - Gain of blue pixels
+//	param	RGain - Gain of red pixels
+//	param	G2Gain - Gain of green 2 pixels
+//
+//	All these params can take values 1 or 3 or 7 only.
+//	Param = 1 multiplies gain by 2
+//			3 multiplies gain by 4
+//			7 multiplies gain by 8
+//*****************************************************************************
 int32_t SetDigitalGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain)
 {
 	int32_t lRetVal;
@@ -599,6 +669,17 @@ int32_t SetDigitalGain(uint8_t G1Gain,uint8_t BGain,uint8_t RGain,uint8_t G2Gain
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Sets the initial gain
+//
+//	param	ValChange - value by which initial gain should be increased /
+//						decreased
+//						LSB weight = 0.03125
+//						Max init gain (7-bit): 128
+//						The increment/ decrement value should be within the
+//							range. Otherwise, overflow will happen
+//	param	IsInc - tells whether to increase gain or decrease gain
+//*****************************************************************************
 int32_t SetInitialGain(uint8_t ValChange, bool IsInc)
 {
 	int32_t lRetVal;
@@ -608,11 +689,11 @@ int32_t SetInitialGain(uint8_t ValChange, bool IsInc)
 
 	for (Cnt=0;Cnt<4;Cnt++)
 	{
-
 		lRetVal = Reg_Read(0x00,(Reg_Addr+Cnt),&CurGain);
 
-		NewGain = CurGain & ~INITIAL_GAIN_BITS;
-		tmpIGain = CurGain &  INITIAL_GAIN_BITS;
+		NewGain = CurGain & ~INITIAL_GAIN_BITS;		//new gain initialised 0
+		tmpIGain = CurGain &  INITIAL_GAIN_BITS;	//previous initial gain
+
 		if(IsInc)
 		{
 			tmpIGain = tmpIGain + ValChange;
@@ -621,6 +702,7 @@ int32_t SetInitialGain(uint8_t ValChange, bool IsInc)
 		{
 			tmpIGain = tmpIGain - ValChange;
 		}
+
 		NewGain = NewGain | (tmpIGain & INITIAL_GAIN_BITS);
 		lRetVal = Reg_Write(0x00,(Reg_Addr+Cnt),NewGain);
 
@@ -630,6 +712,11 @@ int32_t SetInitialGain(uint8_t ValChange, bool IsInc)
 	return lRetVal;
 }
 
+//*****************************************************************************
+//	Read the 4 gain registers (G1, R, B, G2)
+//
+//	Pointer where the values of these registers are stored
+//*****************************************************************************
 int32_t ReadGainReg(uint16_t* Gains)
 {
 	uint8_t Reg_Addr = 0x2B;
@@ -638,7 +725,6 @@ int32_t ReadGainReg(uint16_t* Gains)
 
 	for (Cnt=0;Cnt<4;Cnt++)
 	{
-
 		lRetVal = Reg_Read(0x00,(Reg_Addr+Cnt),Gains + Cnt);
 		DEBG_PRINT("Reg %x : %x\n",(Reg_Addr+Cnt),*(Gains + Cnt));
 		RETURN_ON_ERROR(lRetVal);

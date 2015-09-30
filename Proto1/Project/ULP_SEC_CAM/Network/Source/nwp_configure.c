@@ -158,11 +158,9 @@ long ConfigureSimpleLinkToDefaultState()
 //
 //! Confgiures the mode in which the device will work
 //!
-//! \param iMode is the current mode of the device
-//!
+//! \param[in] iMode is the current mode of the device
 //!
 //! \return   SlWlanMode_t
-//!
 //
 //****************************************************************************
 int ConfigureMode(int iMode)

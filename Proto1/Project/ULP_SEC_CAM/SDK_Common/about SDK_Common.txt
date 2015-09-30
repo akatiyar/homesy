@@ -1,0 +1,1 @@
+Files in this folder are Interface files from TI CC3200 SDK v1.1.0

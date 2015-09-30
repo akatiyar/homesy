@@ -8,15 +8,24 @@
 #include <ecompass.h>
 
 //******************************************************************************
-// Checks if the angle passed as parameter is min/max. If it is min/max it is
-//	stored in min/max angle global variable and the current timestamp is also
-//	stored in the corresponding timestamp variable
+//	Checks if angle is min/max.
+//
+//	param[in] angle_avg - angle which has to be checked
+//	Previous min/max are in global variables
+//
+//	In order to handle the case where the door crosses the 360 degree position,
+//	we offset all the angle values so that all angle values will be within the
+//	second and third quadrants.
+//
+//	OUTPUT: If it is min/max, it is stored in min/max angle global variable and
+//	the current timestamp is also stored in the corresponding timestamp variable
 //******************************************************************************
 void Check_MinMax(float_t angle_avg)
 {
 	float angle_reg_afterOffset = 0;
 
-	//Offset to get angles in Q2 and Q3
+	//Do offset to get angle values in Q2 and Q3 only, so that there are
+	//no crossovers
 	angle_reg_afterOffset = angle_avg + g_angleOffset_to180;
 	if(angle_reg_afterOffset > 360)
 	{
@@ -27,29 +36,22 @@ void Check_MinMax(float_t angle_avg)
 		angle_reg_afterOffset += 360;
 	}
 
-	// Invalid case. Angle ramping up from 0 to 360 or down from 360 to 0
-//	if((angle_reg_afterOffset > 240)||(angle_reg_afterOffset < 120))
-//	{
-//		return;
-//	}
-
+	//	If current angle is < min angle, update min angle
 	if(angle_reg_afterOffset < g_fMinAngle)
 	{
 		g_fMinAngle = angle_reg_afterOffset;
-		//g_RawMinAngle = angle_avg;
-//		DEBG_PRINT("N");
-		//DEBG_PRINT("MIN: %d\n", g_fMinAngle);
+		//DEBG_PRINT("N");
 		cc_rtc_get(&g_Struct_TimeStamp_MinAngle);
 	}
+	//	If current angle is > max angle, update max angle
 	if (angle_reg_afterOffset > g_fMaxAngle)
 	{
 		g_fMaxAngle = angle_reg_afterOffset;
-		//g_RawMaxAngle = angle_avg;
-//		DEBG_PRINT("X");
-		//DEBG_PRINT("MAX: %d\n", g_fMaxAngle);
+		//DEBG_PRINT("X");
 		cc_rtc_get(&g_Struct_TimeStamp_MaxAngle);
 	}
 
+	//Find the raw min and raw max angles. @Not of much use now.
 	if(angle_avg < g_RawMinAngle)
 	{
 		g_RawMinAngle = angle_avg;

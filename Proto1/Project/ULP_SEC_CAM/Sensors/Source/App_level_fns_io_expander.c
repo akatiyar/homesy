@@ -8,6 +8,9 @@
 #include <io_expander_pcf8574.h>
 #include "app.h"
 
+//******************************************************************************
+//	Clears interrupt or resets and reactivates the interrupt circuit
+//******************************************************************************
 int32_t ClearInterrupt_IOExpander()
 {
 	uint8_t ucPortData;

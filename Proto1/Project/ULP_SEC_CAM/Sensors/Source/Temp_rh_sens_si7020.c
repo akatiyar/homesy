@@ -15,16 +15,13 @@
 #define FLASH_CONFIGS					0
 
 #define HEADER_SIZE						1
+
 //******************************************************************************
-//
 //  This function checks I2C communication with Si7020 by reading the Device
 //	ID which is set to 0x14 for Si7020 device.
-//	OUTPUT: UART message - whether success or fialure
 //
 //	\param none
-//
-//	\return none
-//
+//	\return 0 on success; SI7020_NOT_FOUND on failure
 //******************************************************************************
 int32_t verifyTempRHSensor()
 {
@@ -44,7 +41,6 @@ int32_t verifyTempRHSensor()
 	if(DEVICE_ID == ucDeviceID[0])
 	{
 		//DEBG_PRINT("\nDevice ID read thru' I2C = expected device ID of Si7020"
-		DEBG_PRINT("I2C comm with Si7020 SUCCESS\n");
 		lRetVal = SUCCESS;
 	}
 	else
@@ -57,13 +53,11 @@ int32_t verifyTempRHSensor()
 }
 
 //******************************************************************************
-//
-//	Calling this function does a software reset of SI7020
+//	This function does a software reset of SI7020
 //
 //	\param none
 //
 //	\return 0: Success or <0: Failure
-//
 //******************************************************************************
 int32_t softResetTempRHSensor()
 {
@@ -80,14 +74,12 @@ int32_t softResetTempRHSensor()
 }
 
 //******************************************************************************
-//
 //  This function configures the Si7020 sensor's temperature and RH resolutions
 //	and heater state
 //
 //	\param none
 //
 //	\return none
-//
 //******************************************************************************
 int32_t configureTempRHSensor()
 {
@@ -129,15 +121,13 @@ int32_t configureTempRHSensor()
 }
 
 //******************************************************************************
-//
-//  This function does fetches temperature and RH mearurements from Sensor chip
+//  This function fetches temperature and RH mearurements from Sensor chip
 //	and calculates their actual values in degree C and % respectively
 //
 //	\param[out]	pfTemp - pointer to variable that will hold value of Temperature
 //	\param[out] pfRH - pointer to variable that will hold value of RH
 //
 //	\return none
-//
 //******************************************************************************
 int32_t getTempRH(float_t* pfTemp, float_t* pfRH)
 {
@@ -160,9 +150,6 @@ int32_t getTempRH(float_t* pfTemp, float_t* pfRH)
 	usRHCode = (ucData[0] << 8) | (ucData[1]);
 	usTempCode = (ucData[2] << 8) | (ucData[3]);
 
-//	DEBG_PRINT("\nData Read: %x %x %x %x\n",
-//					ucData[0], ucData[1], ucData[2], ucData[3]);
-
 	*pfRH = ( (125.0 * usRHCode) / 65536 ) - 6;
 	*pfTemp = ( (175.72 * usTempCode) / 65536 ) - 46.85;
 
@@ -170,4 +157,3 @@ int32_t getTempRH(float_t* pfTemp, float_t* pfRH)
 
 	return lRetVal;
 }
-

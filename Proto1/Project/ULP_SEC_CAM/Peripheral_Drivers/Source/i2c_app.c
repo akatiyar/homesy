@@ -20,6 +20,7 @@
 #include "rom_map.h"
 #include "prcm.h"
 #include "i2c_app.h"
+
 //******************************************************************************
 //                      		MACRO DEFINITIONS
 //******************************************************************************
@@ -27,6 +28,7 @@
 #define ZERO_STOP_BIT 			0
 
 #define SYS_CLK                 80000000
+
 //******************************************************************************
 //
 //  This function reads values of one or more registers in FXOS8700, ISL29035
@@ -143,7 +145,6 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 	return lRetVal;
 }
 
-
 //******************************************************************************
 //
 //  This function read values from Si7020 through I2C interface where the
@@ -154,8 +155,7 @@ int32_t i2cWriteRegisters(uint8_t ucDevI2CAddr,
 //	\param[in]	pucRegAddr - pointer to array containing 2 byte register address
 //								command from where data has to be read
 //	\param[in]	ucLen - number of registers to be read starting
-//	\param[in]	pucRegWriteValues - pointer to array to which holds the data to
-//								be written
+//	\param[in]	pucRegWriteValues - pointer to array to place read data
 //
 //	\return FAILURE if function fails
 //			SUCCESS if function finishes execution successfully

@@ -4,6 +4,7 @@
  *  Created on: 28-Jul-2015
  *      Author: Chrysolin
  */
+
 #include "app.h"
 
 #include "wdt_if.h"
@@ -11,14 +12,16 @@
 #include "osi.h"
 
 #include "watchdog.h"
+
 //*****************************************************************************
-//
 //! The interrupt handler for the watchdog timer
+//!		If g_ucFeedWatchdog is not cleared,  it clears the interrupt, reloading
+//!		the reload value
+//!		If application timeout happened, interrupt isnot cleared
+//!		Keeps track of application time
 //!
 //! \param  None
-//!
 //! \return None
-//
 //*****************************************************************************
 void WatchdogIntHandler(void)
 {
@@ -30,11 +33,8 @@ void WatchdogIntHandler(void)
     //
     if(!g_ucFeedWatchdog)
     {
-//    	DEBG_PRINT("WDT no feed\n");
-//    	MAP_UtilsDelay(100*80000/6);
-//    	//MAP_UtilsDelay(100*80000/6);
-//    	PRCMSOCReset();
-    	//osi_Sleep(100);
+		//DEBG_PRINT("WDT no feed\n");
+		//PRCMSOCReset();
     	return;
     }
 
@@ -44,13 +44,12 @@ void WatchdogIntHandler(void)
     //
     if(g_ulWatchdogCycles >= (g_ulAppTimeout_ms/WDT_KICK_GAP))
     {
-        //MAP_UtilsDelay(800000);
     	DEBG_PRINT("WDT app time out\n");
     	MAP_UtilsDelay(100*80000/6);
         return;
     }
 
-/*    // If apptimeout/WDT_notfed, take corrective action
+    /*// If apptimeout/WDT_notfed, take corrective action
     // WDT reset due to fault ISR will not be taken
     if((!g_ucFeedWatchdog) || (g_ulWatchdogCycles >= (g_ulAppTimeout_ms/WDT_KICK_GAP)))
     {
@@ -83,30 +82,36 @@ void WatchdogIntHandler(void)
     // Clear the watchdog interrupt.
     //
     MAP_WatchdogIntClear(WDT_BASE);
-//    GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-//    MAP_UtilsDelay(800000);
-//    GPIO_IF_LedOff(MCU_RED_LED_GPIO);
+
     //
     // Increment our interrupt counter.
     //
     g_ulWatchdogCycles++;
-    //DEBG_PRINT("W*D*T\n");
-
 }
 
+//*****************************************************************************
+//	Initialize the watch dog timer
+//
+//	param	none
+//	return	0
+//
+//	Enables the watchdog timer if in Release mode or if WATCHDOG_ENABLE is
+//	defined
+//	Disables watchdog if not in release mode and WATCHDOG_ENABLE is not defined
+//*****************************************************************************
 int16_t WDT_init()
 {
 	//DEBG_PRINT("WDT Init\n");
 	WDT_IF_Init(WatchdogIntHandler, MILLISECONDS_TO_TICKS(WDT_KICK_GAP));
 
+	//	Stalling while using debugger
 	MAP_WatchdogStallEnable(WDT_BASE);	//CS
 
-//Release will always have watchdog enabled. In debug watchdog can be enabled
+//Release will always have watchdog enabled. In debug, watchdog can be enabled
 //by defining WATCKDOG_ENABLE macro
 #ifdef USB_DEBUG
 #ifndef WATCHDOG_ENABLE
     	DEBG_PRINT("WDT deinit\n");
-    	//WDT_IF_DeInit();
     	MAP_PRCMPeripheralClkDisable(PRCM_WDT, PRCM_RUN_MODE_CLK);
 #endif
 #endif
@@ -115,5 +120,6 @@ int16_t WDT_init()
 	g_ulWatchdogCycles = 0;
 
 	g_ulAppTimeout_ms = APPLICATION_TIMEOUT;
+
 	return 0;
 }

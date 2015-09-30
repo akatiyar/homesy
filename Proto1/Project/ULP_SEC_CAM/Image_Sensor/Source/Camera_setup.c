@@ -207,26 +207,12 @@ typedef enum pictureResolution{
 //};
 #endif
 
-//#ifdef ENABLE_JPEG
-//static int CreateJpegHeader(char *header, int width, int height,
-//                            int format, int restart_int, int qscale);
-//static int DefineRestartIntervalMarker(char *pbuf, int ri);
-//static int DefineHuffmanTableMarkerAC
-//                               (char *pbuf, unsigned int *htable, int class_id);
-//static int DefineHuffmanTableMarkerDC
-//                               (char *pbuf, unsigned int *htable, int class_id);
-//static int DefineQuantizationTableMarker
-//                                  (unsigned char *pbuf, int qscale, int format);
-//static int ScanHeaderMarker(char *pbuf, int format);
-//static int FrameHeaderMarker(char *pbuf, int width, int height, int format);
-//static int JfifApp0Marker(char *pbuf);
-//#endif
-
-
-extern uint8_t print_count;
-extern uint8_t valid_case;
 //*****************************************************************************
-//
+//	This function
+//	1. Enables and configures the camera peripheral of CC3200
+//	2. Starts supplying clock to image sensor
+//	3. Resets the image sensor
+//	4. Configures image sensor registers
 //*****************************************************************************
 int32_t Config_CameraCapture()
 {
@@ -275,6 +261,29 @@ int32_t Start_CameraCapture()
 	return lRetVal;
 }
 
+//******************************************************************************
+//	Sets up the global variables used in image capture and storage
+//******************************************************************************
+void ImagCapture_Init()
+{
+    g_block_lastFilled = -1;
+    g_position_in_block = 0;
+	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
+	g_readHeader = 0;
+	g_flag_DataBlockFilled = 0;
+	//memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
+
+	//
+	// Configure DMA in ping-pong mode
+	//
+	DMAConfig();
+
+	return;
+}
+
+//******************************************************************************
+//	Sends commands to MT9D111 restart image capture after waking up from standby
+//******************************************************************************
 int32_t ReStart_CameraCapture(uint16_t* pImageConfig)
 {
 	int32_t lRetVal;
@@ -288,7 +297,11 @@ int32_t ReStart_CameraCapture(uint16_t* pImageConfig)
 	return lRetVal;
 }
 
+//******************************************************************************
+//	Restart image capture in preview mode
+//
 // Note : NWP should be ON and g_image buffer is used
+//******************************************************************************
 int32_t Restart_Camera()
 {
 	Standby_ImageSensor();
@@ -306,32 +319,8 @@ int32_t Restart_Camera()
 	return 0;
 }
 
-void ImagCapture_Init()
-{
-	//uint32_t ulTimeDuration_ms;
-
-    g_block_lastFilled = -1;
-    g_position_in_block = 0;
-	memset((void*)g_flag_blockFull, 0x00 ,NUM_BLOCKS_IN_IMAGE_BUFFER);
-	g_readHeader = 0;
-	g_flag_DataBlockFilled = 0;
-	//memset((void*)g_image_buffer, 0x00, CAM_DMA_BLOCK_SIZE_IN_BYTES);
-	//memset((void*)g_image_buffer, 0x00, IMAGE_BUF_SIZE_BYTES);
-
-//	//
-//	// Initialize camera controller
-//	//
-//	CamControllerInit();
-
-	//
-	// Configure DMA in ping-pong mode
-	//
-	DMAConfig();
-
-	return;
-}
-
 //*****************************************************************************
+//	Puts image sensor in standbyand turns off clock supplied to image sensor
 //	Pair it with Wakeup_ImageSensor()
 //*****************************************************************************
 int32_t Standby_ImageSensor()
@@ -380,6 +369,7 @@ int32_t Standby_ImageSensor()
 }
 
 //*****************************************************************************
+//	Supplies clock to image sensor and wakes it up
 //	Pair it with Standby_ImageSensor()
 //*****************************************************************************
 int32_t Wakeup_ImageSensor()

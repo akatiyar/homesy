@@ -13,15 +13,17 @@
 
 void Calculate_TrueMinMaxAngles();
 
+//******************************************************************************
+//	This function sends objects to parse
+//	param[in] ucClassName - Class of the object to be sent. Can be USER_CONFIGS/
+//							GROUND_DATA/FIRMWARE_VER
+//******************************************************************************
 int32_t SendObject_ToParse(uint8_t ucClassName)
 {
 	ParseClient clientHandle;
 	uint8_t ucFridgeCamID[FRIDGECAM_ID_SIZE];
 	int32_t lRetVal;
 	struct u64_time time_now;
-
-	//LED_On();
-	//LED_Blink_2(.2,1,BLINK_FOREVER);
 
 	//If ground data object is to be sent, the door closed timestamp is best
 	//recorded asap

@@ -10,7 +10,7 @@
 #include "flash_files.h"
 #include "fs.h"
 #include "jpeg.h"
-#include "camera_app.h"	//For g_image_buffer declaration only
+#include "camera_app.h"
 
 #define OFFSET_LUM_QTABLE_INHEADER				25
 #define OFFSET_CHROM_QTABLE_INHEADER			(25+64+1)
@@ -58,6 +58,12 @@ static unsigned char zigzag[64] =
     35,36,48,49,57,58,62,63
 };
 
+//*****************************************************************************
+//	Modify the Luminance and Chrominance quantization tables of the JPEG header
+//	based no the specified image quantization scale
+//
+//	return	0 on success; error message on failure
+//*****************************************************************************
 int32_t Modify_JPEGHeaderFile()
 {
 	SlFsFileInfo_t fileInfo;
@@ -87,9 +93,14 @@ int32_t Modify_JPEGHeaderFile()
 	NWP_SwitchOff();
 
 	return lRetVal;
-
 }
 
+//*****************************************************************************
+//	Calculate the Luminance quantization table based on the quantization scale
+//
+//	param	Qtable - pointer to the start of luminance quantization table
+//	param	qscale - quantization scale
+//*****************************************************************************
 void Get_LumQtable(uint8_t* Qtable, int32_t qscale)
 {
 	int i, temp;
@@ -112,6 +123,13 @@ void Get_LumQtable(uint8_t* Qtable, int32_t qscale)
         *Qtable++ = newtbl[i];
 }
 
+//*****************************************************************************
+//	Calculate the chrominance quantization table based on the quantization
+//	scale
+//
+//	param	Qtable - pointer to the start of chrominance quantization table
+//	param	qscale - quantization scale
+//*****************************************************************************
 void Get_ChromQtable(uint8_t* Qtable, int32_t qscale)
 {
 	int i, temp;

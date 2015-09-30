@@ -13,7 +13,9 @@
 #include "timer_fns.h"
 #include "app_common.h"
 
-uint8_t valid_case;
+uint8_t valid_case;	// If this variable is set, snap-angle match is valid. The
+					// variable is cleared during initialization and set when
+					// door open is detected
 uint8_t avg_buffer_cnt;
 uint8_t isitfirsttime;
 uint8_t print_count;
@@ -33,6 +35,7 @@ void check_doorpos()
 	float angle_reg = 0;
 
 	//--------To prevent 180 degree crossover for small tilts of device--------
+	//Why not @have thisSV_6DOF_GB_BASIC.fLPPhi passed as a parameter to this fn??
 	if(thisSV_6DOF_GB_BASIC.fLPPhi<0)
 	{
 		//temp angle variable.. dont change the actual angle readings structure

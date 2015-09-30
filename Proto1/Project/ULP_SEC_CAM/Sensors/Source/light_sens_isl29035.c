@@ -17,16 +17,15 @@
 #define FLASH_CONFIGS					0
 
 //******************************************************************************
-//
-//  This function does configures ISL29035 registers as needed by the
-//	applicaiton blueprint/mode
+//  This function configures ISL29035
 //
 //	\param[in]	ucAppMode - Unique value that determines the Application mode
-//
-//	\param[in]	Lux_threshold -
-//
-//	/param[in] Trigger - LIGHTON_TRIGGER/LIGHTOFF_TRIGGER
+//	\param[in]	Lux_threshold - light on /ogg threshold
+//	\param[in] Trigger - LIGHTON_TRIGGER/LIGHTOFF_TRIGGER
 //	\return none
+//
+//	Configures registers to (i) find light intensity and (ii) give interrupt on
+//		light on or off condition
 //
 //	\Warning: HARDWARE: Having an LED glowing close-by will simulate LightOn
 ////****************************************************************************
@@ -46,25 +45,7 @@ void configureISL29035(uint8_t ucAppMode,
 	ucConfigArray[i++] = 0xA0;			/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
 	ucConfigArray[i++] = CMD_2_REG;
 	ucConfigArray[i++] = (FS_RANGE_1K | ADC_RES_16);
-	//Work Table
-//	ucConfigArray[i++] = INT_LT_LSB_REG;
-//	ucConfigArray[i++] = 0x00;
-//	ucConfigArray[i++] = INT_LT_MSB_REG;
-//	ucConfigArray[i++] = 0x00;
-//	ucConfigArray[i++] = INT_HT_LSB_REG;
-//	ucConfigArray[i++] = 0XFF;
-//	ucConfigArray[i++] = INT_HT_MSB_REG;
-//	ucConfigArray[i++] = 0x3F;
-	//Fridge
-//	ucConfigArray[i++] = INT_LT_LSB_REG;
-//	ucConfigArray[i++] = 0x00;
-//	ucConfigArray[i++] = INT_LT_MSB_REG;
-//	ucConfigArray[i++] = 0x00;
-//	ucConfigArray[i++] = INT_HT_LSB_REG;
-//	ucConfigArray[i++] = 0x01;
-//	ucConfigArray[i++] = INT_HT_MSB_REG;
-//	ucConfigArray[i++] = 0XFF;
-	//Manual
+
 	if(Trigger == LIGHTON_TRIGGER)
 	{
 		ucConfigArray[i++] = INT_LT_LSB_REG;
@@ -108,7 +89,6 @@ void configureISL29035(uint8_t ucAppMode,
 							&ucConfigArray[i*2 + 1]);
 		PRINT_ON_ERROR(lRetVal);
 	}
-	//UtilsDelay(500*80000/4);
 	UtilsDelay(105*80000/6);	//Wait for a single conversion time (105ms)
 							//So that is the application program requests Lux
 							//immediately after the config, 0 is not returned
@@ -154,13 +134,9 @@ void setThreshold_lightsensor(uint16_t upper_threshold,
 }
 
 //******************************************************************************
-//
 //  This function gets the ISL29035 light sensor data ALS
 //
-//	\param[in]	void
-//
 //	\return 16 bit light sensor data
-//
 ////****************************************************************************
 uint16_t getLightsensor_data(void)
 {
@@ -169,44 +145,25 @@ uint16_t getLightsensor_data(void)
 	uint16_t lux_reading = 0;
 	int32_t lRetVal;
 
-//	uint8_t i;
-//	uint8_t ucConfigArray[] = { CMD_1_REG, 0xA0,
-//									/*( OP_MODE_ALS_ALWAYSON | INT_PERSIST)*/
-//								CMD_2_REG, (FS_RANGE_1K | ADC_RES_16)};
-//
-//	uint8_t ucNoOfConfgs = (sizeof(ucConfigArray))/2;
-//
-//	for (i = 0; i < ucNoOfConfgs; i++)
-//	{
-//		i2cWriteRegisters(ISL29035_I2C_ADDRESS,
-//							ucConfigArray[i*2],
-//							1,
-//							&ucConfigArray[i*2 + 1]);
-//	}
-//
-//	UtilsDelay(.002*80000000/6);
+	//Read data regiser form ISL29035
 	lRetVal = i2cReadRegisters(ISL29035_I2C_ADDRESS, DATA_LSB_REG, 2, databyte);
 	PRINT_ON_ERROR(lRetVal);
-	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];
-	//data = (uint16_t)((databyte[1]<<8) | databyte[0]);
-	//DEBG_PRINT("Lux val: %x %x\n\r", databyte[1], databyte[0]);
-	//LUX = [ RANGE/2^(ADC_Res) ] x data
 
-	lux_reading = (LUX_RANGE/ADC_RANGE) * data;	//commented by uthra for testing
-	//DEBG_PRINT("Lux: %d\n", lux_reading);
+	//Arrange MSB and LSB to get as one short data
+	data = ((uint16_t)(databyte[1]<<8)) | databyte[0];
+
+	//Convert read data to actual Lux value
+	lux_reading = (LUX_RANGE/ADC_RANGE) * data;
 
 	return(lux_reading);
-	//return data;
 }
 
 //******************************************************************************
-//
 //  This function returns the interrupt gpio status of ISL29035
 //
-//	\param[in]	void
+//	\return 1 if high/active; 0 if low/inactive
 //
-//	\return 16 bit 1 is high/active 0 is low/inactive
-//
+//	This function will also clear the interrupt
 ////****************************************************************************
 uint16_t getLightsensor_intrptStatus(void)
 {
@@ -220,13 +177,9 @@ uint16_t getLightsensor_intrptStatus(void)
 }
 
 //******************************************************************************
-//
 //  This function verifies if the device is ISL29035
 //
-//	\param[in]	void
-//
-//	\return 16 bit light sensor data
-//
+//	\return 0 on successful verification; ISL29035_NOT_FOUND on failure
 ////****************************************************************************
 int32_t verifyISL29035(void)
 {
@@ -254,6 +207,7 @@ int32_t verifyISL29035(void)
 
 //******************************************************************************
 //	This function powers down ISL29035
+//
 // current consumed on power down: .3uA
 ////****************************************************************************
 int32_t PowerDown_ISL29035()

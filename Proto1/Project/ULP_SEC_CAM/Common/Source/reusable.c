@@ -53,3 +53,9 @@ unsigned short intToASCII(long long cNum, char *cString)
 
     return (length+1);	//Tag:CS
 }
+
+//		start_100mSecTimer();
+
+//		ulTimeDuration_ms = get_timeDuration();
+//		stop_100mSecTimer();
+//		DEBG_PRINT("Read SensData - %d ms\n\r", ulTimeDuration_ms);

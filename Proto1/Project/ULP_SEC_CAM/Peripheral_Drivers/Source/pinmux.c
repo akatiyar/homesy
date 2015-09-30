@@ -36,11 +36,6 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 7/21/2014 at 3:06:20 PM
-// by TI PinMux version 3.0.334
-//
-//*****************************************************************************
-
 #include "pinmux.h"
 #include "hw_types.h"
 #include "hw_memmap.h"
@@ -52,8 +47,12 @@
 #include "prcm.h"
 
 //*****************************************************************************
-void
-PinMuxConfig(void)
+// Enable clocks to peripherals and set the pin mux
+//
+//	param	none
+//	return	none
+//*****************************************************************************
+void PinMuxConfig(void)
 {
     //
     // Enable Peripheral Clocks 
@@ -142,7 +141,6 @@ PinMuxConfig(void)
 	// Configure PIN_57 for GPIOIn - Wake-Src
 	//
 	MAP_PinTypeGPIO(PIN_57, PIN_MODE_0, false);
-	//MAP_GPIODirModeSet(GPIOA0_BASE, 0x02, GPIO_DIR_MODE_IN);
 	MAP_GPIODirModeSet(GPIOA0_BASE, 0x04, GPIO_DIR_MODE_IN);
 
     //

@@ -23,6 +23,10 @@
 
 #include "simplelink.h"
 
+//*****************************************************************************
+//	Capture image and save it in flash
+//	Used for Previewing image in Configuration mode
+//*****************************************************************************
 int32_t CaptureandSavePreviewImage()
 {
 	SlFsFileInfo_t fileInfo;

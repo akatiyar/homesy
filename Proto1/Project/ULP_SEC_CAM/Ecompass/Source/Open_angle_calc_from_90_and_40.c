@@ -8,7 +8,16 @@
 #include <ecompass.h>
 #include "app.h"
 
-//Determines the Open angle by Interpolation from Angle90 and Angle40
+//******************************************************************************
+//Determines the OPEN angle by Interpolation from angle_40 and angle_90
+//
+//	param[in]	angle_40 - ecompass angle when the door is at 40 degrees from
+//							the fridge
+//	param[in]	angle_90 - ecompass angle when the door is at 90 degrees from
+//							the fridge
+//
+//	return	ecompass angle when door is at 60 degrees (open angle) from fridge
+//******************************************************************************
 float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 {
 	float_t angle_openThreshold, angle_40_temp = 0, angle_90_temp = 0;
@@ -70,4 +79,3 @@ float_t Calculate_DoorOpenThresholdAngle(float_t angle_40, float_t angle_90)
 
 	return angle_openThreshold;
 }
-

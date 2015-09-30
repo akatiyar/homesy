@@ -6,6 +6,7 @@
  */
 
 #include <app_fns.h>
+#include <hibernate.h>
 #include "app.h"
 
 #include "osi.h"
@@ -13,7 +14,6 @@
 #include "app_common.h"
 #include "camera_app.h"
 #include "ota.h"
-#include "hibernate_related_fns.h"
 #include "timer_fns.h"
 #include "flash_files.h"
 #include "dbgFns.h"	//@Can be removed when debug fns are not used

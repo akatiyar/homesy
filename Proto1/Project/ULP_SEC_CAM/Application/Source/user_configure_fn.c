@@ -21,8 +21,8 @@ uint16_t g_shutterwidth=0;
 uint16_t g_Gain[4];
 float_t* g_pfUserConfigData = (float_t*) &g_image_buffer[(USER_CONFIGS_OFFSET_BUF)/sizeof(long)];
 
-int32_t SaveImageConfig();
-int32_t SaveUserConfigs();
+static int32_t SaveImageConfig();
+static int32_t SaveUserConfigs();
 void InitializeUserConfigVariables();	//Shift fn to suitable place
 
 //******************************************************************************
@@ -352,7 +352,7 @@ int32_t User_Configure()
 //****************************************************************************
 //	Save the Image senor configs into flash file
 //****************************************************************************
-int32_t SaveImageConfig()
+static int32_t SaveImageConfig()
 {
 	int32_t lFileHandle;
 	int32_t lRetVal;
@@ -363,6 +363,7 @@ int32_t SaveImageConfig()
 						(uint8_t*)FILENAME_SENSORCONFIGS,
 						CONTENT_LENGTH_SENSORS_CONFIGS, 0);
 
+	//Read the current configurations of the image sensor
 	ReadImageConfigReg(ImageConfigData + (OFFSET_MT9D111/sizeof(uint16_t)));
 
 	lRetVal = WriteFile_ToFlash((uint8_t*)ImageConfigData,
@@ -378,7 +379,7 @@ int32_t SaveImageConfig()
 //	Save the user configs (magnetometer calib, 40, 90 angles wifi credentials)
 //into flash file
 //****************************************************************************
-int32_t SaveUserConfigs()
+static int32_t SaveUserConfigs()
 {
 	int32_t lRetVal;
 	int32_t lFileHandle;
@@ -421,5 +422,4 @@ void InitializeUserConfigVariables()
 	g_ucExitButton = BUTTON_NOT_PRESSED;
 	g_ucConfig= BUTTON_NOT_PRESSED;
 	g_ucCalibration= BUTTON_NOT_PRESSED;
-	g_ucPushButtonPressedTwice = BUTTON_NOT_PRESSED;
 }

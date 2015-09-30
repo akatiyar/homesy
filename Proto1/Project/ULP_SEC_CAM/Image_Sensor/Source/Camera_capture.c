@@ -129,27 +129,14 @@ int32_t CaptureImage(int32_t lFileHandle)
     }
 
     //When the buffer is not fully filled
-    //g_frame_size_in_bytes += (TOTAL_DMA_ELEMENTS*sizeof(unsigned long));
-    //MAP_CameraCaptureStop(CAMERA_BASE, true);
-    //StopTimer();
-    //DEBG_PRINT("pA");
     DEBG_PRINT("Image captured from Sensor\n");
     DEBG_PRINT("g_frame_size_in_bytes: %ld\n", g_frame_size_in_bytes+(TOTAL_DMA_ELEMENTS*sizeof(unsigned long)));
-
-    //float_t fPicCaptureDuration;
-    //GetTimeDuration(&fPicCaptureDuration);
-    //DEBG_PRINT("\n\rImage Capture Duration: %f\n\r", fPicCaptureDuration);
 
     //
     // Write the remaining Image data from RAM to Flash
     //
-    //DEBG_PRINT("g_frame_size_in_bytes-uiImageFile_Offset: %ld\n",(g_frame_size_in_bytes-uiImageFile_Offset));
-    //DEBG_PRINT("g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES: %ld\n",(g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES));
-    //DEBG_PRINT("Leftover inv comp: %ld\n",((g_frame_size_in_bytes-CAM_DMA_BLOCK_SIZE_IN_BYTES) % BLOCK_SIZE_IN_BYTES));
     lRetVal =  sl_FsWrite(lFileHandle, uiImageFile_Offset,
                       (unsigned char *)(g_image_buffer + g_readHeader*BLOCK_SIZE_IN_BYTES/4),
-					  //(g_frame_size_in_bytes - uiImageFile_Offset + CAM_DMA_BLOCK_SIZE_IN_BYTES));
-					  //(g_frame_size_in_bytes - uiImageFile_Offset));
                       ((g_frame_size_in_bytes % BLOCK_SIZE_IN_BYTES) + (TOTAL_DMA_ELEMENTS*sizeof(unsigned long))));
     if (lRetVal <0)
     {
@@ -161,7 +148,6 @@ int32_t CaptureImage(int32_t lFileHandle)
     DEBG_PRINT("Image written to Flash\n");
     RELEASE_PRINT("Image size: %ld\n", uiImageFile_Offset);
 
-    //DEBG_PRINT("Total DMA interrupts : %d\n", g_total_dma_intrpts);
     //DEBG_PRINT("Image Write No of bytes: %ld\n", uiImageFile_Offset);
     //SlFsFileInfo_t FileInfo;
     //uint32_t ulToken = NULL;

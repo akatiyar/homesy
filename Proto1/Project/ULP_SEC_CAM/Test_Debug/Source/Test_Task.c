@@ -18,7 +18,9 @@
 
 #include "nwp.h"
 
-
+//******************************************************************************
+//	This task can be used to run test codes
+//******************************************************************************
 void Test_Task(void *pvParameters)
 {
     long lRetVal;
@@ -106,7 +108,7 @@ void Test_Task(void *pvParameters)
 	while(1);
 #endif
 
-#ifdef COMPLIE_THIS
+#if 0
 	start_periodicInterrupt_timer(2.5);
 	while(1)
 	{
@@ -202,7 +204,7 @@ void Test_Task(void *pvParameters)
 	}
 #endif
 
-#ifdef COMPIL_THIS
+#if 0
 	sl_Start(0,0,0);
 
 	uint8_t FridgeCamID[FRIDGECAM_ID_SIZE];
@@ -251,7 +253,8 @@ void Test_Task(void *pvParameters)
 		UtilsDelay(80000000);
 	}
 #endif
-#ifdef COMPILE_I2CDEVICE_CHECK
+
+#if 0
 	Check_I2CDevices();
 #endif
 

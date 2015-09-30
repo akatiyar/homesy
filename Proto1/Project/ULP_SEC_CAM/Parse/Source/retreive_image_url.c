@@ -8,7 +8,6 @@
 #include "parse_uploads.h"
 
 //******************************************************************************
-//
 //	This function retrives the Parse Allocated Anique ImageName from the HTTP
 //	response sent by Parse in response to Image POST request
 //
@@ -20,7 +19,6 @@
 //
 // 	Warning: Use this function only when you know that the HTTP response is in
 //			the memory pointed by dataBuffer pointer
-//
 //******************************************************************************
 int32_t retreiveImageIDfromHTTPResponse(uint8_t* pucParseImageUrl)
 {

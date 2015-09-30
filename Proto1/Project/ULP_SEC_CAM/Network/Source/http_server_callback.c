@@ -15,8 +15,8 @@ char Value[100]="";
 
 //*****************************************************************************
 //
-//! This function gets triggered when HTTP Server receives Application
-//! defined GET and POST HTTP Tokens.
+//! This function gets triggered when HTTP Server receives GET and POST HTTP
+//!	Tokens (particularly from the Androind app).
 //!
 //! \param pHttpServerEvent Pointer indicating http server event
 //! \param pHttpServerResponse Pointer indicating http server response

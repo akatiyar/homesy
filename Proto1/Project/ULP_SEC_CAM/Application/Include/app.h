@@ -7,7 +7,7 @@
 #include <math.h>
 
 #ifndef NOTERM
-#include "uartA1_if.h"
+#include "uart_if.h"
 #endif
 #include "common.h"
 #include "hw_types.h"
@@ -218,13 +218,13 @@ int16_t g_RawMaxAngle;
 int16_t g_RawMinAngle;
 uint8_t g_ucReasonForFailure;
 
+//Android app buttons state
 unsigned char g_ucProfileAdded;
 unsigned char g_ucAngle90;
 unsigned char g_ucAngle40;
 unsigned char g_ucConfig;
 unsigned char g_ucCalibration;
 unsigned char g_ucExitButton;
-unsigned char g_ucPushButtonPressedTwice;
 unsigned char g_ucPreviewStart;
 unsigned char g_ucPreviewStop;
 unsigned char g_ucAWBOn;

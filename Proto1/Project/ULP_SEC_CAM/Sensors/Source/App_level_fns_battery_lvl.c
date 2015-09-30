@@ -24,17 +24,20 @@ typedef struct VoltageToChargeLookUp
 }V2CLookUp;
 
 //******************************************************************************
+//
+//	This function returns the percent of Battery left
+//
 //	params [none]
 //	return Percentatge of Battery left
 //
-//	This function returns the percent of Battery left
-//	1. Get the ADC value of VA from ADC081C021
+//	Steps:
+//	1. Get the ADC value of VA from ADC081C021. VA is voltage at input pin of
+//		ADC
 //	2. Calculate VA
-//	3. Then VBAT from VA
-//	4. Find the discharge value that corresponds to VBAT using the LUT
-//	5. Calculate percentage charge left from discharge value
+//	3. Then find VBAT from VA. VBAT is voltage across battery
+//	4. Look up the battery percent left that corresponds to VBAT from the LUT
 //
-//	The function does NOT need any cnfiguration to be done before being called
+//	The function does NOT need any configuration to be done before being called
 //
 //******************************************************************************
 uint8_t Get_BatteryPercent()
@@ -59,11 +62,16 @@ uint8_t Get_BatteryPercent()
 											{0,		0}
 										};
 
+	//	Get the ADC value of VA from ADC081C021
 	Get_BatteryVoltageLevel_ADC081C021(&ucADCValue);
 
+	//	Calculate VA
 	fBatteryVoltage = ((float_t)ucADCValue * ONE_LSB_EQUALS) + 0.5 * ONE_LSB_EQUALS;	//Analog Voltage(VA)
-	(fBatteryVoltage) = (fBatteryVoltage) * (RESISTOR_R1 + RESISTOR_R2) / RESISTOR_R2;	//VA = VBAT*R2/(R1+R2)
 
+	//	Find VBAT from VA. VA = VBAT*R2/(R1+R2)
+	(fBatteryVoltage) = (fBatteryVoltage) * (RESISTOR_R1 + RESISTOR_R2) / RESISTOR_R2;
+
+	//	Look up LUT for battery percent corresponding to VA
 	i = 0;
 	while(i<sizeof(V2CEntry)/sizeof(V2CLookUp))
 	{
@@ -80,14 +88,34 @@ uint8_t Get_BatteryPercent()
 	return ChargePercent;
 }
 
+//******************************************************************************
+//
+//	This function returns the voltage across battery
+//
+//	params [none]
+//	return battery voltage
+//
+//	Steps:
+//	1. Get the ADC value of VA from ADC081C021. VA is voltage at input pin of
+//		ADC
+//	2. Calculate VA
+//	3. Then find VBAT from VA. VBAT is voltage across battery
+//
+//	The function does NOT need any configuration to be done before being called
+//
+//******************************************************************************
 float_t Get_BatteryVoltage()
 {
 	float_t fBatteryVoltage;
 	uint8_t ucADCValue;
 
+	//	Get the ADC value of VA from ADC081C021
 	Get_BatteryVoltageLevel_ADC081C021(&ucADCValue);
 
+	//	Calculate VA
 	fBatteryVoltage = ((float_t)ucADCValue * ONE_LSB_EQUALS) + 0.5 * ONE_LSB_EQUALS;	//Analog Voltage(VA)
+
+	//	Find VBAT from VA. VA = VBAT*R2/(R1+R2)
 	(fBatteryVoltage) = (fBatteryVoltage) * (RESISTOR_R1 + RESISTOR_R2) / RESISTOR_R2;	//VA = VBAT*R2/(R1+R2)
 
 	DEBG_PRINT("ADC Value= %xH, VBAT = %3.3f\n", ucADCValue, fBatteryVoltage);

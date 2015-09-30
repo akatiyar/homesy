@@ -24,8 +24,8 @@ int16_t fxos_Calibration();
 int16_t fxosDefault_Initializations();
 
 //******************************************************************************
-//	This function does magnetometer calibration and saves the calibration values
-//		in flash file
+//	This function does magnetometer calibration
+//	Results are stored in global variable
 //******************************************************************************
 int32_t Get_Calibration_MagSensor()
 {
@@ -49,7 +49,7 @@ int32_t Get_Calibration_MagSensor()
 	{
 		g_ucMagCalb = 0;
 
-		//Initialize magnetometer
+		//Initialize magnetometer and variables for sensor fusion library
 		fxosDefault_Initializations();
 
 		// One calibration trial

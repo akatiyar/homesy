@@ -7,6 +7,14 @@
 
 #include <ecompass.h>
 
+//******************************************************************************
+//	Magnetometer calibration
+//	This function:
+//		1. Reads sensor data
+//		2. update magnetometer buffer
+//		3. Runs calibration function
+//	Call this function repeatedly for calibrating the magnetometer
+//******************************************************************************
 int16_t fxos_Calibration()
 {
 	mqxglobals.RunKF_Event_Flag = 0;
@@ -17,7 +25,7 @@ int16_t fxos_Calibration()
 	mqxglobals.MagCal_Event_Flag = 0;
 	if(mqxglobals.RunKF_Event_Flag == 1)
 	{
-		// call the sensor fusion algorithm
+		// call the sensor fusion algorithm to update magnetometer buffer
 		Fusion_Run();
 	}
 
@@ -25,7 +33,6 @@ int16_t fxos_Calibration()
 	{
 		// call the calibration algorithm
 		MagCal_Run(&thisMagCal, &thisMagBuffer);
-		//DEBG_PRINT("m* %d\n\r", i);
 	}
 
 	return 0;

@@ -58,7 +58,6 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucSensorDataTxt);
 
 //*****************************************************************************
-//
 //	This function uploads image to Parse.com
 //
 //	param[in]	client
@@ -68,7 +67,6 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 //	Description: Upload is done using POST request. Construction of the packet
 //	is handled within. The function also gives the Unique ImageName for the
 //	image posted.
-//
 //*****************************************************************************
 int32_t UploadImageToParse(ParseClient client,
 							uint8_t* pucImageFileName,
@@ -99,15 +97,18 @@ int32_t UploadImageToParse(ParseClient client,
 }
 
 //*****************************************************************************
-//
 //	This function uploads device state / sensor data to Parse.com
 //
-//	param[in]	client
+//	param[in]	client - parse client pointer initialised earlier
+//	param[in]	pucFridgeCamID - Pointer to FridgeCamID string
+//	param[in]	pucParseImageUrl - pointer to unique ImageName character array
+//	param[in]	fTemp - Temperature
+//	param[in]	fRH - Relative Humidity
+//	param[in]	ucBatteryLevel - battery level
 //	param[in]	sensorDataFileName - Pointer to Flash file name of Sensor Data
 //
 //	Description: Upload is done using POST request. Construction of the packet
 //	is handled within.
-//
 //*****************************************************************************
 int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 								uint8_t* pucParseImageUrl, float_t fTemp,
@@ -150,20 +151,18 @@ int32_t UploadSensorDataToParse(ParseClient client, uint8_t* pucFridgeCamID,
 }
 
 //******************************************************************************
-//
 //	This function constructs the JSON DeviceStae object that is to be uploaded
 //	to cloud server
 //
+//	param[in]	pucFridgeCamID - Pointer to FridgeCamID string
 //	param[in]	pucParseImageUrl - pointer to unique ImageName character array
 //	param[in]	fTemp - Temperature
 //	param[in]	fRH - Relative Humidity
+//	param[in]	ucBatteryLevel - battery level
 //	param[out]	pucSensorDataTxt - pointer to location where the json object is
 //							to be put
 //
 //	return none
-//
-//	String functions are used
-//
 //******************************************************************************
 int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucParseImageUrl,
@@ -217,7 +216,6 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 }
 
 //*****************************************************************************
-//
 //	This function uploads Ground Data Object to Parse.com
 //
 //	param[in]	client
@@ -225,7 +223,6 @@ int32_t ConstructDeviceStateObject(uint8_t* pucFridgeCamID,
 //
 //	Description: Upload is done using POST request. Construction of the packet
 //	is handled within.
-//
 //*****************************************************************************
 int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamID)
 {
@@ -253,7 +250,6 @@ int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 }
 
 //******************************************************************************
-//
 //	This function constructs the JSON GroundData object that is to be uploaded
 //	to cloud server (Parse.com)
 //
@@ -261,9 +257,6 @@ int32_t UploadGroundDataObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 //							is to be put
 //
 //	return none
-//
-//	String functions are used
-//
 //******************************************************************************
 int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucGroundDataObject)
@@ -344,15 +337,13 @@ int32_t ConstructGroundDataObject(uint8_t* pucFridgeCamID,
 }
 
 //*****************************************************************************
-//
-//	This function uploads Ground Data Object to Parse.com
+//	This function uploads UserConfig Object to Parse.com
 //
 //	param[in]	client
 //	param[in]	pucFridgeCamID - Pointer to FridgeCamID string
 //
 //	Description: Upload is done using POST request. Construction of the packet
 //	is handled within.
-//
 //*****************************************************************************
 int32_t UploadUserConfigObjectToParse(ParseClient client, uint8_t* pucFridgeCamID)
 {
@@ -380,7 +371,6 @@ int32_t UploadUserConfigObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 }
 
 //******************************************************************************
-//
 //	This function constructs the JSON GroundData object that is to be uploaded
 //	to cloud server (Parse.com)
 //
@@ -390,7 +380,6 @@ int32_t UploadUserConfigObjectToParse(ParseClient client, uint8_t* pucFridgeCamI
 //	return none
 //
 //	String functions are used
-//
 //******************************************************************************
 int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 									uint8_t* pucUserConfigObject)
@@ -451,7 +440,6 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 }
 
 //*****************************************************************************
-//
 //	This function uploads FirmwareVersion Object to Parse.com
 //
 //	param[in]	client
@@ -459,8 +447,6 @@ int32_t ConstructUserConfigObject(uint8_t* pucFridgeCamID,
 //
 //	Description: Upload is done using POST request. Construction of the packet
 //	is handled within.
-//
-//*****************************************************************************
 int32_t UploadFirmwareVersionObjectToParse(ParseClient client, uint8_t* pucFridgeCamID)
 {
 	int32_t lRetVal = -1;

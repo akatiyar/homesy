@@ -1,0 +1,17 @@
+List of changes made to the downloaded Sensor Fusion library:
+1. The following files are removed:
+		Events.c
+		mqx_task.c
+		user_task.c
+		main.c
+2. Functions belonging to other Sensor Fusion devices are commented off in 
+	driver.c, fusion.c
+3. THISCOORDSYSTEM set to WIN8 in build.h
+4. OVERSAMPLE_RATIO set to 2 in build.h
+5. New FXOS8700_Init() and FXOS8700_ReadData() based on lower layer of FXOS8700 
+	in driver.c
+6. Global variable update on getting a calibration added in tasks.c
+7. In fusion.c, LPF is bypassed when loopcounter<=2
+8. In fusion.c, if(THISCOORDSYSTEM == NED) is changed to 
+	#if THISCOORDSYSTEM == NED 
+9. Some debug prints and comments are added here and there

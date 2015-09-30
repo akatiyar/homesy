@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <uart_if.h>
 
 // Driverlib includes
 #include "hw_types.h"
@@ -51,7 +52,6 @@
 #include "rom.h"
 #include "rom_map.h"
 
-#include "uartA1_if.h"
 
 #define IS_SPACE(x)       (x == 32 ? 1 : 0)
 

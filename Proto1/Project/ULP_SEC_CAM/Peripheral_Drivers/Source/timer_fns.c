@@ -29,13 +29,17 @@ void ISR_periodicInterrupt_timer();
 void IntHandler_100mSecTimer(void);
 void IntHandler_1Sec_TimeoutTimer(void);
 
+//* * * * * * * * * * * * 100ms timer. TimerA0 is used * * * * * * * * * * * * *
+
 //******************************************************************************
-// 100ms timer. TimerA0 is used
+//	Start the 100ms timer
+//
+//	Enable clock, configure timer, set reload value and interrupt handler and
+//	start timer
 //******************************************************************************
 int32_t start_100mSecTimer()
 {
 	//DEBG_PRINT("100msTimr Start\n");
-	//Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, (TIMER_CFG_PERIODIC|0x00000080), TIMER_A, 0);
 	Timer_IF_Init(PRCM_TIMERA0, TIMERA0_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA0_BASE, TIMER_A, IntHandler_100mSecTimer);
 	Timer_IF_Start(TIMERA0_BASE, TIMER_A, RELOADVAL_100MILLISEC);
@@ -44,28 +48,25 @@ int32_t start_100mSecTimer()
 	return 0;
 }
 
+//******************************************************************************
+//	100ms interrupt handler
+//
+//	Clear interrupt, set a bit, increase the number of 100 milliseconds lapsed
+//******************************************************************************
 void IntHandler_100mSecTimer(void)
 {
-	//uint32_t timeNow, timeAtInterrupt;
-	//timeAtInterrupt = TimerValueGet(TIMERA0_BASE, TIMER_A);
-	//timeNow = TimerValueGet_FreeRunningVal(TIMERA0_BASE, TIMER_A);
 	Timer_IF_InterruptClear(TIMERA0_BASE);
 	Elapsed_100MilliSecs++;
 	checkForLight_Flag = 1;
-	//DEBG_PRINT("TimeAtInterrupt: %d, TimeNow: %d\n", timeAtInterrupt, timeNow);
-	//DEBG_PRINT("%d ",Elapsed_100MilliSecs);
-
-//	if(Elapsed_100MilliSecs%2)
-//	{
-//		LED_On();
-//	}
-//	else
-//	{
-//		LED_Off();
-//	}
 }
 
+//******************************************************************************
+//	Get the time duration since the start of 100ms timer
+//
+//	return	duration lapsed since start of timer in milli seconds
+//
 //	Use this function along with 100 milli sec timer only. Before stopping timer
+//******************************************************************************
 uint32_t get_timeDuration()
 {
 	uint32_t ulCounter;
@@ -80,19 +81,26 @@ uint32_t get_timeDuration()
 	return ulDurationMilliSec;
 }
 
+//******************************************************************************
+//	Stop the 100ms timer
+//
+//	Stop timer and disable clock to the timer peripheral
+//******************************************************************************
 int32_t stop_100mSecTimer()
 {
 	//DEBG_PRINT("100msTimr Stop\n");
-	//DEBG_PRINT("e.1\n");
 	Timer_IF_Stop(TIMERA0_BASE, TIMER_A);
-	//DEBG_PRINT("e.2\n");
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
-	//DEBG_PRINT("e.3\n");
 	return 0;
 }
 
+//* * * * * * * * * * * * * 1 s timer. TimerA0 is used * * * * * * * * * * * * *
+
 //******************************************************************************
-// 100ms timer. TimerA0 is used
+//	Start the 1s timer
+//
+//	Enable clock, configure timer, set reload value and interrupt handler and
+//	start timer
 //******************************************************************************
 int32_t start_1Sec_TimeoutTimer()
 {
@@ -104,6 +112,13 @@ int32_t start_1Sec_TimeoutTimer()
 
 	return 0;
 }
+
+//******************************************************************************
+//	1s interrupt handler
+//
+//	Clear interrupt, set a bit if camera timeout happened, increase the number
+//	of seconds lapsed
+//******************************************************************************
 void IntHandler_1Sec_TimeoutTimer(void)
 {
 	Timer_IF_InterruptClear(TIMERA0_BASE);
@@ -113,8 +128,13 @@ void IntHandler_1Sec_TimeoutTimer(void)
 	{
 		captureTimeout_Flag  = 1;
 	}
-
 }
+
+//******************************************************************************
+//	Stop the 1s timer
+//
+//	Stop timer and disable clock to the timer peripheral
+//******************************************************************************
 int32_t stop_1Sec_TimeoutTimer()
 {
 	//DEBG_PRINT("1sTimr Stop\n");
@@ -124,53 +144,62 @@ int32_t stop_1Sec_TimeoutTimer()
 	return 0;
 }
 
+//* * * * * * * * * Generic periodic timer. TimerA1 is used * * * * * * * * * *
+// 	This timer issues a periodic interrupt and sets a flag
+//	Period can be specified
+//	Use this for actions that have to be done periodically like reading data
+//	from a peripheral device. Uses TimerA1
+//* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 //******************************************************************************
-// This timer issues a periodic interrupt and sets a flag, period can be
-//specified. Use this for actions that have to be done periodically like reading
-//data from a peripheral.
-//Uses TimerA1
+//	Start the periodic timer
+//
+//	param	period of the timer in milli seconds
+//
+//	Enable clock, configure timer, set reload value and interrupt handler and
+//	start timer
 //******************************************************************************
 int32_t start_periodicInterrupt_timer(float_t f_InterruptInterval_ms)
 {
-
 	//DEBG_PRINT("PerTimr Start\n");
 	Timer_IF_Init(PRCM_TIMERA1, TIMERA1_BASE, TIMER_CFG_PERIODIC, TIMER_A, 0);
 	Timer_IF_IntSetup(TIMERA1_BASE, TIMER_A, ISR_periodicInterrupt_timer);
-
-	//Timer_IF_Start(TIMERA1_BASE, TIMER_A, RELOADVAL_1SEC);
 	g_ulReloadVal = (uint32_t)(f_InterruptInterval_ms * (float_t)SYSTEM_CLOCK/1000.0F);
 	MAP_TimerLoadSet(TIMERA1_BASE,TIMER_A,g_ulReloadVal);
 	MAP_TimerEnable(TIMERA1_BASE,TIMER_A);
 
 	doPeriodicAction_flag = 0;
-//	Elapsed_100MilliSecs = 0;//Rm
 
 	return 0;
 }
+
+//******************************************************************************
+//	Periodic timer interrupt handler
+//
+//	Clear interrupt, set a bit
+//******************************************************************************
 void ISR_periodicInterrupt_timer()
 {
-	//DEBG_PRINT("i");
-	/*if(doPeriodicAction_flag != 0)
-	{
-		DEBG_PRINT("Watchout!\n");
-	}*/
 	doPeriodicAction_flag = 1;
 	Timer_IF_InterruptClear(TIMERA1_BASE);
-//	DEBG_PRINT("i");
-//	Elapsed_100MilliSecs++;//Rm
-//	if(Elapsed_100MilliSecs >= 2000)
-//	{
-//		DEBG_PRINT("Stp timer");
-//		stop_periodicInterrupt_timer();
-//	}
 }
+
+//******************************************************************************
+//	Reload the period to the counter
+//******************************************************************************
 int32_t reload_periodicTimer()
 {
 	MAP_TimerLoadSet(TIMERA1_BASE,TIMER_A,g_ulReloadVal);
 	doPeriodicAction_flag = 0;
+
 	return 0;
 }
+
+//******************************************************************************
+//	Stop the periodic timer
+//
+//	Stop timer and disable clock to the timer peripheral
+//******************************************************************************
 int32_t stop_periodicInterrupt_timer()
 {
 	//DEBG_PRINT("PerTimr Stop\n");
@@ -180,10 +209,22 @@ int32_t stop_periodicInterrupt_timer()
 	return 0;
 }
 
-
+//* * * * * * * * * * * * * LED timer. TimerA2 is used * * * * * * * * * * * * *
+//	It is a periodic timer with a period of 100 ms. Has a special interrupt used
+//	only for blinking LED with different duty cycles and durations
+//* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 uint8_t cnt_LED_Timer;
 volatile int8_t g_BlinkCount;
 
+//******************************************************************************
+//	LED timer interrupt handler
+//
+//	Does the following:
+//		Clear interrupt
+//		Increments count
+//		Toggles LED GPIO and reset count on end of on time or off time
+//		If blink count is over, timer is stopped
+//******************************************************************************
 void IntrptHandler_LEDTimer()
 {
 	Timer_IF_InterruptClear(TIMERA2_BASE);
@@ -213,6 +254,12 @@ void IntrptHandler_LEDTimer()
 		}
 	}
 }
+
+//******************************************************************************
+//	Enables LED timer
+//
+//	Enable clock to the timer, configure timer and set up the interrupt handler
+//******************************************************************************
 int32_t LEDTimer_Enable()
 {
 	MAP_PRCMPeripheralClkEnable(PRCM_TIMERA2, PRCM_RUN_MODE_CLK);
@@ -225,12 +272,22 @@ int32_t LEDTimer_Enable()
 
 	return 0;
 }
+
+//******************************************************************************
+//	Stop the LED timer
+//******************************************************************************
 int32_t LEDTimer_Stop()
 {
 	MAP_TimerDisable(TIMERA2_BASE, TIMER_A);
 
 	return 0;
 }
+
+//******************************************************************************
+//	Start the LED timer
+//
+//	Reload value is set to 100ms and timer is started to run
+//******************************************************************************
 int32_t LEDTimer_Start()
 {
 	cnt_LED_Timer = 0;
@@ -241,10 +298,13 @@ int32_t LEDTimer_Start()
 
 	return 0;
 }
+
+//******************************************************************************
+//	Disable clock to LED timer
+//******************************************************************************
 int32_t LEDTimer_Disable()
 {
 	MAP_PRCMPeripheralClkDisable(PRCM_TIMERA2, PRCM_RUN_MODE_CLK);
 
 	return 0;
 }
-

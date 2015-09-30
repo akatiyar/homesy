@@ -38,20 +38,15 @@
 #define	VALUE_CONFIGREG_ALERTPOLARITYFIELD_HI	0X00
 
 //******************************************************************************
+//	This function gets the 8-bit ADC data
 //
-//	This function gets the voltage level of battery from the ADC
-//
-//	param[out] - pointer to a float variable to hold the battery level
-//
+//	param[out] - character pointer to place ADC data
 //	return  - SUCCESS/failure code
-//
 //******************************************************************************
 int32_t Get_BatteryVoltageLevel_ADC081C021(uint8_t* pucADCValue)
 {
 	int32_t lRetVal;
 	uint8_t ucDataRegVal[2];
-//	uint8_t ucADCValue;
-//	uint16_t usDataRegVal;
 
 	lRetVal = i2cReadRegisters(ADC081C021_I2C_ADDRESS, POINTER_ADDR_DATA_REG,
 								LENGTH_IS_TWO, ucDataRegVal);
